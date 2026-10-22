@@ -19,11 +19,13 @@ import {
   ClipboardCheck,
   Printer,
   Undo2,
+  SlidersHorizontal,
 } from "lucide-react";
 import { api, formatDate, formatPrice, useList } from "./adminApi";
 import { ErrorBox, btnGhost, btnPrimary, card, inputClass } from "./Ui";
 import { useRealtimeAdminOrders } from "@/lib/Firebase";
 import QuickOrderModal from "./QuickOrderModal";
+import AvailabilityModal from "./AvailabilityModal";
 import {
   printOrderTicket,
   claimPrint,
@@ -465,6 +467,7 @@ export default function OrdersPanel() {
   const [notification, setNotification] = useState(null);
   const [lastAction, setLastAction] = useState(null);
   const [quickOrderOpen, setQuickOrderOpen] = useState(false);
+  const [availabilityOpen, setAvailabilityOpen] = useState(false);
   const [mobileCol, setMobileCol] = useState("confirmed");
   const [now, setNow] = useState(() => Date.now());
   const [autoPrint, setAutoPrint] = useState(true);
@@ -861,18 +864,20 @@ export default function OrdersPanel() {
         />
       )}
 
+      {/* Availability Management Modal */}
+      {availabilityOpen && (
+        <AvailabilityModal onClose={() => setAvailabilityOpen(false)} />
+      )}
+
       {/* Barre unique : état, recherche, impression auto, actions */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 whitespace-nowrap">
-          {extra.total ?? items.length} active{(extra.total ?? items.length) > 1 ? "s" : ""}
-        </span>
+      
         {connected ? (
           <span
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap"
             title="Synchronisation temps réel Firebase active"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            Temps réel
           </span>
         ) : (
           <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap">
@@ -949,7 +954,17 @@ export default function OrdersPanel() {
           </span>
         </button>
 
-         <button
+        <button
+          type="button"
+          onClick={() => setAvailabilityOpen(true)}
+          className={`${btnGhost} flex items-center gap-1.5 text-xs sm:text-sm whitespace-nowrap hover:border-orange-400 hover:text-orange-600`}
+          title="Gérer la disponibilité des produits et options (stocks)"
+        >
+          <SlidersHorizontal className="w-4 h-4 text-orange-500" />
+          Disponibilité
+        </button>
+
+        <button
           type="button"
           onClick={() => setQuickOrderOpen(true)}
           className={`${btnPrimary} flex items-center gap-1.5 text-xs sm:text-sm whitespace-nowrap shadow-md shadow-orange-500/25`}

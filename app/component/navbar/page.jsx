@@ -312,7 +312,7 @@ export default function AppNavbar({}) {
         animate={{ y: headerHidden ? "-250%" : "0%" }}
         transition={{ type: "tween", duration: 0.3, ease: "easeOut" }}
         style={{ pointerEvents: headerHidden ? "none" : "auto" }}
-        className="sticky top-0 bg-white text-black drop-shadow-md px-3 sm:px-6 lg:px-8 py-2.5 sm:py-4 z-50 w-full"
+        className="sticky top-0 bg-white text-black drop-shadow-md header-safe-area pb-2.5 sm:pb-4 z-50 w-full"
       >
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -537,7 +537,7 @@ export default function AppNavbar({}) {
           {mounted &&
             createPortal(
               <nav
-                className="lg:hidden fixed bottom-0 inset-x-0 z-50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+                className="lg:hidden fixed bottom-0 inset-x-0 z-50 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
                 aria-label="Navigation principale"
               >
                 <div className="mx-auto max-w-md flex items-end rounded-3xl border border-black/5 bg-white/90 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.18)] px-1 py-1.5">

@@ -32,7 +32,10 @@ function HorizontalSteps({ steps, title }) {
   return (
     <div className="px-4 pt-4">
       <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-3">{title}</p>
-      <ol ref={ref} className="flex overflow-x-auto pb-2 snap-x [scrollbar-width:none]">
+      <ol
+        ref={ref}
+        className="flex overflow-x-auto overflow-y-hidden overscroll-x-contain pb-3 snap-x snap-mandatory [scrollbar-width:thin] [scrollbar-color:#fdba74_transparent]"
+      >
         {steps.map((h, i) => {
           const isCurrent = i === steps.length - 1;
           return (
@@ -282,7 +285,8 @@ export default function TrackModal({ t, initialPhone = "", autoSearch = false, o
                   )}
                 </div>
 
-                <ul className="space-y-4 max-h-[55vh] overflow-y-auto pr-1">
+                {/* No inner vertical scroll: the modal itself scrolls */}
+                <ul className="space-y-4">
                   {activeOrders.map((o, i) => (
                     <TrackedOrder key={o.reference || i} order={o} t={t} />
                   ))}

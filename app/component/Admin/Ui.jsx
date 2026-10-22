@@ -31,7 +31,7 @@ export function Modal({ title, onClose, footer, wide = false, children }) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`flex flex-col w-full ${wide ? "sm:max-w-2xl" : "sm:max-w-lg"} max-h-[92vh] bg-white rounded-t-3xl sm:rounded-3xl border border-gray-200 shadow-2xl`}
+        className={`flex flex-col w-full ${typeof wide === "string" ? wide : wide ? "sm:max-w-2xl" : "sm:max-w-lg"} max-h-[92vh] bg-white rounded-t-3xl sm:rounded-3xl border border-gray-200 shadow-2xl`}
       >
         <div className="flex items-center justify-between gap-4 px-6 pt-5 pb-4 border-b border-gray-100">
           <h2 className="text-xl font-extrabold text-gray-900">{title}</h2>

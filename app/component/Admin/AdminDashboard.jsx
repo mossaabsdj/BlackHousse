@@ -392,7 +392,7 @@ export default function AdminDashboard() {
       {/* ============================================================== */}
       {/* 2. MOBILE TOP BAR HEADER (Preserved unchanged)                 */}
       {/* ============================================================== */}
-      <header className="lg:hidden sticky top-0 z-30 bg-zinc-950 text-white px-4 py-3 flex items-center justify-between shadow-md border-b border-zinc-800">
+      <header className="lg:hidden sticky top-0 z-30 bg-zinc-950 text-white admin-header-safe-area pb-3 flex items-center justify-between shadow-md border-b border-zinc-800">
         <div className="flex items-center gap-2.5">
           <button
             type="button"

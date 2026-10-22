@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import Overlay from "./Overlay";
-import { Stepper, Thumb, primaryBtn } from "./UI";
+import { Stepper, primaryBtn } from "./UI";
 import {
   cleanSelection,
   defaultSelection,
@@ -12,6 +12,24 @@ import {
   sanitizeSelection,
   unitPriceOf,
 } from "./Logic";
+
+/** Image with a gradient + initial fallback (outside the component so it keeps its own state) */
+function Thumb2({ src, name, className = "" }) {
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) {
+    return (
+      <div
+        aria-hidden="true"
+        className={`flex items-center justify-center bg-gradient-to-br from-orange-100 to-gray-200 text-orange-600 font-extrabold text-2xl ${className}`}
+      >
+        {(name || "?").trim().charAt(0).toUpperCase()}
+      </div>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+<></>  );
+}
 
 export default function ProductModal({ product, mode = "add", initialSelection, initialQuantity = 1, level = 0, t, onClose, onSubmit }) {
   const p = t.product;
@@ -24,20 +42,7 @@ export default function ProductModal({ product, mode = "add", initialSelection, 
   const missing = useMemo(() => missingGroups(product, selection), [product, selection]);
   const missingIds = new Set(missing.map((g) => g.id));
   const total = unitPriceOf(product, selection) * quantity;
- function Thumb2({ src, name, className = "" }) {
-  const [failed, setFailed] = useState(false);
-  if (!src || failed) {
-    return (
-      <div
-        aria-hidden="true"
-        className={`flex items-center justify-center bg-gradient-to-br from-orange-100 to-gray-200 text-orange-600 font-extrabold text-2xl ${className}`}
-      >
-        {(name || "?").trim().charAt(0).toUpperCase()}
-      </div>
-    );
-  }
-  
-}
+
   const toggle = (g, o) => {
     if (!o.available) return;
     setSelection((prev) => {
@@ -90,38 +95,42 @@ export default function ProductModal({ product, mode = "add", initialSelection, 
               <legend className="w-full flex items-center justify-between gap-3 mb-2">
                 <span className="font-bold text-gray-900">{g.name}</span>
                 <span className={`text-xs font-semibold ${invalid ? "text-red-600" : "text-gray-500"}`}>
-                  {g.required ? p.required : p.optional} · {groupHint(g, t)}
+                  {groupHint(g, t)}
                 </span>
               </legend>
-              {g.options.map((o) => {
-                const checked = chosen.includes(o.id);
-                const disabled = !o.available || (multi && !checked && chosen.length >= g.max);
-                return (
-                  <label
-                    key={o.id}
-                    className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition ${
-                      checked ? "border-orange-500 bg-orange-50" : "border-gray-200 bg-white hover:border-orange-300"
-                    } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                  >
-                    <input
-                      type={multi ? "checkbox" : "radio"}
-                      name={g.id}
-                      checked={checked}
-                      disabled={disabled}
-                      onChange={() => {}}
-                      onClick={() => toggle(g, o)}
-                      className="w-4 h-4 accent-orange-500"
-                    />
-                    <span className="flex-1 text-sm font-semibold text-gray-900">
-                      {o.name}
-                      {!o.available && <span className="font-normal text-gray-500"> ({t.unavailable})</span>}
-                    </span>
-                    {o.price > 0 && (
-                      <span className="text-sm text-gray-600">+ {formatPrice(o.price, t.currency)}</span>
-                    )}
-                  </label>
-                );
-              })}
+
+              {/* Options in a horizontal, wrapping row */}
+              <div className="flex flex-wrap gap-2">
+                {g.options.map((o) => {
+                  const checked = chosen.includes(o.id);
+                  const disabled = !o.available || (multi && !checked && chosen.length >= g.max);
+                  return (
+                    <label
+                      key={o.id}
+                      className={`flex items-center gap-2 rounded-2xl border px-4 py-2.5 transition ${
+                        checked ? "border-orange-500 bg-orange-50" : "border-gray-200 bg-white hover:border-orange-300"
+                      } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                    >
+                      <input
+                        type={multi ? "checkbox" : "radio"}
+                        name={g.id}
+                        checked={checked}
+                        disabled={disabled}
+                        onChange={() => {}}
+                        onClick={() => toggle(g, o)}
+                        className="w-4 h-4 accent-orange-500"
+                      />
+                      <span className="text-sm font-semibold text-gray-900">
+                        {o.name}
+                        {!o.available && <span className="font-normal text-gray-500"> ({t.unavailable})</span>}
+                      </span>
+                      {o.price > 0 && (
+                        <span className="text-sm text-gray-600">+ {formatPrice(o.price, t.currency)}</span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
             </fieldset>
           );
         })}

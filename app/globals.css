@@ -132,3 +132,32 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* iOS PWA Safe Area Utilities */
+.header-safe-area {
+  padding-top: calc(0.625rem + env(safe-area-inset-top, 0px));
+  padding-left: max(0.75rem, calc(0.75rem + env(safe-area-inset-left, 0px)));
+  padding-right: max(0.75rem, calc(0.75rem + env(safe-area-inset-right, 0px)));
+}
+
+@media (min-width: 640px) {
+  .header-safe-area {
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    padding-left: max(1.5rem, calc(1.5rem + env(safe-area-inset-left, 0px)));
+    padding-right: max(1.5rem, calc(1.5rem + env(safe-area-inset-right, 0px)));
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-safe-area {
+    padding-left: max(2rem, calc(2rem + env(safe-area-inset-left, 0px)));
+    padding-right: max(2rem, calc(2rem + env(safe-area-inset-right, 0px)));
+  }
+}
+
+.admin-header-safe-area {
+  padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+  padding-left: max(1rem, calc(1rem + env(safe-area-inset-left, 0px)));
+  padding-right: max(1rem, calc(1rem + env(safe-area-inset-right, 0px)));
+}
+
