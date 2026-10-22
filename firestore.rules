@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Orders Collection
+    // Read: Allowed so customers can track their specific order in real time and admins can view orders.
+    // Write: Strictly FORBIDDEN from client SDKs. All order creation and status changes MUST go through
+    // the server API (POST /api/orders & PATCH /api/admin/orders/[reference]) where database consistency,
+    // idempotency, and admin authorization are enforced.
+    match /orders/{orderId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Products Collection
+    // Read: Allowed for all connected users so menu and product availability stays synchronized.
+    // Write: Strictly FORBIDDEN from client SDKs. Only the server (admin authenticated routes) can update products.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Real-time Events Collection (new orders, status changes)
+    // Read: Allowed for listening to real-time notification broadcasts.
+    // Write: Strictly FORBIDDEN from client SDKs.
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Default: Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

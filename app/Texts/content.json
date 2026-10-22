@@ -1,0 +1,771 @@
+{
+  "TitleApp": "Ski Agrotour luxe",
+  "logo": "/images/logo.png",
+ 
+  "FirstPage": {
+    "badge": "BlackHousse",
+    "title": "Le goût du <span style='color:#f97316'>plaisir</span>, à chaque bouchée.",
+    "description": "Tacos généreux, pizzas savoureuses, calzones gourmandes, poutines irrésistibles et bien d’autres délices. Chez BlackHousse, il y en a pour toutes les envies : des portions généreuses, des saveurs uniques et le plaisir de bien manger.",
+    "button": "Commander maintenant",
+    "tags": [
+      "🌮 Tacos généreux",
+      "🍕 Pizzas savoureuses",
+      "🧀 Poutines gourmandes",
+      "🛵 Livraison disponible"
+    ],
+    "image": {
+      "src": "/images/logo.png",
+      "alt": "Les spécialités gourmandes de BlackHousse",
+      "width": 800,
+      "height": 800
+    }
+  }
+,
+  "FeedbackPage": {
+    "badge": "BlackHousse",
+    "title": "Ce que nos clients <span style='color:#f97316'>disent</span>\nde nous.",
+    "description": "Un burger parfait ? Une attente trop longue ? Lisez les avis de nos clients et partagez le vôtre en quelques secondes.",
+    "addButton": "Ajouter un avis",
+    "floatingIcons": [
+      "🍔",
+      "🍟",
+      "🍕",
+      "🌮",
+      "🥤",
+      "🍰"
+    ],
+    "reviewsTitle": "Les avis de nos clients",
+    "reviewsSubtitle": "Des retours sincères pour nous aider à servir toujours mieux.",
+    "reviewsCount": "avis",
+    "showMore": "Voir plus d'avis",
+    "anonymous": "Client BlackHousse",
+    "justNow": "À l'instant",
+    "modalTitle": "Donnez votre avis",
+    "modalDescription": "Votre retour nous aide à améliorer chaque burger.",
+    "close": "Fermer",
+    "nameLabel": "Votre prénom (facultatif)",
+    "namePlaceholder": "Ex : Amine",
+    "ratingLabel": "Votre note",
+    "ratingIcon": "🍔",
+    "ratingHints": [
+      "Décevant",
+      "Moyen",
+      "Bien",
+      "Très bon",
+      "Excellent !"
+    ],
+    "topicsLabel": "Qu'avez-vous aimé ?",
+    "topics": [
+      {
+        "id": "burgers",
+        "label": "Burgers",
+        "icon": "🍔"
+      },
+      {
+        "id": "tacos",
+        "label": "Tacos",
+        "icon": "🌮"
+      },
+      {
+        "id": "pizzas",
+        "label": "Pizzas",
+        "icon": "🍕"
+      },
+      {
+        "id": "drinks",
+        "label": "Boissons",
+        "icon": "🥤"
+      },
+      {
+        "id": "desserts",
+        "label": "Desserts",
+        "icon": "🍰"
+      },
+      {
+        "id": "service",
+        "label": "Service",
+        "icon": "😊"
+      },
+      {
+        "id": "delivery",
+        "label": "Livraison",
+        "icon": "🛵"
+      }
+    ],
+    "commentLabel": "Votre commentaire",
+    "commentPlaceholder": "Racontez-nous votre expérience...",
+    "submit": "Envoyer mon avis",
+    "sending": "Envoi en cours...",
+    "errors": {
+      "rating": "Choisissez une note avec les burgers avant d'envoyer.",
+      "generic": "Une erreur est survenue, veuillez réessayer."
+    },
+    "success": {
+      "icon": "🍔",
+      "title": "Merci beaucoup !",
+      "message": "Votre avis a bien été envoyé. Il nous aide à améliorer chaque burger."
+    },
+    "reviews": [
+      {
+        "id": "r1",
+        "name": "Amine",
+        "rating": 5,
+        "date": "Il y a 2 jours",
+        "topics": [
+          "burgers",
+          "service"
+        ],
+        "comment": "Le meilleur burger que j'ai mangé depuis longtemps. Viande juteuse, pain moelleux et service très rapide."
+      },
+      {
+        "id": "r2",
+        "name": "Sara",
+        "rating": 5,
+        "date": "Il y a 4 jours",
+        "topics": [
+          "delivery",
+          "tacos"
+        ],
+        "comment": "Livraison dans les temps et tacos encore chauds. Je recommande à 100%."
+      },
+      {
+        "id": "r3",
+        "name": "Yacine",
+        "rating": 4,
+        "date": "Il y a 1 semaine",
+        "topics": [
+          "pizzas"
+        ],
+        "comment": "Pizza croustillante et bien garnie. Juste un peu d'attente le vendredi soir."
+      },
+      {
+        "id": "r4",
+        "name": "Lina",
+        "rating": 5,
+        "date": "Il y a 1 semaine",
+        "topics": [
+          "desserts",
+          "drinks"
+        ],
+        "comment": "Le brownie est une tuerie et la limonade maison est super rafraîchissante."
+      },
+      {
+        "id": "r5",
+        "name": "Walid",
+        "rating": 4,
+        "date": "Il y a 2 semaines",
+        "topics": [
+          "burgers"
+        ],
+        "comment": "Très bon Double Smoke, les sauces sont délicieuses. Je reviendrai."
+      },
+      {
+        "id": "r6",
+        "name": "Nour",
+        "rating": 5,
+        "date": "Il y a 2 semaines",
+        "topics": [
+          "service"
+        ],
+        "comment": "Équipe souriante et accueillante, le restaurant est propre et agréable."
+      },
+      {
+        "id": "r7",
+        "name": "Karim",
+        "rating": 3,
+        "date": "Il y a 3 semaines",
+        "topics": [
+          "delivery"
+        ],
+        "comment": "Bon goût mais la livraison a pris un peu plus de temps que prévu."
+      },
+      {
+        "id": "r8",
+        "name": "Imane",
+        "rating": 5,
+        "date": "Il y a 1 mois",
+        "topics": [
+          "tacos",
+          "burgers"
+        ],
+        "comment": "Portions généreuses et produits frais, rapport qualité-prix excellent."
+      }
+    ]
+  },
+   "MenuPage": {
+    "badge": "BlackHousse",
+    "title": "Notre <span style='color:#f97316'>Menu</span>",
+    "description": "Faites défiler pour découvrir nos burgers, tacos, pizzas et desserts, préparés minute avec des produits frais.",
+    "button": "Commander maintenant",
+    "slides": [
+      {
+        "src": "/images/menu/pizza.jpg",
+        "alt": "Burgers BlackHousse",
+        "tag": "Burgers",
+        "title": "Burgers grillés au feu",
+        "subtitle": "Bœuf 100% frais, pain moelleux et sauces maison."
+      },
+      {
+        "src": "/images/menu/tacos.jpg",
+        "alt": "Tacos BlackHousse",
+        "tag": "Tacos",
+        "title": "Tacos généreux",
+        "subtitle": "Poulet ou viande hachée, frites et sauce fromagère."
+      },
+      {
+        "src": "/images/menu/poutine.jpg",
+        "alt": "Pizzas BlackHousse",
+        "tag": "Pizzas",
+        "title": "Pizzas croustillantes",
+        "subtitle": "Pâte fine, mozzarella fondante et garnitures fraîches."
+      },
+      {
+        "src": "/images/menu/pizza.jpg",
+        "alt": "Sandwichs BlackHousse",
+        "tag": "Sandwichs",
+        "title": "Sandwichs toastés",
+        "subtitle": "Paninis et clubs garnis, chauds et croustillants."
+      }, {
+        "src": "/images/menu/crispy.jpg",
+        "alt": "Burgers BlackHousse",
+        "tag": "Burgers",
+        "title": "Burgers grillés au feu",
+        "subtitle": "Bœuf 100% frais, pain moelleux et sauces maison."
+      }
+    ]
+  },
+ "OrderingPage": {
+    "badge": "BlackHousse",
+    "title": "Composez votre <span style='color:#f97316'>commande</span>,\nnous nous occupons du reste.",
+    "description": "Parcourez le menu, personnalisez vos produits et commandez sans créer de compte.",
+    "searchLabel": "Rechercher un produit",
+    "searchPlaceholder": "Rechercher un produit...",
+    "allCategories": "Tout",
+    "otherCategory": "Autres",
+    "loading": "Chargement du menu...",
+    "loadError": "Impossible de charger le menu. Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer",
+    "emptyCatalog": "Aucun produit n'est disponible pour le moment.",
+    "noResults": "Aucun produit ne correspond à votre recherche.",
+    "unavailable": "Indisponible",
+    "select": "Choisir",
+    "currency": "DA",
+    "decrease": "Diminuer la quantité",
+    "increase": "Augmenter la quantité",
+    "product": {
+      "addToCart": "Ajouter au panier",
+      "updateLine": "Mettre à jour",
+      "required": "Obligatoire",
+      "optional": "Facultatif",
+      "chooseOne": "Choisissez 1 option",
+      "chooseExactly": "Choisissez {n}",
+      "chooseBetween": "Choisissez de {min} à {max}",
+      "chooseAtLeast": "Au moins {min}",
+      "chooseUpTo": "Jusqu'à {max}",
+      "missing": "Veuillez compléter : {groups}",
+      "close": "Fermer"
+    },
+    "bar": {
+      "itemOne": "{count} article",
+      "itemOther": "{count} articles",
+      "view": "Voir ma commande",
+      "unknownTotal": "…"
+    },
+    "cart": {
+      "title": "Ma commande",
+      "empty": "Votre panier est vide.",
+      "loading": "Mise à jour de votre panier...",
+      "loadError": "Impossible de vérifier votre panier pour le moment.",
+      "unknownProduct": "Produit retiré du menu",
+      "unknownProductHint": "Ce produit n'existe plus. Supprimez cette ligne pour continuer.",
+      "edit": "Modifier",
+      "remove": "Supprimer",
+      "subtotal": "Sous-total",
+      "total": "Total",
+      "deliveryNote": "Les éventuels frais de livraison sont ajoutés à l'étape suivante.",
+      "confirm": "Confirmer la commande",
+      "lineUnavailable": "Ce produit ou l'une de ses options n'est plus disponible. Modifiez ou supprimez cette ligne.",
+      "blocked": "Corrigez les produits indisponibles pour continuer.",
+      "close": "Fermer"
+    },
+    "checkout": {
+      "title": "Confirmer la commande",
+      "name": "Nom complet",
+      "namePlaceholder": "Votre nom",
+      "phone": "Numéro de téléphone",
+      "phonePlaceholder": "Ex : 0555 12 34 56",
+      "fulfillment": "Mode de réception",
+      "delivery": "Livraison",
+      "pickup": "Retrait au restaurant",
+      "municipality": "Commune",
+      "municipalityPlaceholder": "Choisissez votre commune",
+      "address": "Adresse détaillée",
+      "addressPlaceholder": "Quartier, rue, bâtiment, repère...",
+      "notes": "Instructions supplémentaires (facultatif)",
+      "notesPlaceholder": "Ex : sans oignons, sonner deux fois...",
+      "summary": "Récapitulatif",
+      "subtotal": "Sous-total",
+      "deliveryFee": "Frais de livraison",
+      "total": "Total",
+      "submit": "Envoyer la commande",
+      "submitting": "Envoi en cours...",
+      "back": "Modifier la commande",
+      "close": "Fermer",
+      "blocked": "Certains produits ne sont plus disponibles. Modifiez votre commande avant de continuer.",
+      "errors": {
+        "name": "Veuillez saisir votre nom.",
+        "phone": "Numéro de téléphone invalide.",
+        "fulfillment": "Choisissez un mode de réception.",
+        "municipality": "Choisissez ou saisissez votre commune.",
+        "address": "Veuillez saisir une adresse détaillée.",
+        "network": "Connexion impossible. Votre panier est conservé : réessayez dans un instant.",
+        "unavailable": "Un produit de votre commande n'est plus disponible. Le menu a été mis à jour.",
+        "priceChanged": "Les prix ont changé. Vérifiez le nouveau total avant de confirmer.",
+        "tooMany": "Trop de tentatives. Patientez un instant avant de réessayer.",
+        "generic": "Votre commande n'a pas pu être enregistrée. Votre panier est conservé, veuillez réessayer."
+      },
+      "success": {
+        "title": "Commande confirmée !",
+        "message": "Merci {name}, votre commande a bien été enregistrée.",
+        "reference": "Référence",
+        "status": "Statut",
+        "fulfillment": "Réception",
+        "total": "Total",
+        "track": "Suivre ma commande",
+        "close": "Terminer"
+      }
+    },
+    "track": {
+      "floating": "Suivre ma commande",
+      "title": "Suivre ma commande",
+      "intro": "Saisissez le numéro de téléphone utilisé pour la commande.",
+      "phone": "Numéro de téléphone",
+      "search": "Afficher le statut",
+      "searching": "Recherche...",
+      "refresh": "Actualiser",
+      "lastUpdate": "Dernière mise à jour : {time}",
+      "noOrders": "Aucune commande récente trouvée pour ce numéro.",
+      "history": "Historique",
+      "close": "Fermer",
+      "errors": {
+        "phone": "Numéro de téléphone invalide.",
+        "network": "Connexion impossible. Réessayez dans un instant.",
+        "tooMany": "Trop de tentatives. Patientez un instant avant de réessayer.",
+        "generic": "Impossible de récupérer le statut pour le moment."
+      }
+    }
+  },
+  "Product": {
+    "title": "Products",
+    "table": {
+      "columns": [
+        { "accessor": "title", "label": "Name", "sortable": true },
+        { "accessor": "desc", "label": "desc", "sortable": false },
+        { "accessor": "prix", "label": "Prix", "sortable": true },
+        { "accessor": "emballage", "label": "embalage", "sortable": false },
+        { "accessor": "farm", "label": "Farm", "sortable": true },
+
+        { "accessor": "Date", "label": "createdAt", "sortable": true },
+        { "accessor": "image", "label": "image", "sortable": false }
+      ],
+
+      "SearchPlaceHolder": "Search Product..."
+    },
+    "AddClient": {
+      "FirstFields": [
+        {
+          "accessor": "title",
+          "label": "Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "accessor": "desc",
+          "label": "desc",
+          "type": "text",
+          "required": true
+        },
+        {
+          "accessor": "prix",
+          "label": "Prix",
+          "type": "number",
+          "required": true
+        },
+        {
+          "accessor": "emballage",
+          "label": "embalage",
+          "type": "text",
+          "required": true
+        },
+        {
+          "accessor": "farm",
+          "label": "Farm",
+          "type": "select",
+          "required": true,
+          "options": ["agro", "ana", "cult"]
+        },
+        {
+          "accessor": "image",
+          "label": "image",
+          "type": "image",
+          "required": true
+        }
+      ],
+      "AddButton": "Add Product",
+      "Title": "Add Product"
+    },
+    "ViewModel": {
+      "title": "View Product",
+      "DontDisplayField": "farmId"
+    },
+    "StatsModel": {
+      "title": "Stats",
+      "totalClientsTitle": "Total Clients",
+
+      "plan": {
+        "title": "Nouveaux Clients par Mois"
+      }
+    }
+  },
+
+  "Commande": {
+    "title": "Commandes",
+    "table": {
+      "columns": [
+        { "accessor": "nom", "label": "Nom", "sortable": true },
+        { "accessor": "prenom", "label": "Prénom", "sortable": true },
+        { "accessor": "region", "label": "Country", "sortable": true },
+        { "accessor": "adresse", "label": "Adresse", "sortable": false },
+        { "accessor": "mail", "label": "Email", "sortable": false },
+        { "accessor": "num", "label": "Téléphone", "sortable": false },
+        { "accessor": "productId", "label": "Produit", "sortable": true },
+
+        { "accessor": "emballage", "label": "Emballage", "sortable": false },
+        { "accessor": "quantite", "label": "quantite", "sortable": false },
+
+        { "accessor": "Date", "label": "Date de Commande", "sortable": true },
+        { "accessor": "status", "label": "status", "sortable": true }
+      ],
+      "SearchPlaceHolder": "Rechercher une commande..."
+    },
+    "AddClient": {
+      "FirstFields": [
+        {
+          "accessor": "nom",
+          "label": "Nom",
+          "type": "text",
+          "required": true
+        },
+        {
+          "accessor": "prenom",
+          "label": "Prénom",
+          "type": "text",
+          "required": true
+        },
+        {
+          "accessor": "region",
+          "label": "Country",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Afghanistan",
+            "Albania",
+            "Algeria",
+            "Andorra",
+            "Angola",
+            "Antigua and Barbuda",
+            "Argentina",
+            "Armenia",
+            "Australia",
+            "Austria",
+            "Azerbaijan",
+            "Bahamas",
+            "Bahrain",
+            "Bangladesh",
+            "Barbados",
+            "Belarus",
+            "Belgium",
+            "Belize",
+            "Benin",
+            "Bhutan",
+            "Bolivia",
+            "Bosnia and Herzegovina",
+            "Botswana",
+            "Brazil",
+            "Brunei",
+            "Bulgaria",
+            "Burkina Faso",
+            "Burundi",
+            "Cabo Verde",
+            "Cambodia",
+            "Cameroon",
+            "Canada",
+            "Central African Republic",
+            "Chad",
+            "Chile",
+            "China",
+            "Colombia",
+            "Comoros",
+            "Congo (Congo-Brazzaville)",
+            "Costa Rica",
+            "Croatia",
+            "Cuba",
+            "Cyprus",
+            "Czech Republic (Czechia)",
+            "Democratic Republic of the Congo",
+            "Denmark",
+            "Djibouti",
+            "Dominica",
+            "Dominican Republic",
+            "Ecuador",
+            "Egypt",
+            "El Salvador",
+            "Equatorial Guinea",
+            "Eritrea",
+            "Estonia",
+            "Eswatini",
+            "Ethiopia",
+            "Fiji",
+            "Finland",
+            "France",
+            "Gabon",
+            "Gambia",
+            "Georgia",
+            "Germany",
+            "Ghana",
+            "Greece",
+            "Grenada",
+            "Guatemala",
+            "Guinea",
+            "Guinea-Bissau",
+            "Guyana",
+            "Haiti",
+            "Honduras",
+            "Hungary",
+            "Iceland",
+            "India",
+            "Indonesia",
+            "Iran",
+            "Iraq",
+            "Ireland",
+            "Israel",
+            "Italy",
+            "Ivory Coast",
+            "Jamaica",
+            "Japan",
+            "Jordan",
+            "Kazakhstan",
+            "Kenya",
+            "Kiribati",
+            "Kuwait",
+            "Kyrgyzstan",
+            "Laos",
+            "Latvia",
+            "Lebanon",
+            "Lesotho",
+            "Liberia",
+            "Libya",
+            "Liechtenstein",
+            "Lithuania",
+            "Luxembourg",
+            "Madagascar",
+            "Malawi",
+            "Malaysia",
+            "Maldives",
+            "Mali",
+            "Malta",
+            "Marshall Islands",
+            "Mauritania",
+            "Mauritius",
+            "Mexico",
+            "Micronesia",
+            "Moldova",
+            "Monaco",
+            "Mongolia",
+            "Montenegro",
+            "Morocco",
+            "Mozambique",
+            "Myanmar (Burma)",
+            "Namibia",
+            "Nauru",
+            "Nepal",
+            "Netherlands",
+            "New Zealand",
+            "Nicaragua",
+            "Niger",
+            "Nigeria",
+            "North Korea",
+            "North Macedonia",
+            "Norway",
+            "Oman",
+            "Pakistan",
+            "Palau",
+            "Palestine State",
+            "Panama",
+            "Papua New Guinea",
+            "Paraguay",
+            "Peru",
+            "Philippines",
+            "Poland",
+            "Portugal",
+            "Qatar",
+            "Romania",
+            "Russia",
+            "Rwanda",
+            "Saint Kitts and Nevis",
+            "Saint Lucia",
+            "Saint Vincent and the Grenadines",
+            "Samoa",
+            "San Marino",
+            "Sao Tome and Principe",
+            "Saudi Arabia",
+            "Senegal",
+            "Serbia",
+            "Seychelles",
+            "Sierra Leone",
+            "Singapore",
+            "Slovakia",
+            "Slovenia",
+            "Solomon Islands",
+            "Somalia",
+            "South Africa",
+            "South Korea",
+            "South Sudan",
+            "Spain",
+            "Sri Lanka",
+            "Sudan",
+            "Suriname",
+            "Sweden",
+            "Switzerland",
+            "Syria",
+            "Tajikistan",
+            "Tanzania",
+            "Thailand",
+            "Timor-Leste",
+            "Togo",
+            "Tonga",
+            "Trinidad and Tobago",
+            "Tunisia",
+            "Turkey",
+            "Turkmenistan",
+            "Tuvalu",
+            "Uganda",
+            "Ukraine",
+            "United Arab Emirates",
+            "United Kingdom",
+            "United States of America",
+            "Uruguay",
+            "Uzbekistan",
+            "Vanuatu",
+            "Vatican City",
+            "Venezuela",
+            "Vietnam",
+            "Yemen",
+            "Zambia",
+            "Zimbabwe"
+          ]
+        },
+        {
+          "accessor": "adresse",
+          "label": "Adresse",
+          "type": "text",
+          "required": true
+        },
+        {
+          "accessor": "mail",
+          "label": "Email",
+          "type": "email",
+          "required": true
+        },
+        {
+          "accessor": "num",
+          "label": "Téléphone",
+          "type": "number",
+          "required": true
+        },
+        {
+          "accessor": "productId",
+          "label": "Produit",
+          "type": "select",
+          "required": true,
+          "options": []
+        },
+        {
+          "accessor": "emballage",
+          "label": "Emballage",
+          "type": "select",
+          "required": true
+        },
+        {
+          "accessor": "quantite",
+          "label": "quantite",
+          "type": "number",
+          "required": true
+        }
+      ],
+      "AddButton": "Confirm",
+      "Title": "Order Now"
+    },
+    "ViewModel": {
+      "title": "Détails de la Commande",
+      "DontDisplayField": ""
+    },
+    "StatsModel": {
+      "title": "Statistiques des Commandes",
+      "totalClientsTitle": "Total des Commandes",
+      "plan": {
+        "title": "Commandes par Mois"
+      }
+    }
+  },
+
+  "Labels": {
+    "Add": "Add",
+    "Update": "Update",
+    "Delete": "Delete",
+    "View": "View",
+    "Edit": "Edit",
+    "Save": "Save",
+    "Valider": "Valider",
+    "rejeter": "rejeter ",
+    "Cancel": "Cancel",
+    "Close": "Close",
+    "Stats": "Stats",
+    "Export": "Export",
+    "Import": "Import",
+    "Refresh": "Refresh",
+    "Print": "Print",
+    "Submit": "Submit",
+    "Reset": "Reset",
+    "Filter": "Filter",
+    "Search": "Search",
+    "Download": "Download",
+    "pickdata": "Pick date",
+    "CodeBar": "Barcode",
+    "Generate": " Generate",
+    "Next": "Next",
+    "View": "View",
+    "Actions": "Actions",
+    "ClickToPrint": "Click to print",
+    "MAD": "DA",
+    "Re_vérifier": "Re_vérifier",
+    "Waiting": "wating..",
+    "Verified": "Validés",
+    "Tous": "Tous",
+    "logout": "logout",
+    "mounts": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ]
+  }
+}
