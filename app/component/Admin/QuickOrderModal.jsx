@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { api, formatPrice } from "./adminApi";
 import { inputClass, btnPrimary, btnGhost, Modal } from "./Ui";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 /* ------------------------------------------------------------------ */
 /* Helpers & shared UI                                                 */
@@ -172,6 +173,7 @@ function Sheet({ title, step, onClose, onBack, children, footer, size = "md" }) 
 /* ------------------------------------------------------------------ */
 
 function OptionsModal({ product, onClose, onAdd }) {
+  const { t } = useI18n();
   const groups = product.optionGroups || [];
   // groupId -> [optionId]; starts with the first available option of each single / required group
   const [selected, setSelected] = useState(() => {
@@ -236,7 +238,7 @@ function OptionsModal({ product, onClose, onAdd }) {
               onClick={() => onAdd(chosen, qty, unitPrice)}
               className={`${btnPrimary} flex-1 flex items-center justify-between gap-2 px-5 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              <span>Ajouter à la commande</span>
+              <span>{t("OrderingPage.product.addToCart", {}, "Ajouter à la commande")}</span>
               <span className="font-black">{formatPrice(unitPrice * qty)}</span>
             </button>
           </div>
@@ -325,6 +327,7 @@ function OptionsModal({ product, onClose, onAdd }) {
 /* ------------------------------------------------------------------ */
 
 export default function QuickOrderModal({ onClose, onOrderCreated }) {
+  const { t, isRTL } = useI18n();
   // Catalog data
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -504,20 +507,20 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
     <>
       {/* ============ STEP 1: products with images ============ */}
       <Modal
-        title="Nouvelle commande"
+        title={t("Admin.orders.addOrder", {}, "Nouvelle commande")}
         onClose={onClose}
         wide={true}
         footer={
           <div className="w-full flex items-center justify-between gap-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
-                Sous-total{itemCount > 0 ? ` · ${itemCount} article${itemCount > 1 ? "s" : ""}` : ""}
+                {t("OrderingPage.cart.subtotal", {}, "Sous-total")}{itemCount > 0 ? ` · ${itemCount} ${t("OrderingPage.bar.itemOther", { count: itemCount }, "articles")}` : ""}
               </p>
               <p className="text-xl font-black text-gray-900">{formatPrice(subtotal)}</p>
             </div>
             <div className="flex items-center gap-2">
               <button type="button" onClick={onClose} className={btnGhost}>
-                Annuler
+                {t("common.cancel", {}, "Annuler")}
               </button>
               <button
                 type="button"
@@ -526,7 +529,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                 className={`${btnPrimary} flex items-center gap-2 px-6 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <ShoppingBag className="w-4 h-4" />
-                Continuer
+                {t("OrderingPage.bar.view", {}, "Continuer")}
               </button>
             </div>
           </div>
@@ -535,20 +538,20 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
         <div className="space-y-4">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             <input
               type="text"
-              placeholder="Rechercher un plat, boisson..."
+              placeholder={t("OrderingPage.catalog.searchPlaceholder", {}, "Rechercher un plat, boisson...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className={`${inputClass} pl-10`}
+              className={`${inputClass} ps-10`}
             />
           </div>
 
           {/* Categories: one horizontal row of chips */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
             <Chip active={selectedCategory === ""} onClick={() => setSelectedCategory("")}>
-              Tout
+              {t("OrderingPage.catalog.allCategories", {}, "Tout")}
             </Chip>
             {categories.map((c) => (
               <Chip key={c.id} active={selectedCategory === c.id} onClick={() => setSelectedCategory(c.id)}>
@@ -570,7 +573,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
               {catalogError}
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-10 text-gray-400 text-sm">Aucun produit disponible.</div>
+            <div className="text-center py-10 text-gray-400 text-sm">{t("OrderingPage.cart.empty", {}, "Aucun produit disponible.")}</div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[58vh] overflow-y-auto pr-1">
               {filteredProducts.map((p) => {
@@ -586,7 +589,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                   >
                     <ProductImage src={p.image} name={p.name} className="w-full h-28 sm:h-32" />
                     {count > 0 && (
-                      <span className="absolute top-2 right-2 min-w-6 h-6 px-1.5 rounded-full bg-orange-600 text-white text-xs font-black flex items-center justify-center shadow">
+                      <span className="absolute top-2 end-2 min-w-6 h-6 px-1.5 rounded-full bg-orange-600 text-white text-xs font-black flex items-center justify-center shadow">
                         {count}
                       </span>
                     )}
@@ -596,7 +599,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                         <span className="text-sm font-black text-orange-600">{formatPrice(p.price)}</span>
                         {(p.optionGroups || []).length > 0 && (
                           <span className="text-[10px] font-bold text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
-                            Options
+                            {t("Admin.nav.options", {}, "Options")}
                           </span>
                         )}
                       </div>
@@ -625,7 +628,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
       {/* ============ STEP 3: client + delivery / pickup ============ */}
       {clientOpen && (
         <Sheet
-          title="Client et livraison"
+          title={t("OrderingPage.checkout.title", {}, "Client et livraison")}
           step=""
           size="lg"
           onClose={() => setClientOpen(false)}
@@ -633,7 +636,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
           footer={
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">Total à payer</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">{t("OrderingPage.cart.total", {}, "Total à payer")}</p>
                 <p className="text-2xl font-black text-gray-900">{formatPrice(total)}</p>
               </div>
               <button
@@ -643,7 +646,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                 className={`${btnPrimary} flex items-center gap-2 px-8 disabled:opacity-50`}
               >
                 {submitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" strokeWidth={3} />}
-                Valider la commande
+                {t("OrderingPage.cart.confirm", {}, "Valider la commande")}
               </button>
             </div>
           }
@@ -660,22 +663,22 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
 
               {/* Client: name + phone side by side */}
               <div>
-                <SectionLabel>Client</SectionLabel>
+                <SectionLabel>{t("Admin.history.client", {}, "Client")}</SectionLabel>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <User className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                     <input
                       id="qo-name"
                       type="text"
                       aria-label="Nom du client"
-                      placeholder="Client Comptoir"
+                      placeholder={t("OrderingPage.checkout.namePlaceholder", {}, "Client Comptoir")}
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className={`${inputClass} pl-10`}
+                      className={`${inputClass} ps-10`}
                     />
                   </div>
                   <div className="relative">
-                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <Phone className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                     <input
                       id="qo-phone"
                       type="tel"
@@ -684,7 +687,8 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                       placeholder="05..."
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
-                      className={`${inputClass} pl-10`}
+                      className={`${inputClass} ps-10`}
+                      dir="ltr"
                     />
                   </div>
                 </div>
@@ -692,11 +696,11 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
 
               {/* Mode: two cards side by side */}
               <div>
-                <SectionLabel>Mode</SectionLabel>
+                <SectionLabel>{t("Admin.history.mode", {}, "Mode")}</SectionLabel>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { id: "pickup", label: "Retrait", sub: "Le client récupère", Icon: Store },
-                    { id: "delivery", label: "Livraison", sub: "Livré à l'adresse", Icon: Truck },
+                    { id: "pickup", label: t("OrderingPage.checkout.pickup", {}, "Retrait"), sub: t("Admin.orders.badgeReadyPickup", {}, "Le client récupère"), Icon: Store },
+                    { id: "delivery", label: t("OrderingPage.checkout.delivery", {}, "Livraison"), sub: t("Admin.orders.badgeInDelivery", {}, "Livré à l'adresse"), Icon: Truck },
                   ].map(({ id, label, sub, Icon }) => {
                     const active = fulfillment === id;
                     return (
@@ -705,7 +709,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                         type="button"
                         onClick={() => setFulfillment(id)}
                         aria-pressed={active}
-                        className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition active:scale-[0.98] ${
+                        className={`flex items-center gap-3 rounded-2xl border p-3 text-start transition active:scale-[0.98] ${
                           active
                             ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/30"
                             : "bg-white border-gray-300 text-gray-800 hover:border-orange-300 hover:bg-orange-50"
@@ -736,12 +740,12 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                       right={
                         municipalityName && (
                           <span className="text-[11px] font-bold text-orange-600">
-                            Livraison : {deliveryFee ? formatPrice(deliveryFee) : "Gratuit"}
+                            {t("Admin.orders.deliveryFee", { fee: deliveryFee ? formatPrice(deliveryFee) : "Gratuit" })}
                           </span>
                         )
                       }
                     >
-                      Commune
+                      {t("OrderingPage.checkout.municipality", {}, "Commune")}
                     </SectionLabel>
                     {municipalities.length > 0 ? (
                       <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
@@ -760,7 +764,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                       <input
                         id="qo-commune"
                         type="text"
-                        placeholder="Nom de la commune"
+                        placeholder={t("OrderingPage.checkout.municipalityPlaceholder", {}, "Nom de la commune")}
                         value={municipalityName}
                         onChange={(e) => setMunicipalityName(e.target.value)}
                         className={inputClass}
@@ -769,16 +773,16 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                   </div>
 
                   <div>
-                    <SectionLabel>Adresse complète</SectionLabel>
+                    <SectionLabel>{t("OrderingPage.checkout.address", {}, "Adresse complète")}</SectionLabel>
                     <div className="relative">
-                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <MapPin className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       <input
                         id="qo-address"
                         type="text"
-                        placeholder="Quartier, rue, numéro de porte..."
+                        placeholder={t("OrderingPage.checkout.addressPlaceholder", {}, "Quartier, rue, numéro de porte...")}
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        className={`${inputClass} pl-10`}
+                        className={`${inputClass} ps-10`}
                       />
                     </div>
                   </div>
@@ -787,15 +791,15 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
 
               {/* Kitchen note */}
               <div>
-                <SectionLabel>Note pour la cuisine</SectionLabel>
+                <SectionLabel>{t("OrderingPage.checkout.notes", {}, "Note pour la cuisine")}</SectionLabel>
                 <div className="relative">
-                  <StickyNote className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <StickyNote className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Ex : sans sel, sauce à part..."
+                    placeholder={t("OrderingPage.checkout.notesPlaceholder", {}, "Ex : sans sel, sauce à part...")}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className={`${inputClass} pl-10`}
+                    className={`${inputClass} ps-10`}
                   />
                 </div>
               </div>
@@ -806,14 +810,14 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
               <div className="rounded-2xl bg-gray-50 border border-gray-200 p-3 space-y-3 md:sticky md:top-0">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-extrabold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
-                    <ShoppingBag className="w-3.5 h-3.5 text-orange-500" /> Articles ({itemCount})
+                    <ShoppingBag className="w-3.5 h-3.5 text-orange-500" /> {t("Admin.history.items", {}, "Articles")} ({itemCount})
                   </span>
                   <button
                     type="button"
                     onClick={() => setItems([])}
                     className="text-[11px] text-red-500 hover:text-red-700 font-semibold"
                   >
-                    Vider
+                    {t("OrderingPage.cart.remove", {}, "Vider")}
                   </button>
                 </div>
 
@@ -859,17 +863,17 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
 
                 <div className="space-y-1 pt-2 border-t border-gray-200 text-xs text-gray-600">
                   <div className="flex justify-between">
-                    <span>Sous-total articles</span>
+                    <span>{t("OrderingPage.cart.subtotal", {}, "Sous-total articles")}</span>
                     <span className="font-mono font-bold text-gray-900">{formatPrice(subtotal)}</span>
                   </div>
                   {fulfillment === "delivery" && (
                     <div className="flex justify-between">
-                      <span>Frais de livraison</span>
+                      <span>{t("OrderingPage.checkout.deliveryFee", {}, "Frais de livraison")}</span>
                       <span className="font-mono font-bold text-gray-900">{formatPrice(deliveryFee)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm font-black text-gray-900 pt-1 border-t border-gray-200">
-                    <span>Total</span>
+                    <span>{t("OrderingPage.cart.total", {}, "Total")}</span>
                     <span className="text-orange-600">{formatPrice(total)}</span>
                   </div>
                 </div>

@@ -18,6 +18,9 @@ import OtpModal from "@/app/component/OtpModal";
 import ForgotOtpModal from "@/app/component/OtpModalForgot";
 import Progression from "@/app/component/Proogression/page";
 
+import { useI18n } from "@/lib/i18n/I18nContext";
+import LanguageSwitcher from "@/app/component/LanguageSwitcher";
+
 // White & black theme
 const COLORS = {
   formBorder: "border-gray-300",
@@ -53,7 +56,7 @@ const FormInput = ({
     {Icon && (
       <Icon
         size={18}
-        className="md:hidden absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+        className="md:hidden absolute start-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
       />
     )}
     <input
@@ -62,7 +65,7 @@ const FormInput = ({
       value={value}
       onChange={onChange}
       className={`h-14 px-4 ${
-        Icon ? "pl-11 md:pl-4" : ""
+        Icon ? "ps-11 md:ps-4" : ""
       } rounded-lg border md:border-2 bg-transparent md:bg-white ${COLORS.formBorder} ${COLORS.formFocus} text-gray-800 outline-none transition ${className}`}
       required
     />
@@ -101,12 +104,12 @@ const SocialButtons = ({ label }) => (
   </div>
 );
 
-const WelcomeSection = ({ title, description, isRight }) => (
+const WelcomeSection = ({ title, description, isRight, backTitle }) => (
   <div
     className={`hidden md:flex relative w-full md:w-1/2 ${
       COLORS.rightPaneBg
     } text-white flex-col justify-center items-center text-center p-10 ${
-      isRight ? "pl-16 order-2" : "pr-16 order-1"
+      isRight ? "ps-16 order-2" : "pe-16 order-1"
     }`}
     style={{ minHeight: "600px" }}
   >
@@ -116,13 +119,13 @@ const WelcomeSection = ({ title, description, isRight }) => (
       viewBox="0 0 40 600"
       preserveAspectRatio="none"
       className={`pointer-events-none absolute inset-y-0 h-full w-12 ${
-        isRight ? "left-0 -ml-px" : "right-0 -mr-px scale-x-[-1]"
+        isRight ? "start-0 -ms-px" : "end-0 -me-px scale-x-[-1]"
       }`}
     >
       <path d={WAVE_PATH} className="fill-white" />
     </svg>
 
-    <Link href="/" title="Retour au site" className="inline-block hover:opacity-85 transition">
+    <Link href="/" title={backTitle || "Retour au site"} className="inline-block hover:opacity-85 transition">
       <img
         src="/images/logo.png"
         alt="Logo"
@@ -134,7 +137,7 @@ const WelcomeSection = ({ title, description, isRight }) => (
   </div>
 );
 
-const MobileHeader = () => (
+const MobileHeader = ({ backTitle }) => (
   <div className="md:hidden relative h-30 shrink-0 bg-stone-100">
     <svg
       aria-hidden="true"
@@ -153,7 +156,10 @@ const MobileHeader = () => (
         vectorEffect="non-scaling-stroke"
       />
     </svg>
-    <Link href="/" title="Retour au site" className="relative z-10 inline-block m-6 mt-2 ml-2 w-18 h-18">
+    <div className="absolute top-3 end-4 z-20">
+      <LanguageSwitcher variant="navbar" />
+    </div>
+    <Link href="/" title={backTitle || "Retour au site"} className="relative z-10 inline-block m-6 mt-2 ms-2 w-18 h-18">
       <img
         src="/images/logo.png"
         alt="Logo"
@@ -164,6 +170,7 @@ const MobileHeader = () => (
 );
 
 export default function FlipAuthPages() {
+  const { t } = useI18n();
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -177,7 +184,6 @@ export default function FlipAuthPages() {
 
   const [resetEmail, setResetEmail] = useState("");
 
-  const [showConfirm, setShowConfirm] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
     fullName: "",
@@ -191,38 +197,30 @@ export default function FlipAuthPages() {
     setLoginData((prev) => ({ ...prev, [field]: e.target.value }));
   };
   const handleForgotPassword = () => {
-    // Ex: ouvrir une modal, naviguer vers une page, afficher un formulaire, etc.
     setShowResetPassword(true);
   };
 
   const handleRegisterChange = (field) => (e) => {
     let value = e.target.value;
     if (field === "phone") {
-      // ✅ Allow only digits and plus sign
-      value = value.replace(/[^\d+]/g, ""); // remove everything except digits and +
-
-      // ✅ Only allow one "+" and only at the beginning
+      value = value.replace(/[^\d+]/g, "");
       if (value.includes("+")) {
-        value = "+" + value.replace(/\+/g, ""); // keep + only at start
+        value = "+" + value.replace(/\+/g, "");
       }
-
-      // ✅ Optional: limit total length (e.g., 13 characters for +countrycode)
       if (value.length > 13) value = value.slice(0, 13);
     }
     setRegisterData((prev) => {
       const updated = { ...prev, [field]: value };
-
-      // Update phone number prefix when country changes
       if (field === "country") {
         const selectedCountry = countries.find((c) => c.name === value);
         if (selectedCountry) {
           updated.phone = selectedCountry.code + " ";
         }
       }
-
       return updated;
     });
   };
+
   const handleLoginSubmit = async (e) => {
     setIsLoading(true);
     e.preventDefault();
@@ -236,13 +234,12 @@ export default function FlipAuthPages() {
     setIsLoading(false);
 
     if (res?.ok) {
-      // ✅ Success - redirect manually
       Swal.fire({
         icon: "success",
-        title: "Login Successful",
+        title: t("Auth.loginSuccess"),
         showConfirmButton: false,
         customClass: {
-          popup: "shadow-lg rounded-lg", // optional for soft edges and shadow
+          popup: "shadow-lg rounded-lg",
         },
         timer: 1500,
       }).then(() => {
@@ -250,14 +247,13 @@ export default function FlipAuthPages() {
         window.location.href = res.url;
       });
     } else {
-      // ❌ Error - show alert
       Swal.fire({
         icon: "error",
-        title: "Login Failed",
-        text: "Invalid email or password.",
-        confirmButtonColor: "#000000", // black confirm button
+        title: t("Auth.loginFailed"),
+        text: t("Auth.invalidCredentials"),
+        confirmButtonColor: "#000000",
         customClass: {
-          popup: "shadow-lg rounded-lg", // optional for soft edges and shadow
+          popup: "shadow-lg rounded-lg",
         },
       });
     }
@@ -268,7 +264,6 @@ export default function FlipAuthPages() {
     const { fullName, email, phone, country, password, confirmPassword } =
       registerData;
 
-    // ✅ 1. Check for empty fields
     if (
       !fullName ||
       !email ||
@@ -279,60 +274,55 @@ export default function FlipAuthPages() {
     ) {
       Swal.fire({
         icon: "warning",
-        title: "Missing Fields",
-        text: "Please fill in all required fields.",
+        title: t("Auth.missingFields"),
+        text: t("Auth.missingFieldsDesc"),
         confirmButtonColor: "#000000",
       });
       return;
     }
 
-    // ✅ 2. Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Swal.fire({
         icon: "error",
-        title: "Invalid Email",
-        text: "Please enter a valid email address.",
+        title: t("Auth.invalidEmail"),
+        text: t("Auth.invalidEmailDesc"),
         confirmButtonColor: "#000000",
       });
       return;
     }
 
-    // ✅ 3. Validate phone number (digits only, optional +)
     const phoneRegex = /^\+?\d{8,13}$/;
     if (!phoneRegex.test(phone)) {
       Swal.fire({
         icon: "error",
-        title: "Invalid Phone Number",
-        text: "Phone number must contain only digits (and an optional +), between 8 and 13 digits.",
+        title: t("Auth.invalidPhone"),
+        text: t("Auth.invalidPhoneDesc"),
         confirmButtonColor: "#000000",
       });
       return;
     }
 
-    // ✅ 4. Validate password length
     if (password.length < 8) {
       Swal.fire({
         icon: "error",
-        title: "Weak Password",
-        text: "Password must be at least 8 characters long.",
+        title: t("Auth.weakPassword"),
+        text: t("Auth.weakPasswordDesc"),
         confirmButtonColor: "#000000",
       });
       return;
     }
 
-    // ✅ 5. Validate password match
     if (password !== confirmPassword) {
       Swal.fire({
         icon: "error",
-        title: "Passwords Do Not Match",
-        text: "Please make sure both passwords are identical.",
+        title: t("Auth.passwordMismatch"),
+        text: t("Auth.passwordMismatchDesc"),
         confirmButtonColor: "#000000",
       });
       return;
     }
     setIsLoading(true);
-    // 1️⃣ Send OTP first
     const otpRes = await fetch("/api/register/otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -343,12 +333,11 @@ export default function FlipAuthPages() {
     if (!otpRes.ok) {
       Swal.fire({
         icon: "error",
-        title: "Failed to send OTP",
+        title: t("Auth.otpSendFailed"),
         confirmButtonColor: "#000000",
       });
       return;
     }
-    // 2️⃣ Store user data locally
     setPendingUser({
       fullName,
       email,
@@ -358,47 +347,51 @@ export default function FlipAuthPages() {
       confirmPassword,
     });
 
-    // 3️⃣ Show OTP Modal
     setShowOtpModal(true);
   };
+
   const handleResetPassword = () => {
     setShowResetPassword(false);
     setShowForogtOtpModal(true);
   };
+
   return (
     <>
-      {" "}
+      <div className="fixed top-6 end-6 z-50 hidden md:block">
+        <LanguageSwitcher variant="navbar" />
+      </div>
+
       {showResetPassword && (
-        <div className="fixed inset-0 z-[1000] bg-black/40 backdrop-blur-md flex justify-center items-center">
-          <div className="bg-white p-10 rounded-3xl w-[90%] max-w-xl shadow-2xl transform scale-105">
-            <h3 className="text-3xl font-extrabold text-center mb-6 text-black">
-              Reset Password
+        <div className="fixed inset-0 z-[1000] bg-black/40 backdrop-blur-md flex justify-center items-center p-4">
+          <div className="bg-white p-8 md:p-10 rounded-3xl w-full max-w-xl shadow-2xl">
+            <h3 className="text-2xl md:text-3xl font-extrabold text-center mb-4 text-black">
+              {t("Auth.resetPasswordTitle")}
             </h3>
 
-            <p className="text-gray-600 text-base mb-6 text-center">
-              Enter your email and we will send you a reset link.
+            <p className="text-gray-600 text-sm md:text-base mb-6 text-center leading-relaxed">
+              {t("Auth.resetPasswordDesc")}
             </p>
 
             <FormInput
               type="email"
-              placeholder="Email"
+              placeholder={t("Auth.email")}
               value={resetEmail}
               onChange={(e) => setResetEmail(e.target.value)}
-              className="text-lg w-full"
+              className="text-base md:text-lg w-full"
             />
 
             <button
               onClick={handleResetPassword}
-              className="w-full mt-6 py-4 bg-black hover:bg-neutral-800 text-white text-lg font-bold rounded-full shadow-md transition-colors"
+              className="w-full mt-6 py-4 bg-black hover:bg-neutral-800 text-white text-base md:text-lg font-bold rounded-full shadow-md transition-colors"
             >
-              Next
+              {t("Auth.nextBtn")}
             </button>
 
             <button
-              className="w-full mt-3 text-gray-600 hover:text-black underline text-base transition-colors"
+              className="w-full mt-3 text-gray-600 hover:text-black underline text-sm md:text-base transition-colors"
               onClick={() => setShowResetPassword(false)}
             >
-              Cancel
+              {t("Auth.cancelBtn")}
             </button>
           </div>
         </div>
@@ -437,23 +430,23 @@ export default function FlipAuthPages() {
               }`}
             >
               <div className="flex flex-col md:flex-row min-h-screen md:min-h-0 bg-stone-100 md:bg-white rounded-none md:rounded-3xl shadow-none md:shadow-2xl border-0 md:border border-gray-200 overflow-hidden">
-                <MobileHeader />
+                <MobileHeader backTitle={t("Auth.backToHome")} />
 
                 {/* Login Form */}
                 <div className="w-full md:w-1/2 px-6 py-8 md:p-8 flex flex-col justify-start md:justify-center items-center order-1">
                   <div className="w-full max-w-sm">
-                    <h2 className="text-3xl md:text-5xl font-semibold md:font-extrabold text-black mb-1 md:mb-2 text-left md:text-center">
-                      Log In
+                    <h2 className="text-3xl md:text-5xl font-semibold md:font-extrabold text-black mb-1 md:mb-2 text-start md:text-center">
+                      {t("Auth.login")}
                     </h2>
-                    <p className="text-gray-500 text-xs md:text-base mb-6 text-left md:text-center">
-                      Welcome back! Please login to your account.
+                    <p className="text-gray-500 text-xs md:text-base mb-6 text-start md:text-center">
+                      {t("Auth.welcomeBackSubtitle")}
                     </p>
 
                     <div className="w-full flex flex-col gap-4">
                       <div className="order-1">
                         <FormInput
                           type="email"
-                          placeholder="Email"
+                          placeholder={t("Auth.email")}
                           value={loginData.email}
                           onChange={handleLoginChange("email")}
                           className="w-full"
@@ -464,17 +457,17 @@ export default function FlipAuthPages() {
                       <div className="order-2 relative w-full">
                         <FormInput
                           type={showLoginPassword ? "text" : "password"}
-                          placeholder="Password"
+                          placeholder={t("Auth.password")}
                           value={loginData.password}
                           onChange={handleLoginChange("password")}
-                          className="w-full pr-12"
+                          className="w-full pe-12"
                           icon={Lock}
                         />
                         <button
                           type="button"
                           onClick={() => setShowLoginPassword((v) => !v)}
                           aria-label={showLoginPassword ? "Hide password" : "Show password"}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+                          className="absolute end-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
                         >
                           {showLoginPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
@@ -484,33 +477,32 @@ export default function FlipAuthPages() {
                         onClick={handleLoginSubmit}
                         className={`order-4 md:order-3 w-full h-14 text-base md:text-xl font-semibold md:font-bold ${COLORS.buttonBg} text-white rounded-lg md:rounded-full shadow-md ${COLORS.buttonHover} md:hover:scale-105 transition-all duration-200 mt-2`}
                       >
-                        Log In
+                        {t("Auth.signInBtn")}
                       </button>
 
-                      <p className="order-3 md:order-4 text-xs md:text-sm text-right md:text-center md:pt-2 -mb-1 md:mb-0">
+                      <p className="order-3 md:order-4 text-xs md:text-sm text-end md:text-center md:pt-2 -mb-1 md:mb-0">
                         <button
                           type="button"
                           onClick={handleForgotPassword}
                           className="text-gray-600 md:text-black font-medium md:font-semibold hover:underline"
                         >
-                          Forgot Password?
+                          {t("Auth.forgotPassword")}
                         </button>
                       </p>
 
                       <p className="order-6 md:order-5 text-gray-500 md:text-gray-700 text-xs md:text-sm text-center pt-4 md:pt-2">
-                        Don't have an account?{" "}
+                        {t("Auth.noAccount")}{" "}
                         <button
                           type="button"
                           onClick={() => setIsFlipped(true)}
                           className="text-gray-700 md:text-black font-semibold underline md:no-underline md:hover:underline"
                         >
-                          <span className="md:hidden">Sign Up</span>
-                          <span className="hidden md:inline">Create Account</span>
+                          {t("Auth.signUpBtn")}
                         </button>
                       </p>
 
                       <div className="order-5 md:order-6 flex justify-center">
-                        <SocialButtons label="Log in with" />
+                        <SocialButtons label={t("Auth.loginWith")} />
                       </div>
 
                       <div className="order-7 text-center pt-1">
@@ -518,8 +510,8 @@ export default function FlipAuthPages() {
                           href="/"
                           className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-black transition"
                         >
-                          <ArrowLeft size={14} />
-                          <span>Retour au site BlackHousse</span>
+                          <ArrowLeft size={14} className="rtl-flip" />
+                          <span>{t("Auth.backToHome")}</span>
                         </Link>
                       </div>
                     </div>
@@ -528,8 +520,9 @@ export default function FlipAuthPages() {
 
                 {/* Welcome Section - Right */}
                 <WelcomeSection
-                  title="Welcome Back!"
-                  description="Manage your orders, explore new products, and connect with your favorite farms — all from one place."
+                  title={t("Auth.welcomeBackTitle")}
+                  description={t("Auth.welcomeBackDesc")}
+                  backTitle={t("Auth.backToHome")}
                   isRight={true}
                 />
               </div>
@@ -542,30 +535,31 @@ export default function FlipAuthPages() {
               }`}
             >
               <div className="flex flex-col md:flex-row min-h-screen md:min-h-0 bg-stone-100 md:bg-white rounded-none md:rounded-3xl shadow-none md:shadow-2xl border-0 md:border border-gray-200 overflow-hidden">
-                <MobileHeader />
+                <MobileHeader backTitle={t("Auth.backToHome")} />
 
                 {/* Welcome Section - Left */}
                 <WelcomeSection
-                  title="Join Our Community!"
-                  description="Create an account to access exclusive features, track your orders, and connect with local farms."
+                  title={t("Auth.joinCommunityTitle")}
+                  description={t("Auth.joinCommunityDesc")}
+                  backTitle={t("Auth.backToHome")}
                   isRight={false}
                 />
 
                 {/* Register Form */}
                 <div className="w-full md:w-1/2 px-6 py-8 md:p-8 flex flex-col justify-start md:justify-center items-center order-2">
                   <div className="w-full max-w-2xl">
-                    <h2 className="text-3xl md:text-5xl font-semibold md:font-extrabold text-black mb-1 md:mb-2 text-left md:text-center">
-                      Sign Up
+                    <h2 className="text-3xl md:text-5xl font-semibold md:font-extrabold text-black mb-1 md:mb-2 text-start md:text-center">
+                      {t("Auth.register")}
                     </h2>
-                    <p className="text-gray-500 text-xs md:text-base mb-6 text-left md:text-center">
-                      Create your account to get started.
+                    <p className="text-gray-500 text-xs md:text-base mb-6 text-start md:text-center">
+                      {t("Auth.joinCommunitySubtitle")}
                     </p>
 
                     <div className="w-full flex flex-col">
                       <div className="order-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormInput
                           type="text"
-                          placeholder="Full Name"
+                          placeholder={t("Auth.fullName")}
                           value={registerData.fullName}
                           onChange={handleRegisterChange("fullName")}
                           className="w-full"
@@ -573,7 +567,7 @@ export default function FlipAuthPages() {
                         />
                         <FormInput
                           type="email"
-                          placeholder="Email"
+                          placeholder={t("Auth.email")}
                           value={registerData.email}
                           onChange={handleRegisterChange("email")}
                           className="w-full"
@@ -585,7 +579,7 @@ export default function FlipAuthPages() {
                           className={`h-14 px-4 rounded-lg border md:border-2 bg-transparent md:bg-white ${COLORS.formBorder} ${COLORS.formFocus} text-gray-800 outline-none transition w-full`}
                           required
                         >
-                          <option value="">Select Country</option>
+                          <option value="">{t("Auth.selectCountry")}</option>
                           {countries.map((country, idx) => (
                             <option key={idx} value={country.name}>
                               {country.name} ({country.code})
@@ -594,21 +588,21 @@ export default function FlipAuthPages() {
                         </select>
                         <FormInput
                           type="tel"
-                          placeholder="Phone Number"
+                          placeholder={t("Auth.phone")}
                           value={registerData.phone}
                           onChange={handleRegisterChange("phone")}
                           className="w-full"
                           icon={Phone}
-                          maxLength={12} // 👈 limits input to 10 characters
+                          maxLength={12}
                         />
 
                         <div className="relative w-full">
                           <FormInput
                             type={showPassword ? "text" : "password"}
-                            placeholder="Password"
+                            placeholder={t("Auth.password")}
                             value={registerData.password}
                             onChange={handleRegisterChange("password")}
-                            className="w-full pr-10"
+                            className="w-full pe-10"
                             icon={Lock}
                           />
                           <button
@@ -618,7 +612,7 @@ export default function FlipAuthPages() {
                             onMouseLeave={() => setShowPassword(false)}
                             onTouchStart={() => setShowPassword(true)}
                             onTouchEnd={() => setShowPassword(false)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+                            className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
                           >
                             {showPassword ? (
                               <EyeOff size={20} />
@@ -630,10 +624,10 @@ export default function FlipAuthPages() {
                         <div className="relative w-full">
                           <FormInput
                             type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Confirm Password"
+                            placeholder={t("Auth.confirmPassword")}
                             value={registerData.confirmPassword}
                             onChange={handleRegisterChange("confirmPassword")}
-                            className="w-full pr-10"
+                            className="w-full pe-10"
                             icon={Lock}
                           />
                           <button
@@ -643,7 +637,7 @@ export default function FlipAuthPages() {
                             onMouseLeave={() => setShowConfirmPassword(false)}
                             onTouchStart={() => setShowConfirmPassword(true)}
                             onTouchEnd={() => setShowConfirmPassword(false)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+                            className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
                           >
                             {showConfirmPassword ? (
                               <EyeOff size={20} />
@@ -658,21 +652,21 @@ export default function FlipAuthPages() {
                         onClick={handleRegisterSubmit}
                         className={`order-2 w-full h-14 text-base md:text-xl font-semibold md:font-bold ${COLORS.buttonBg} text-white rounded-lg md:rounded-full shadow-md ${COLORS.buttonHover} md:hover:scale-105 transition-all duration-200 mt-6`}
                       >
-                        Create Account
+                        {t("Auth.signUpBtn")}
                       </button>
 
                       <div className="order-3 md:order-4 flex justify-center">
-                        <SocialButtons label="Sign up with" />
+                        <SocialButtons label={t("Auth.signUpWith")} />
                       </div>
 
                       <p className="order-4 md:order-3 text-gray-500 md:text-gray-700 text-xs md:text-sm text-center pt-4">
-                        Already have an account?{" "}
+                        {t("Auth.hasAccount")}{" "}
                         <button
                           type="button"
                           onClick={() => setIsFlipped(false)}
                           className="text-gray-700 md:text-black font-semibold underline md:no-underline md:hover:underline"
                         >
-                          Log In
+                          {t("Auth.signInBtn")}
                         </button>
                       </p>
 
@@ -681,8 +675,8 @@ export default function FlipAuthPages() {
                           href="/"
                           className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-black transition"
                         >
-                          <ArrowLeft size={14} />
-                          <span>Retour au site BlackHousse</span>
+                          <ArrowLeft size={14} className="rtl-flip" />
+                          <span>{t("Auth.backToHome")}</span>
                         </Link>
                       </div>
                     </div>

@@ -17,18 +17,23 @@ import {
 } from "lucide-react";
 import { api, formatDate, formatPrice, useList } from "./adminApi";
 import { Badge, ErrorBox, btnGhost, card, inputClass } from "./Ui";
-
-const PERIOD_PRESETS = [
-  { id: "all", label: "Toute la période" },
-  { id: "today", label: "Aujourd'hui" },
-  { id: "yesterday", label: "Hier" },
-  { id: "this_week", label: "Cette semaine" },
-  { id: "this_month", label: "Ce mois-ci" },
-  { id: "custom", label: "Personnalisé" },
-];
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 export default function OrdersHistoryPanel() {
+  const { t } = useI18n();
   const [period, setPeriod] = useState("all");
+
+  const periodPresets = useMemo(
+    () => [
+      { id: "all", label: t("Admin.history.periods.all", {}, "Toute la période") },
+      { id: "today", label: t("Admin.history.periods.today", {}, "Aujourd'hui") },
+      { id: "yesterday", label: t("Admin.history.periods.yesterday", {}, "Hier") },
+      { id: "this_week", label: t("Admin.history.periods.this_week", {}, "Cette semaine") },
+      { id: "this_month", label: t("Admin.history.periods.this_month", {}, "Ce mois-ci") },
+      { id: "custom", label: t("Admin.history.periods.custom", {}, "Personnalisé") },
+    ],
+    [t]
+  );
   const [customFrom, setCustomFrom] = useState(() => {
     const d = new Date();
     d.setUTCDate(1);
@@ -123,9 +128,9 @@ export default function OrdersHistoryPanel() {
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-extrabold text-gray-900">Historique des Commandes</h2>
+          <h2 className="text-2xl font-extrabold text-gray-900">{t("Admin.history.title", {}, "Historique des Commandes")}</h2>
           <p className="text-xs sm:text-sm text-gray-500">
-            Archives des commandes traitées (Livrées, Récupérées ou Annulées)
+            {t("Admin.history.subtitle", {}, "Archives des commandes traitées (Livrées, Récupérées ou Annulées)")}
           </p>
         </div>
         <button
@@ -133,7 +138,7 @@ export default function OrdersHistoryPanel() {
           onClick={() => reload()}
           className={`${btnGhost} flex items-center gap-2 text-xs sm:text-sm`}
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Actualiser
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> {t("Admin.orders.refresh", {}, "Actualiser")}
         </button>
       </div>
 
@@ -145,7 +150,7 @@ export default function OrdersHistoryPanel() {
               <PackageCheck className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Commandes Servies</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{t("Admin.history.completedOrders", {}, "Commandes Servies")}</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-black text-gray-900">{summary.completedCount}</span>
                 <span className="text-xs font-extrabold text-emerald-600">
@@ -160,7 +165,7 @@ export default function OrdersHistoryPanel() {
               <Ban className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Commandes Annulées</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{t("Admin.history.cancelledOrders", {}, "Commandes Annulées")}</p>
               <p className="text-2xl font-black text-gray-900">{summary.cancelledCount}</p>
             </div>
           </div>
@@ -170,11 +175,11 @@ export default function OrdersHistoryPanel() {
               <TrendingUp className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Taux de Réalisation</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{t("Admin.history.completionRate", {}, "Taux de Réalisation")}</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-black text-gray-900">{completionRate}%</span>
                 <span className="text-xs text-gray-500 font-medium">
-                  sur {summary.totalCount} commande{summary.totalCount > 1 ? "s" : ""}
+                  ({summary.totalCount} total)
                 </span>
               </div>
             </div>
@@ -187,9 +192,9 @@ export default function OrdersHistoryPanel() {
         {/* Preset Period Pills */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-bold text-gray-500 flex items-center gap-1.5 mr-1">
-            <Calendar className="w-3.5 h-3.5 text-orange-500" /> Période :
+            <Calendar className="w-3.5 h-3.5 text-orange-500" /> {t("Admin.history.periodsLabel", {}, "Période :")}
           </span>
-          {PERIOD_PRESETS.map((p) => (
+          {periodPresets.map((p) => (
             <button
               key={p.id}
               type="button"
@@ -241,12 +246,12 @@ export default function OrdersHistoryPanel() {
         {/* Search & Status Filters */}
         <div className="flex flex-wrap gap-3 pt-2 border-t border-gray-100">
           <div className="relative flex-1 min-w-[220px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               aria-label="Rechercher une commande archivée"
-              className={`${inputClass} pl-9`}
-              placeholder="Nom du client, téléphone ou référence..."
+              className={`${inputClass} ps-9`}
+              placeholder={t("Admin.history.searchPlaceholder", {}, "Nom du client, téléphone ou référence...")}
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
@@ -261,10 +266,10 @@ export default function OrdersHistoryPanel() {
               setPage(1);
             }}
           >
-            <option value="">Tous les statuts archivés</option>
+            <option value="">{t("Admin.history.allStatuses", {}, "Tous les statuts archivés")}</option>
             {statuses.map((s) => (
               <option key={s.value} value={s.value}>
-                {s.label}
+                {t(`OrderStatus.${s.value}`, {}, s.label)}
               </option>
             ))}
           </select>
@@ -275,15 +280,15 @@ export default function OrdersHistoryPanel() {
       {error && <ErrorBox message={error} onRetry={() => reload()} />}
 
       {loading && items.length === 0 && (
-        <p className="text-gray-500 text-center py-12">Chargement de l'historique...</p>
+        <p className="text-gray-500 text-center py-12">{t("Admin.history.loading", {}, "Chargement de l'historique...")}</p>
       )}
 
       {!loading && items.length === 0 && !error && (
         <div className="p-12 text-center bg-white rounded-3xl border border-gray-200 space-y-3">
           <CheckCircle2 className="w-12 h-12 text-gray-300 mx-auto" />
-          <p className="font-extrabold text-gray-700 text-lg">Aucune commande trouvée</p>
+          <p className="font-extrabold text-gray-700 text-lg">{t("Admin.history.noOrdersFound", {}, "Aucune commande trouvée")}</p>
           <p className="text-xs text-gray-500 max-w-md mx-auto">
-            Aucune commande archivée ne correspond aux filtres sélectionnés. Essayez d'ajuster la période ou la recherche.
+            {t("Admin.orders.allProcessed", {}, "Aucune commande archivée ne correspond aux filtres sélectionnés.")}
           </p>
         </div>
       )}

@@ -3,7 +3,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, ClipboardList, Search, ShoppingBag } from "lucide-react";
-import content from "@/app/Texts/content.json";
+import { useI18n } from "@/lib/i18n/I18nContext";
 import { createOrder, fetchCatalog, fetchMunicipalities } from "./api";
 import { computeTotals, fmt, formatPrice, norm, resolveLine, useCart, useMyOrders } from "./Logic";
 import { Thumb, primaryBtn } from "./UI";
@@ -14,12 +14,12 @@ import TrackModal from "./Trackmodal";
 import { useRealtimeProducts } from "@/lib/Firebase.js";
 import Progression from "@/app/component/Proogression/page";
 
-const t = content.OrderingPage;
-
 // Doit correspondre à l'id de l'emplacement dans le header (AppNavbar)
 const HEADER_SLOT_ID = "header-mobile-slot";
 
 export default function OrderingPage() {
+  const { content, isRTL, currency } = useI18n();
+  const t = content.OrderingPage;
   const cart = useCart();
   const myOrders = useMyOrders();
 
@@ -159,7 +159,7 @@ export default function OrderingPage() {
   const showBar = cart.hydrated && cart.lines.length > 0;
   const hasOrders = myOrders.hasOrders;
   const barLabel = fmt(itemCount === 1 ? t.bar.itemOne : t.bar.itemOther, { count: itemCount });
-  const titleLines = t.title.split("\n");
+  const titleLines = (t?.title || "").split("\n");
 
   // Espace en bas de page : navigation du bas (mobile) / barre flottante (PC)
   const bottomPad = `pb-28 ${showBar || hasOrders ? "lg:pb-36" : "lg:pb-12"}`;
@@ -175,14 +175,14 @@ export default function OrderingPage() {
         {/* Search */}
         <div className="space-y-4">
           <div className="relative max-w-xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            <Search className={`absolute ${isRTL ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none`} />
             <input
               type="search"
               aria-label={t.searchLabel}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t.searchPlaceholder}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-full text-gray-900 placeholder-gray-400 outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20"
+              className={`w-full ${isRTL ? "pr-12 pl-4" : "pl-12 pr-4"} py-3 bg-white border border-gray-300 rounded-full text-gray-900 placeholder-gray-400 outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20`}
             />
           </div>
 
@@ -288,7 +288,7 @@ export default function OrderingPage() {
               }`}
             >
               <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>Confirmer</span>
+              <span>{isRTL ? "تأكيد" : t.locale === "en" ? "Confirm" : "Confirmer"}</span>
               {showBar && (
                 <span className="absolute -top-1.5 -right-1.5 min-w-4 sm:min-w-5 h-4 sm:h-5 px-1 rounded-full bg-black text-white text-[9px] sm:text-[10px] leading-none flex items-center justify-center">
                   {itemCount}
@@ -309,7 +309,7 @@ export default function OrderingPage() {
               }`}
             >
               <ClipboardList className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>Suivre</span>
+              <span>{isRTL ? "تتبع" : t.locale === "en" ? "Track" : "Suivre"}</span>
             </button>
           </div>,
           headerSlot

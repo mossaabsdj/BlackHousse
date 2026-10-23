@@ -35,8 +35,23 @@ export const norm = (s) =>
     .toLowerCase()
     .trim();
 
-export const formatPrice = (value, currency) =>
-  `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(Number(value) || 0)} ${currency}`;
+export const formatPrice = (value, currency) => {
+  let locale = "fr-FR";
+  let curr = currency;
+  try {
+    const loc = typeof window !== "undefined" ? window.localStorage.getItem("blackhousse:locale") : "fr";
+    if (loc === "ar") {
+      locale = "ar-DZ";
+      if (!curr || curr === "DA") curr = "د.ج";
+    } else if (loc === "en") {
+      locale = "en-US";
+      if (!curr) curr = "DA";
+    }
+  } catch {}
+  if (!curr) curr = "DA";
+  const num = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(Number(value) || 0);
+  return `${num} ${curr}`;
+};
 
 export const normalizePhone = (p) => String(p || "").replace(/[\s.\-()]/g, "");
 export const isValidPhone = (p) => /^\+?\d{8,15}$/.test(normalizePhone(p));
@@ -48,9 +63,14 @@ export const makeKey = () =>
 
 export const formatDate = (iso) => {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? ""
-    : d.toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" });
+  if (Number.isNaN(d.getTime())) return "";
+  let locale = "fr-FR";
+  try {
+    const loc = typeof window !== "undefined" ? window.localStorage.getItem("blackhousse:locale") : "fr";
+    if (loc === "ar") locale = "ar-DZ";
+    else if (loc === "en") locale = "en-US";
+  } catch {}
+  return d.toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
 };
 
 /* ------------------------- selection & pricing ------------------------ */

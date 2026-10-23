@@ -6,38 +6,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useNavigationLoading } from "@/app/component/NavigationLoading/NavigationLoadingContext";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
-export default function TermsConditions({
-  companyName = "Black Housse",
-  logo = "/images/logo.png",
-  title = "Conditions Générales d'Utilisation",
-  subtitle = "À lire attentivement",
-  description = "En utilisant la plateforme de commande BlackHousse, vous acceptez de respecter les conditions générales énoncées ci-dessous régissant nos services de restauration et livraison.",
-
-  sections = [
-    {
-      title: "1. Acceptation des conditions",
-      text: "L'accès et l'utilisation de nos services en ligne impliquent l'acceptation pleine et entière des présentes conditions générales.",
-    },
-    {
-      title: "2. Commandes et Disponibilité",
-      text: "Toute commande est transmise directement à notre cuisine. Les plats sont proposés dans la limite des stocks et ingrédients frais disponibles.",
-    },
-    {
-      title: "3. Livraison et Délais",
-      text: "Nous mettons tout en œuvre pour livrer vos repas chauds et dans les délais estimés. Les délais de livraison peuvent varier selon les conditions de circulation et les horaires de pointe.",
-    },
-    {
-      title: "4. Paiement",
-      text: "Le paiement des commandes s'effectue en espèces lors de la livraison à domicile ou lors du retrait sur place au comptoir.",
-    },
-    {
-      title: "5. Annulation et Réclamation",
-      text: "En cas de problème sur une commande livrée ou pour toute réclamation, veuillez contacter immédiatement notre service client au 0658953461.",
-    },
-  ],
-}) {
+export default function TermsConditions() {
+  const { content, isRTL } = useI18n();
+  const tc = content.TermsConditions;
+  const f = content.Footer;
   const { startLoading } = useNavigationLoading();
+
+  const companyName = f?.companyName || "Black Housse";
+  const logo = "/images/logo.png";
+  const title = tc?.title || "Conditions Générales d'Utilisation";
+  const subtitle = tc?.subtitle || "À lire attentivement";
+  const description = tc?.description || "En utilisant la plateforme de commande BlackHousse, vous acceptez de respecter les conditions générales énoncées ci-dessous régissant nos services de restauration et livraison.";
+  const sections = tc?.sections || [];
+  const backHome = tc?.backHome || "Retour à l'accueil";
 
   return (
     <div className="min-h-screen bg-white text-black flex flex-col items-center justify-center px-6 py-16">
@@ -65,12 +48,12 @@ export default function TermsConditions({
         </div>
 
         <Card className="border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition">
-          <CardContent className="p-8 space-y-6 text-left">
+          <CardContent className="p-8 space-y-6 text-start">
             <p className="text-gray-800 leading-relaxed">{description}</p>
             {sections.map((section, index) => (
-              <div key={index}>
-                <h4 className="font-semibold text-lg mb-1">{section.title}</h4>
-                <p className="text-gray-700">{section.text}</p>
+              <div key={index} className="space-y-1.5 pt-2 border-t border-gray-100 first:border-0 first:pt-0">
+                <h4 className="font-bold text-base text-gray-900">{section.title}</h4>
+                <p className="text-gray-600 text-sm leading-relaxed">{section.text}</p>
               </div>
             ))}
           </CardContent>
@@ -84,7 +67,7 @@ export default function TermsConditions({
             className="border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-300 px-6 py-2 rounded-full"
           >
             <Link href="/" onClick={() => startLoading("/")}>
-              ← Back to Home
+              <span className={isRTL ? "rtl-flip inline-block mr-1" : "inline-block mr-1"}>←</span> {backHome}
             </Link>
           </Button>
         </div>
@@ -92,7 +75,7 @@ export default function TermsConditions({
 
       {/* Footer */}
       <p className="mt-16 text-sm text-gray-500">
-        © {new Date().getFullYear()} {companyName}. All rights reserved.
+        © {new Date().getFullYear()} {companyName}. {f?.rightsReserved || "Tous droits réservés."}
       </p>
     </div>
   );

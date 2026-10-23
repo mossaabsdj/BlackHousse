@@ -24,6 +24,7 @@ import {
 import { api, formatDate, formatPrice, useList } from "./adminApi";
 import { ErrorBox, btnGhost, btnPrimary, card, inputClass } from "./Ui";
 import { useRealtimeAdminOrders } from "@/lib/Firebase";
+import { useI18n } from "@/lib/i18n/I18nContext";
 import QuickOrderModal from "./QuickOrderModal";
 import AvailabilityModal from "./AvailabilityModal";
 import {
@@ -141,38 +142,39 @@ function columnOf(order) {
 }
 
 /** Action principale unique selon le statut et le type de commande */
-function getAction(order, list) {
+function getAction(order, list, t) {
+  const tr = (k, def) => (t ? t(k, {}, def) : def);
   const s = norm(order.status);
   const isDelivery = order.fulfillment === "delivery";
   const col = columnOf(order);
 
   // Étape 1 : Si en attente de confirmation, action principale = Confirmer la commande
   if (s === "PENDING" || s === "RECEIVED" || s === "NEW") {
-    return { next: "CONFIRMED", label: "Confirmer la commande", icon: ClipboardCheck };
+    return { next: "CONFIRMED", label: tr("Admin.orders.actionConfirm", "Confirmer la commande"), icon: ClipboardCheck };
   }
 
   // Étape 2 : Si confirmée, action = Démarrer la préparation
   if (col === "confirmed")
-    return { next: pickStatus("preparing", list) || "PREPARING", label: "Démarrer la préparation", icon: ChefHat };
+    return { next: pickStatus("preparing", list) || "PREPARING", label: tr("Admin.orders.actionStartPrep", "Démarrer la préparation"), icon: ChefHat };
 
   // Étape 3 : Si en préparation, action = Marquer prête (pour livraison ou retrait)
   if (col === "preparing")
     return {
       next: pickStatus("ready", list) || "READY",
-      label: isDelivery ? "Prête (Attente livraison)" : "Marquer prête (Retrait)",
+      label: isDelivery ? tr("Admin.orders.actionReadyDelivery", "Prête (Attente livraison)") : tr("Admin.orders.actionReadyPickup", "Marquer prête (Retrait)"),
       icon: PackageCheck,
     };
 
   // Étape 4 : Prête
   if (!isDelivery)
-    return { next: pickStatus("pickupDone", list) || "COMPLETED", label: "Marquer récupérée", icon: CheckCircle2 };
+    return { next: pickStatus("pickupDone", list) || "COMPLETED", label: tr("Admin.orders.actionMarkPickedUp", "Marquer récupérée"), icon: CheckCircle2 };
 
   if (ALIASES.delivering.includes(s))
-    return { next: pickStatus("deliveryDone", list) || "COMPLETED", label: "Confirmer la livraison", icon: CheckCircle2 };
+    return { next: pickStatus("deliveryDone", list) || "COMPLETED", label: tr("Admin.orders.actionConfirmDelivery", "Confirmer la livraison"), icon: CheckCircle2 };
 
   const start = pickStatus("delivering", list) || "OUT_FOR_DELIVERY";
-  if (start) return { next: start, label: "Démarrer la livraison", icon: Truck };
-  return { next: pickStatus("deliveryDone", list) || "COMPLETED", label: "Confirmer la livraison", icon: CheckCircle2 };
+  if (start) return { next: start, label: tr("Admin.orders.actionStartDelivery", "Démarrer la livraison"), icon: Truck };
+  return { next: pickStatus("deliveryDone", list) || "COMPLETED", label: tr("Admin.orders.actionConfirmDelivery", "Confirmer la livraison"), icon: CheckCircle2 };
 }
 
 /** Statut de l'étape précédente (null si la commande est déjà à la première étape) */
@@ -189,16 +191,17 @@ function getPrev(order, list) {
 }
 
 /** Libellé de l'étape précédente, pour l'infobulle du bouton « Retour » */
-function prevLabelOf(order) {
+function prevLabelOf(order, t) {
+  const tr = (k, def) => (t ? t(k, {}, def) : def);
   const s = norm(order.status);
   const col = columnOf(order);
-  if (s === "CONFIRMED") return "En attente";
-  if (col === "preparing") return "Confirmée";
-  if (col === "ready") return ALIASES.delivering.includes(s) ? "Prête" : "En préparation";
+  if (s === "CONFIRMED") return tr("Admin.orders.colConfirmed", "En attente");
+  if (col === "preparing") return tr("Admin.orders.colConfirmed", "Confirmée");
+  if (col === "ready") return ALIASES.delivering.includes(s) ? tr("Admin.orders.colReady", "Prête") : tr("Admin.orders.colPreparing", "En préparation");
   return "";
 }
 
-const COLUMNS = [
+const DEFAULT_COLUMNS = [
   {
     key: "confirmed",
     title: "À Confirmer / En attente",
@@ -240,8 +243,8 @@ const waitMinutes = (createdAt, now) => {
   if (Number.isNaN(t)) return 0;
   return Math.max(0, Math.floor((now - t) / 60000));
 };
-const formatWait = (m) =>
-  m < 1 ? "À l'instant" : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
+const formatWait = (m, t) =>
+  m < 1 ? (t ? t("Admin.orders.justNow", {}, "À l'instant") : "À l'instant") : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
 const waitTone = (m) =>
   m >= 30
     ? "bg-red-50 text-red-700 border-red-200"
@@ -266,6 +269,7 @@ function OrderCard({
   onUndo,
   onPrint,
 }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const isDelivery = order.fulfillment === "delivery";
   const minutes = waitMinutes(order.createdAt, now);
@@ -286,14 +290,12 @@ function OrderCard({
           {order.dailyNumber != null && (
             <span
               className="flex items-center justify-center min-w-9 h-9 px-2.5 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white font-black text-base shadow-sm"
-              title={`Commande numéro ${order.dailyNumber} de la journée`}
+              title={t("Admin.orders.orderNumberDay", { num: order.dailyNumber }, `Commande numéro ${order.dailyNumber} de la journée`)}
             >
               #{order.dailyNumber}
             </span>
-            
           )}
-                    <p className="font-bold text-gray-900 text-sm truncate">{order.customerName}</p>
-
+          <p className="font-bold text-gray-900 text-sm truncate">{order.customerName}</p>
         </div>
         <span
           title={formatDate(order.createdAt)}
@@ -302,7 +304,7 @@ function OrderCard({
           )}`}
         >
           <Clock className="w-3 h-3" />
-          {formatWait(minutes)}
+          {formatWait(minutes, t)}
         </span>
       </div>
 
@@ -317,39 +319,39 @@ function OrderCard({
             }`}
           >
             {isDelivery ? <Truck className="w-3 h-3" /> : <Store className="w-3 h-3" />}
-            {isDelivery ? "Livraison" : "Retrait"}
+            {isDelivery ? t("Admin.orders.delivery", {}, "Livraison") : t("Admin.orders.pickup", {}, "Retrait")}
           </span>
 
           {norm(order.status) === "PENDING" && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
-              À confirmer
+              {t("Admin.orders.badgePending", {}, "À confirmer")}
             </span>
           )}
 
           {norm(order.status) === "CONFIRMED" && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-300">
-              En attente prépa
+              {t("Admin.orders.badgeAwaitingPrep", {}, "En attente prépa")}
             </span>
           )}
 
           {norm(order.status) === "READY" && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-              {isDelivery ? "Attente livreur" : "Prête pour retrait"}
+              {isDelivery ? t("Admin.orders.badgeAwaitingCourier", {}, "Attente livreur") : t("Admin.orders.badgeReadyPickup", {}, "Prête pour retrait")}
             </span>
           )}
 
           {norm(order.status) === "OUT_FOR_DELIVERY" && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-300">
-              En livraison
+              {t("Admin.orders.badgeInDelivery", {}, "En livraison")}
             </span>
           )}
 
           <a
             href={`tel:${order.customerPhone}`}
-            className="inline-flex items-center gap-1.5 text-orange-600 font-semibold text-xs ml-auto"
+            className="inline-flex items-center gap-1.5 text-orange-600 font-semibold text-xs ms-auto"
           >
             <Phone className="w-3 h-3" />
-            {order.customerPhone}
+            <span dir="ltr">{order.customerPhone}</span>
           </a>
         </div>
        
@@ -384,7 +386,7 @@ function OrderCard({
               onClick={() => setExpanded(true)}
               className="text-xs font-bold text-orange-600 hover:underline"
             >
-              + {hiddenCount} autre{hiddenCount > 1 ? "s" : ""} article{hiddenCount > 1 ? "s" : ""}
+              {t("Admin.orders.moreItems", { count: hiddenCount }, `+ ${hiddenCount} autre${hiddenCount > 1 ? "s" : ""} article${hiddenCount > 1 ? "s" : ""}`)}
             </button>
           </li>
         )}
@@ -399,9 +401,11 @@ function OrderCard({
       {/* Total */}
       <div className="flex items-center justify-between text-sm border-t border-gray-100 pt-2">
         <span className="text-xs text-gray-500">
-          {order.deliveryFee > 0 ? `Livraison : ${formatPrice(order.deliveryFee)}` : ""}
+          {order.deliveryFee > 0 ? t("Admin.orders.deliveryFee", { fee: formatPrice(order.deliveryFee) }, `Livraison : ${formatPrice(order.deliveryFee)}`) : ""}
         </span>
-        <span className="font-extrabold text-gray-900">Total : {formatPrice(order.total)}</span>
+        <span className="font-extrabold text-gray-900">
+          {t("Admin.orders.total", { amount: formatPrice(order.total) }, `Total : ${formatPrice(order.total)}`)}
+        </span>
       </div>
 
       {/* Action principale + retour + impression + annulation (colonne Confirmée seulement) */}
@@ -421,19 +425,19 @@ function OrderCard({
             type="button"
             onClick={() => onUndo(order)}
             disabled={busy}
-            aria-label={`Remettre la commande ${order.reference} à l'étape « ${prevLabel} »`}
-            title={`Revenir à l'étape précédente : ${prevLabel}`}
+            aria-label={t("Admin.orders.undoTo", { label: prevLabel }, `Revenir à l'étape précédente : ${prevLabel}`)}
+            title={t("Admin.orders.undoTo", { label: prevLabel }, `Revenir à l'étape précédente : ${prevLabel}`)}
             className="px-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
           >
-            <Undo2 className="w-4 h-4" />
+            <Undo2 className="w-4 h-4 rtl-flip" />
           </button>
         )}
         <button
           type="button"
           onClick={() => onPrint(order)}
           disabled={printing}
-          aria-label={`Imprimer le ticket de ${order.reference}`}
-          title="Imprimer le ticket"
+          aria-label={t("Admin.orders.print", {}, "Imprimer le ticket")}
+          title={t("Admin.orders.print", {}, "Imprimer le ticket")}
           className="px-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
         >
           {printing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
@@ -443,8 +447,8 @@ function OrderCard({
             type="button"
             onClick={() => onCancel(order)}
             disabled={busy}
-            aria-label={`Annuler la commande ${order.reference}`}
-            title="Annuler la commande"
+            aria-label={t("Admin.orders.cancel", {}, "Annuler la commande")}
+            title={t("Admin.orders.cancel", {}, "Annuler la commande")}
             className="px-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition disabled:opacity-50"
           >
             <X className="w-4 h-4" />
@@ -456,6 +460,7 @@ function OrderCard({
 }
 
 export default function OrdersPanel() {
+  const { t, isRTL } = useI18n();
   const [q, setQ] = useState("");
   const [qDebounced, setQDebounced] = useState("");
   const [type, setType] = useState("");
@@ -477,6 +482,45 @@ export default function OrdersPanel() {
   const autoConfirmRef = useRef(true);
   const autoConfirmInFlight = useRef(new Set());
   const inFlight = useRef(new Set());
+
+  const columns = useMemo(
+    () => [
+      {
+        key: "confirmed",
+        title: t("Admin.orders.colConfirmedFull", {}, "À Confirmer / En attente"),
+        short: t("Admin.orders.colConfirmed", {}, "Commandes"),
+        icon: ClipboardCheck,
+        border: "border-orange-200",
+        head: "bg-orange-50 text-orange-700 border-orange-200",
+        count: "bg-orange-500 text-white",
+        btn: "bg-orange-500 hover:bg-orange-600 shadow-orange-500/25",
+        empty: t("Admin.orders.emptyConfirmed", {}, "Aucune nouvelle commande"),
+      },
+      {
+        key: "preparing",
+        title: t("Admin.orders.colPreparingFull", {}, "En préparation"),
+        short: t("Admin.orders.colPreparing", {}, "Préparation"),
+        icon: ChefHat,
+        border: "border-amber-200",
+        head: "bg-amber-50 text-amber-700 border-amber-200",
+        count: "bg-amber-500 text-white",
+        btn: "bg-amber-500 hover:bg-amber-600 shadow-amber-500/25",
+        empty: t("Admin.orders.emptyPreparing", {}, "Rien en préparation"),
+      },
+      {
+        key: "ready",
+        title: t("Admin.orders.colReadyFull", {}, "Prêt / Livraison"),
+        short: t("Admin.orders.colReady", {}, "Prêt"),
+        icon: PackageCheck,
+        border: "border-emerald-200",
+        head: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        count: "bg-emerald-500 text-white",
+        btn: "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25",
+        empty: t("Admin.orders.emptyReady", {}, "Aucune commande prête"),
+      },
+    ],
+    [t]
+  );
 
   // Réglage « impression auto » (activé par défaut, mémorisé sur cet appareil)
   useEffect(() => {
@@ -740,17 +784,17 @@ export default function OrdersPanel() {
   const cancelOrder = (order) => {
     // L'annulation n'est possible que dans la colonne « Confirmée »
     if (columnOf(order) !== "confirmed" || inFlight.current.has(order.reference)) return;
-    if (!window.confirm(`Annuler la commande ${order.reference} ?`)) return;
+    if (!window.confirm(t("Admin.orders.cancelOrderConfirm", { ref: order.reference }, `Annuler la commande ${order.reference} ?`))) return;
     applyStatus(order, pickStatus("cancelled", allStatuses) ?? "CANCELLED");
   };
 
   return (
     <section className="space-y-3">
-      {/* Notification temps réel : petit toast en haut à droite */}
+      {/* Notification temps réel : petit toast en haut */}
       {notification && (
         <div
           role="alert"
-          className="fixed top-4 right-4 z-[60] w-[calc(100vw-2rem)] max-w-xs overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-xl shadow-orange-500/25 ring-1 ring-orange-400/40 animate-in fade-in slide-in-from-right-6 duration-300"
+          className="fixed top-4 end-4 z-[60] w-[calc(100vw-2rem)] max-w-xs overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-xl shadow-orange-500/25 ring-1 ring-orange-400/40 animate-in fade-in duration-300"
         >
           <div className="flex items-start gap-3 p-3">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-none ring-1 ring-white/30">
@@ -759,11 +803,8 @@ export default function OrdersPanel() {
 
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-black uppercase tracking-wider text-orange-100">
-                Nouvelle commande ·{" "}
-                {new Date(notification.at).toLocaleTimeString("fr-FR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {t("Admin.orders.newOrderAlert", {}, "Nouvelle commande")} ·{" "}
+                {formatDate(notification.at, { hour: "2-digit", minute: "2-digit" })}
               </p>
               <p className="font-extrabold text-sm truncate">
                 {notification.dailyNumber ? `#${notification.dailyNumber} · ` : ""}
@@ -782,8 +823,8 @@ export default function OrdersPanel() {
               <button
                 type="button"
                 onClick={() => playOrderChime()}
-                title="Rejouer le son"
-                aria-label="Rejouer le son"
+                title={t("Admin.orders.replaySound", {}, "Rejouer le son")}
+                aria-label={t("Admin.orders.replaySound", {}, "Rejouer le son")}
                 className="p-1.5 rounded-lg hover:bg-white/20 transition"
               >
                 <Volume2 className="w-4 h-4" />
@@ -791,7 +832,8 @@ export default function OrdersPanel() {
               <button
                 type="button"
                 onClick={() => setNotification(null)}
-                aria-label="Fermer la notification"
+                title={t("Admin.orders.closeNotification", {}, "Fermer la notification")}
+                aria-label={t("Admin.orders.closeNotification", {}, "Fermer la notification")}
                 className="p-1.5 rounded-lg hover:bg-white/20 transition"
               >
                 <X className="w-4 h-4" />
@@ -829,8 +871,8 @@ export default function OrdersPanel() {
             onClick={undoLast}
             className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 hover:bg-white/25 px-3 py-1.5 text-xs font-bold transition whitespace-nowrap"
           >
-            <Undo2 className="w-3.5 h-3.5" />
-            Revenir en arrière
+            <Undo2 className="w-3.5 h-3.5 rtl-flip" />
+            {t("Admin.orders.undoStep", {}, "Revenir en arrière")}
           </button>
           <button
             type="button"
@@ -887,15 +929,14 @@ export default function OrdersPanel() {
         )}
 
         <div className="relative flex-1 min-w-[200px] order-last sm:order-none">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
-            aria-label="Rechercher une commande"
-            className={`${inputClass} pl-9`}
-            placeholder="Nom, téléphone ou référence..."
+            aria-label={t("Admin.history.searchPlaceholder", {}, "Nom, téléphone ou référence...")}
+            className={`${inputClass} ps-9`}
+            placeholder={t("Admin.history.searchPlaceholder", {}, "Nom, téléphone ou référence...")}
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
-           
         </div>
 
         {/* Interrupteur : impression automatique des nouvelles commandes */}
@@ -904,7 +945,7 @@ export default function OrdersPanel() {
           role="switch"
           aria-checked={autoPrint}
           onClick={toggleAutoPrint}
-          title="Imprimer automatiquement chaque nouvelle commande (ticket 88 mm)"
+          title={t("Admin.orders.autoPrintTooltip", {}, "Imprimer automatiquement chaque nouvelle commande (ticket 88 mm)")}
           className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs sm:text-sm font-semibold whitespace-nowrap transition ${
             autoPrint
               ? "bg-emerald-50 border-emerald-200 text-emerald-700"
@@ -912,15 +953,15 @@ export default function OrdersPanel() {
           }`}
         >
           <Printer className="w-4 h-4" />
-          Impression auto
+          {t("Admin.orders.autoPrint", {}, "Impression auto")}
           <span
             className={`relative inline-flex h-5 w-9 flex-none rounded-full transition-colors ${
               autoPrint ? "bg-emerald-500" : "bg-gray-300"
             }`}
           >
             <span
-              className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                autoPrint ? "translate-x-4" : ""
+              className={`absolute top-0.5 start-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                autoPrint ? (isRTL ? "-translate-x-4" : "translate-x-4") : ""
               }`}
             />
           </span>
@@ -932,7 +973,7 @@ export default function OrdersPanel() {
           role="switch"
           aria-checked={autoConfirm}
           onClick={toggleAutoConfirm}
-          title="Confirmer automatiquement chaque nouvelle commande dès sa réception"
+          title={t("Admin.orders.autoConfirmTooltip", {}, "Confirmer automatiquement chaque nouvelle commande dès sa réception")}
           className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs sm:text-sm font-semibold whitespace-nowrap transition ${
             autoConfirm
               ? "bg-emerald-50 border-emerald-200 text-emerald-700"
@@ -940,15 +981,15 @@ export default function OrdersPanel() {
           }`}
         >
           <CheckCircle2 className="w-4 h-4" />
-          Confirmation auto
+          {t("Admin.orders.autoConfirm", {}, "Confirmation auto")}
           <span
             className={`relative inline-flex h-5 w-9 flex-none rounded-full transition-colors ${
               autoConfirm ? "bg-emerald-500" : "bg-gray-300"
             }`}
           >
             <span
-              className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                autoConfirm ? "translate-x-4" : ""
+              className={`absolute top-0.5 start-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                autoConfirm ? (isRTL ? "-translate-x-4" : "translate-x-4") : ""
               }`}
             />
           </span>
@@ -958,10 +999,10 @@ export default function OrdersPanel() {
           type="button"
           onClick={() => setAvailabilityOpen(true)}
           className={`${btnGhost} flex items-center gap-1.5 text-xs sm:text-sm whitespace-nowrap hover:border-orange-400 hover:text-orange-600`}
-          title="Gérer la disponibilité des produits et options (stocks)"
+          title={t("Admin.orders.availabilityTooltip", {}, "Gérer la disponibilité des produits et options (stocks)")}
         >
           <SlidersHorizontal className="w-4 h-4 text-orange-500" />
-          Disponibilité
+          {t("Admin.orders.availability", {}, "Disponibilité")}
         </button>
 
         <button
@@ -970,26 +1011,26 @@ export default function OrdersPanel() {
           className={`${btnPrimary} flex items-center gap-1.5 text-xs sm:text-sm whitespace-nowrap shadow-md shadow-orange-500/25`}
         >
           <Plus className="w-4 h-4" />
-          Ajouter une commande
+          {t("Admin.orders.addOrder", {}, "Ajouter une commande")}
         </button>
         <button
           type="button"
           onClick={() => reload()}
-          aria-label="Actualiser"
+          aria-label={t("Admin.orders.refresh", {}, "Actualiser")}
           className={`${btnGhost} flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap`}
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Actualiser
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> {t("Admin.orders.refresh", {}, "Actualiser")}
         </button>
       </div>
 
       {error && <ErrorBox message={error} onRetry={() => reload()} />}
       {actionError && <ErrorBox message={actionError} />}
-      {loading && items.length === 0 && <p className="text-gray-500">Chargement...</p>}
+      {loading && items.length === 0 && <p className="text-gray-500">{t("common.loading", {}, "Chargement...")}</p>}
       {!loading && items.length === 0 && !error && (
         <div className="p-8 text-center bg-white rounded-3xl border border-gray-200 space-y-2">
           <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-          <p className="font-extrabold text-gray-800">Aucune commande en attente !</p>
-          <p className="text-xs text-gray-500">Toutes les commandes ont été traitées ou terminées.</p>
+          <p className="font-extrabold text-gray-800">{t("Admin.orders.noPendingOrders", {}, "Aucune commande en attente !")}</p>
+          <p className="text-xs text-gray-500">{t("Admin.orders.allProcessed", {}, "Toutes les commandes ont été traitées ou terminées.")}</p>
         </div>
       )}
 
@@ -997,7 +1038,7 @@ export default function OrdersPanel() {
         <>
           {/* Onglets mobile */}
           <div className="lg:hidden grid grid-cols-3 gap-1 p-1 rounded-2xl bg-gray-100">
-            {COLUMNS.map((c) => (
+            {columns.map((c) => (
               <button
                 key={c.key}
                 type="button"
@@ -1016,7 +1057,7 @@ export default function OrdersPanel() {
 
           {/* Tableau en 3 colonnes */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
-            {COLUMNS.map((col) => {
+            {columns.map((col) => {
               const list = grouped[col.key];
               const ColIcon = col.icon;
               return (
@@ -1046,12 +1087,12 @@ export default function OrdersPanel() {
                         <OrderCard
                           key={o.id}
                           order={o}
-                          action={getAction(o, allStatuses)}
+                          action={getAction(o, allStatuses, t)}
                           busy={!!saving[o.reference]}
                           printing={!!printing[o.reference]}
                           canCancel={col.key === "confirmed"}
                           canUndo={col.key !== "confirmed" && !!getPrev(o, allStatuses)}
-                          prevLabel={prevLabelOf(o)}
+                          prevLabel={prevLabelOf(o, t)}
                           isNew={newRefs.includes(o.reference)}
                           now={now}
                           accent={col.btn}
@@ -1072,9 +1113,13 @@ export default function OrdersPanel() {
 
       {pages > 1 && (
         <div className="flex items-center justify-center gap-3">
-          <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className={btnGhost}>Précédent</button>
+          <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className={btnGhost}>
+            {t("common.prev", {}, "Précédent")}
+          </button>
           <span className="text-sm text-gray-600">Page {page} / {pages}</span>
-          <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className={btnGhost}>Suivant</button>
+          <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className={btnGhost}>
+            {t("common.next", {}, "Suivant")}
+          </button>
         </div>
       )}
     </section>

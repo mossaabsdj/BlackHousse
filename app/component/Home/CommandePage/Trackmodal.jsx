@@ -111,7 +111,7 @@ function TrackedOrder({ order, t }) {
         {connected && (
           <span className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] text-emerald-700 font-bold">
             <Radio className="w-3 h-3 animate-pulse" />
-            En direct
+            {k.live || (t.locale === "ar" ? "مباشر" : "En direct")}
           </span>
         )}
       </div>
@@ -124,7 +124,9 @@ function TrackedOrder({ order, t }) {
             <Clock className="relative w-5 h-5" />
           </span>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600">Statut actuel</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600">
+              {k.currentStatus || (t.locale === "ar" ? "الحالة الحالية" : "Statut actuel")}
+            </p>
             <p className="text-lg font-extrabold text-gray-900 leading-tight break-words">{status}</p>
             {when && <p className="text-xs text-gray-600 mt-0.5">{when}</p>}
           </div>
@@ -255,9 +257,11 @@ export default function TrackModal({ t, initialPhone = "", autoSearch = false, o
             return (
               <div className="rounded-3xl border border-dashed border-gray-300 bg-gray-50/60 p-8 text-center space-y-2">
                 <PackageSearch className="w-8 h-8 mx-auto text-gray-400" />
-                <p className="text-sm font-bold text-gray-800">Aucune commande en cours</p>
+                <p className="text-sm font-bold text-gray-800">
+                  {k.noActiveOrders || (t.locale === "ar" ? "لا توجد طلبات جارية" : "Aucune commande en cours")}
+                </p>
                 <p className="text-xs text-gray-500">
-                  Les commandes terminées ou annulées ne figurent plus dans le suivi actif.
+                  {k.noActiveOrdersDesc || (t.locale === "ar" ? "الطلبات المكتملة أو الملغاة لم تعد تظهر في التتبع المباشر." : "Les commandes terminées ou annulées ne figurent plus dans le suivi actif.")}
                 </p>
               </div>
             );
@@ -269,8 +273,8 @@ export default function TrackModal({ t, initialPhone = "", autoSearch = false, o
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
                     {activeOrders.length === 1
-                      ? "1 commande en cours"
-                      : `${activeOrders.length} commandes en cours`}
+                      ? (k.activeOrdersCountOne || (t.locale === "ar" ? "طلب واحد قيد التنفيذ" : "1 commande en cours"))
+                      : fmt(k.activeOrdersCountOther || (t.locale === "ar" ? "{count} طلبات قيد التنفيذ" : "{count} commandes en cours"), { count: activeOrders.length })}
                   </p>
                   {updatedAt && (
                     <button

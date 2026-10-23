@@ -1,0 +1,693 @@
+{
+  "locale": "fr",
+  "dir": "ltr",
+  "currency": "DA",
+  "brandName": "BlackHousse",
+  "nav": {
+    "home": "Home",
+    "menu": "Notre Menu",
+    "order": "Commander",
+    "feedback": "Avis Clients",
+    "contact": "Contact & Localisation",
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "dashboard": "Tableau de bord",
+    "account": "Compte",
+    "shortMenu": "Menu",
+    "shortFeedback": "Avis",
+    "shortContact": "Contact",
+    "logoutConfirmTitle": "Êtes-vous sûr ?",
+    "logoutConfirmText": "Vous allez être déconnecté.",
+    "logoutConfirmYes": "Oui, déconnexion",
+    "logoutConfirmCancel": "Annuler"
+  },
+  "FirstPage": {
+    "badge": "BlackHousse",
+    "title": "Le goût du <span style='color:#f97316'>plaisir</span>, à chaque bouchée.",
+    "description": "Tacos généreux, pizzas savoureuses, calzones gourmandes, poutines irrésistibles et bien d’autres délices. Chez BlackHousse, il y en a pour toutes les envies : des portions généreuses, des saveurs uniques et le plaisir de bien manger.",
+    "button": "Commander maintenant",
+    "tags": [
+      "🌮 Tacos généreux",
+      "🍕 Pizzas savoureuses",
+      "🧀 Poutines gourmandes",
+      "🛵 Livraison disponible"
+    ],
+    "image": {
+      "src": "/images/logo.png",
+      "alt": "Les spécialités gourmandes de BlackHousse",
+      "width": 800,
+      "height": 800
+    }
+  },
+  "MenuPage": {
+    "badge": "BlackHousse",
+    "title": "Notre <span style='color:#f97316'>Menu</span>",
+    "description": "Faites défiler pour découvrir nos burgers, tacos, pizzas et desserts, préparés minute avec des produits frais.",
+    "button": "Commander maintenant",
+    "slides": [
+      {
+        "src": "/images/menu/pizza.jpg",
+        "alt": "Burgers BlackHousse",
+        "tag": "Burgers",
+        "title": "Burgers grillés au feu",
+        "subtitle": "Bœuf 100% frais, pain moelleux et sauces maison."
+      },
+      {
+        "src": "/images/menu/tacos.jpg",
+        "alt": "Tacos BlackHousse",
+        "tag": "Tacos",
+        "title": "Tacos généreux",
+        "subtitle": "Poulet ou viande hachée, frites et sauce fromagère."
+      },
+      {
+        "src": "/images/menu/poutine.jpg",
+        "alt": "Pizzas BlackHousse",
+        "tag": "Pizzas",
+        "title": "Pizzas croustillantes",
+        "subtitle": "Pâte fine, mozzarella fondante et garnitures fraîches."
+      },
+      {
+        "src": "/images/menu/pizza.jpg",
+        "alt": "Sandwichs BlackHousse",
+        "tag": "Sandwichs",
+        "title": "Sandwichs toastés",
+        "subtitle": "Paninis et clubs garnis, chauds et croustillants."
+      },
+      {
+        "src": "/images/menu/crispy.jpg",
+        "alt": "Burgers BlackHousse",
+        "tag": "Burgers",
+        "title": "Burgers grillés au feu",
+        "subtitle": "Bœuf 100% frais, pain moelleux et sauces maison."
+      }
+    ]
+  },
+  "FeedbackPage": {
+    "badge": "BlackHousse",
+    "title": "Ce que nos clients <span style='color:#f97316'>disent</span>\nde nous.",
+    "description": "Un burger parfait ? Une attente trop longue ? Lisez les avis de nos clients et partagez le vôtre en quelques secondes.",
+    "addButton": "Ajouter un avis",
+    "reviewsTitle": "Les avis de nos clients",
+    "reviewsSubtitle": "Des retours sincères pour nous aider à servir toujours mieux.",
+    "reviewsCount": "avis",
+    "showMore": "Voir plus d'avis",
+    "anonymous": "Client BlackHousse",
+    "justNow": "À l'instant",
+    "modalTitle": "Donnez votre avis",
+    "modalDescription": "Votre retour nous aide à améliorer chaque burger.",
+    "close": "Fermer",
+    "nameLabel": "Votre prénom (facultatif)",
+    "namePlaceholder": "Ex : Amine",
+    "ratingLabel": "Votre note",
+    "ratingHints": [
+      "Décevant",
+      "Moyen",
+      "Bien",
+      "Très bon",
+      "Excellent !"
+    ],
+    "topicsLabel": "Qu'avez-vous aimé ?",
+    "topics": [
+      { "id": "burgers", "label": "Burgers", "icon": "🍔" },
+      { "id": "tacos", "label": "Tacos", "icon": "🌮" },
+      { "id": "pizzas", "label": "Pizzas", "icon": "🍕" },
+      { "id": "drinks", "label": "Boissons", "icon": "🥤" },
+      { "id": "desserts", "label": "Desserts", "icon": "🍰" },
+      { "id": "service", "label": "Service", "icon": "😊" },
+      { "id": "delivery", "label": "Livraison", "icon": "🛵" }
+    ],
+    "commentLabel": "Votre commentaire",
+    "commentPlaceholder": "Racontez-nous votre expérience...",
+    "submit": "Envoyer mon avis",
+    "sending": "Envoi en cours...",
+    "errors": {
+      "rating": "Choisissez une note avec les burgers avant d'envoyer.",
+      "generic": "Une erreur est survenue, veuillez réessayer."
+    },
+    "success": {
+      "icon": "🍔",
+      "title": "Merci beaucoup !",
+      "message": "Votre avis a bien été envoyé. Il nous aide à améliorer chaque burger."
+    }
+  },
+  "OrderingPage": {
+    "badge": "BlackHousse",
+    "title": "Composez votre <span style='color:#f97316'>commande</span>,\nnous nous occupons du reste.",
+    "description": "Parcourez le menu, personnalisez vos produits et commandez sans créer de compte.",
+    "searchLabel": "Rechercher un produit",
+    "searchPlaceholder": "Rechercher un produit...",
+    "allCategories": "Tout",
+    "otherCategory": "Autres",
+    "loading": "Chargement du menu...",
+    "loadError": "Impossible de charger le menu. Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer",
+    "emptyCatalog": "Aucun produit n'est disponible pour le moment.",
+    "noResults": "Aucun produit ne correspond à votre recherche.",
+    "unavailable": "Indisponible",
+    "select": "Choisir",
+    "currency": "DA",
+    "decrease": "Diminuer la quantité",
+    "increase": "Augmenter la quantité",
+    "product": {
+      "addToCart": "Ajouter au panier",
+      "updateLine": "Mettre à jour",
+      "required": "Obligatoire",
+      "optional": "Facultatif",
+      "chooseOne": "Choisissez 1 option",
+      "chooseExactly": "Choisissez {n}",
+      "chooseBetween": "Choisissez de {min} à {max}",
+      "chooseAtLeast": "Au moins {min}",
+      "chooseUpTo": "Jusqu'à {max}",
+      "missing": "Veuillez compléter : {groups}",
+      "close": "Fermer"
+    },
+    "bar": {
+      "itemOne": "{count} article",
+      "itemOther": "{count} articles",
+      "view": "Voir ma commande",
+      "unknownTotal": "…"
+    },
+    "cart": {
+      "title": "Ma commande",
+      "empty": "Votre panier est vide.",
+      "loading": "Mise à jour de votre panier...",
+      "loadError": "Impossible de vérifier votre panier pour le moment.",
+      "unknownProduct": "Produit retiré du menu",
+      "unknownProductHint": "Ce produit n'existe plus. Supprimez cette ligne pour continuer.",
+      "edit": "Modifier",
+      "remove": "Supprimer",
+      "subtotal": "Sous-total",
+      "total": "Total",
+      "deliveryNote": "Les éventuels frais de livraison sont ajoutés à l'étape suivante.",
+      "confirm": "Confirmer la commande",
+      "lineUnavailable": "Ce produit ou l'une de ses options n'est plus disponible. Modifiez ou supprimez cette ligne.",
+      "blocked": "Corrigez les produits indisponibles pour continuer.",
+      "close": "Fermer"
+    },
+    "checkout": {
+      "title": "Confirmer la commande",
+      "name": "Nom complet",
+      "namePlaceholder": "Votre nom",
+      "phone": "Numéro de téléphone",
+      "phonePlaceholder": "Ex : 0555 12 34 56",
+      "fulfillment": "Mode de réception",
+      "delivery": "Livraison",
+      "pickup": "Retrait au restaurant",
+      "municipality": "Commune",
+      "municipalityPlaceholder": "Choisissez votre commune",
+      "address": "Adresse détaillée",
+      "addressPlaceholder": "Quartier, rue, bâtiment, repère...",
+      "notes": "Instructions supplémentaires (facultatif)",
+      "notesPlaceholder": "Ex : sans oignons, sonner deux fois...",
+      "summary": "Récapitulatif",
+      "subtotal": "Sous-total",
+      "deliveryFee": "Frais de livraison",
+      "total": "Total",
+      "submit": "Envoyer la commande",
+      "submitting": "Envoi en cours...",
+      "back": "Modifier la commande",
+      "close": "Fermer",
+      "blocked": "Certains produits ne sont plus disponibles. Modifiez votre commande avant de continuer.",
+      "errors": {
+        "name": "Veuillez saisir votre nom.",
+        "phone": "Numéro de téléphone invalide.",
+        "fulfillment": "Choisissez un mode de réception.",
+        "municipality": "Choisissez ou saisissez votre commune.",
+        "address": "Veuillez saisir une adresse détaillée.",
+        "network": "Connexion impossible. Votre panier est conservé : réessayez dans un instant.",
+        "unavailable": "Un produit de votre commande n'est plus disponible. Le menu a été mis à jour.",
+        "priceChanged": "Les prix ont changé. Vérifiez le nouveau total avant de confirmer.",
+        "tooMany": "Trop de tentatives. Patientez un instant avant de réessayer.",
+        "generic": "Votre commande n'a pas pu être enregistrée. Votre panier est conservé, veuillez réessayer."
+      },
+      "success": {
+        "title": "Commande confirmée !",
+        "message": "Merci {name}, votre commande a bien été enregistrée.",
+        "reference": "Référence",
+        "status": "Statut",
+        "fulfillment": "Réception",
+        "total": "Total",
+        "track": "Suivre ma commande",
+        "close": "Terminer"
+      }
+    },
+    "track": {
+      "floating": "Suivre ma commande",
+      "title": "Suivre ma commande",
+      "intro": "Saisissez le numéro de téléphone utilisé pour la commande.",
+      "phone": "Numéro de téléphone",
+      "search": "Afficher le statut",
+      "searching": "Recherche...",
+      "refresh": "Actualiser",
+      "lastUpdate": "Dernière mise à jour : {time}",
+      "noOrders": "Aucune commande récente trouvée pour ce numéro.",
+      "history": "Historique",
+      "close": "Fermer",
+      "errors": {
+        "phone": "Numéro de téléphone invalide.",
+        "network": "Connexion impossible. Réessayez dans un instant.",
+        "tooMany": "Trop de tentatives. Patientez un instant avant de réessayer.",
+        "generic": "Impossible de récupérer le statut pour le moment."
+      }
+    }
+  },
+  "Footer": {
+    "companyName": "Black Housse",
+    "companyDescription": "where Elegance Meets Taste....",
+    "address": "harrouch/skikda",
+    "phoneNumber": "0658953461",
+    "email": "BlackHousse@gmail.com",
+    "companyTitle": "Entreprise",
+    "supportTitle": "Assistance",
+    "contactTitle": "Contact",
+    "links": {
+      "aboutUs": "À propos",
+      "helpCenter": "Centre d'aide",
+      "privacyPolicy": "Politique de confidentialité",
+      "termsConditions": "Conditions générales"
+    },
+    "copyright": "© {year} Black Housse. Tous droits réservés."
+  },
+  "AboutUs": {
+    "title": "À propos de nous",
+    "subtitle": "Qui sommes-nous ?",
+    "description": "BlackHousse est un restaurant et fast-food gourmet dédié à offrir une expérience culinaire d'exception. Nous combinons des ingrédients frais, une préparation minutieuse et une passion pour le goût afin de satisfaire toutes vos envies, sur place ou livrées chez vous.",
+    "missionTitle": "Notre Mission",
+    "missionText": "Servir des plats généreux et savoureux tout en assurant une expérience de commande rapide, moderne et fluide.",
+    "visionTitle": "Notre Vision",
+    "visionText": "Devenir la référence incontournable de la restauration rapide de qualité supérieure en Algérie.",
+    "backHome": "Retour à l'accueil"
+  },
+  "HelpCenter": {
+    "title": "Centre d'aide & FAQ",
+    "subtitle": "Questions fréquemment posées",
+    "description": "Trouvez des réponses rapides aux questions courantes concernant vos commandes en ligne, la livraison, le suivi en direct et nos services.",
+    "backHome": "Retour à l'accueil",
+    "faq": [
+      {
+        "q": "Comment passer une commande sur BlackHousse ?",
+        "a": "Rendez-vous dans la rubrique 'Notre Menu' ou cliquez sur 'Commander', sélectionnez vos plats préférés, personnalisez vos options et validez votre panier en indiquant votre adresse et numéro de téléphone."
+      },
+      {
+        "q": "Quels sont les modes de récupération disponibles ?",
+        "a": "Vous pouvez choisir entre la livraison à domicile dans votre municipalité ou le retrait sur place (à emporter) dans notre restaurant."
+      },
+      {
+        "q": "Comment suivre ma commande en temps réel ?",
+        "a": "Dès que vous confirmez votre commande, un numéro de référence unique vous est attribué. Vous pouvez suivre l'état d'avancement de votre commande en direct depuis le bouton 'Suivre' dans le menu."
+      },
+      {
+        "q": "Puis-je recevoir des notifications sur l'état de ma commande ?",
+        "a": "Oui, vous pouvez activer les notifications push sur votre téléphone ou ordinateur pour être averti dès que votre commande est confirmée, en préparation ou en cours de livraison."
+      },
+      {
+        "q": "Quels sont les moyens de paiement acceptés ?",
+        "a": "Le paiement s'effectue en espèces lors de la livraison ou au comptoir lors du retrait de votre commande."
+      },
+      {
+        "q": "Comment contacter le service client en cas de problème ?",
+        "a": "Vous pouvez nous joindre par téléphone au 0658953461, par email à BlackHousse@gmail.com, ou directement via WhatsApp et Telegram indiqués dans le pied de page."
+      }
+    ]
+  },
+  "PrivacyPolicy": {
+    "title": "Politique de confidentialité",
+    "subtitle": "Vos données personnelles sont protégées",
+    "description": "Chez BlackHousse, nous accordons une importance primordiale à la confidentialité et à la sécurité de vos données personnelles.",
+    "backHome": "Retour à l'accueil",
+    "sections": [
+      {
+        "title": "Collecte des données",
+        "text": "Nous collectons uniquement les informations nécessaires au traitement de vos commandes (nom, numéro de téléphone, adresse de livraison et préférences de notification push)."
+      },
+      {
+        "title": "Utilisation des données",
+        "text": "Vos données sont utilisées exclusivement pour préparer vos repas, assurer la livraison dans les meilleures conditions et vous transmettre le suivi en temps réel."
+      },
+      {
+        "title": "Sécurité & Confidentialité",
+        "text": "Nous appliquons des standards stricts de chiffrement et de sécurité. Vos informations personnelles ne sont jamais vendues, partagées ou transmises à des tiers sans votre accord."
+      }
+    ]
+  },
+  "TermsConditions": {
+    "title": "Conditions Générales d'Utilisation",
+    "subtitle": "À lire attentivement",
+    "description": "En utilisant la plateforme de commande BlackHousse, vous acceptez de respecter les conditions générales énoncées ci-dessous régissant nos services de restauration et livraison.",
+    "backHome": "Retour à l'accueil",
+    "sections": [
+      {
+        "title": "1. Acceptation des conditions",
+        "text": "L'accès et l'utilisation de nos services en ligne impliquent l'acceptation pleine et entière des présentes conditions générales."
+      },
+      {
+        "title": "2. Commandes et Disponibilité",
+        "text": "Toute commande est transmise directement à notre cuisine. Les plats sont proposés dans la limite des stocks et ingrédients frais disponibles."
+      },
+      {
+        "title": "3. Livraison et Délais",
+        "text": "Nous mettons tout en œuvre pour livrer vos repas chauds et dans les délais estimés. Les délais de livraison peuvent varier selon les conditions de circulation et les horaires de pointe."
+      },
+      {
+        "title": "4. Paiement",
+        "text": "Le paiement des commandes s'effectue en espèces lors de la livraison à domicile ou lors du retrait sur place au comptoir."
+      },
+      {
+        "title": "5. Annulation et Réclamation",
+        "text": "En cas de problème sur une commande livrée ou pour toute réclamation, veuillez contacter immédiatement notre service client au 0658953461."
+      }
+    ]
+  },
+  "Auth": {
+    "login": "Connexion",
+    "register": "Inscription",
+    "emailOrPhone": "Email ou Numéro de téléphone",
+    "email": "Email",
+    "phone": "Numéro de téléphone",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "confirmNewPassword": "Confirmer le nouveau mot de passe",
+    "fullName": "Nom complet",
+    "selectCountry": "Sélectionner un pays",
+    "forgotPassword": "Mot de passe oublié ?",
+    "rememberMe": "Se souvenir de moi",
+    "signInBtn": "Se connecter",
+    "signUpBtn": "Créer un compte",
+    "loggingIn": "Connexion en cours...",
+    "registering": "Création en cours...",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "hasAccount": "Vous avez déjà un compte ?",
+    "backToHome": "Retour au site BlackHousse",
+    "or": "OU",
+    "loginWith": "Ou se connecter avec",
+    "signUpWith": "Ou s'inscrire avec",
+    "welcomeBackTitle": "Bon retour parmi nous !",
+    "welcomeBackDesc": "Gérez vos commandes, explorez notre délicieux menu et profitez de nos offres gourmandes — le tout au même endroit.",
+    "welcomeBackSubtitle": "Bienvenue ! Veuillez vous connecter à votre compte.",
+    "joinCommunityTitle": "Rejoignez BlackHousse !",
+    "joinCommunityDesc": "Créez votre compte pour suivre vos commandes en temps réel et savourer nos spécialités en toute simplicité.",
+    "joinCommunitySubtitle": "Créez votre compte pour commencer.",
+    "resetPasswordTitle": "Réinitialiser le mot de passe",
+    "resetPasswordDesc": "Entrez votre adresse email et nous vous enverrons un code de réinitialisation.",
+    "nextBtn": "Suivant",
+    "cancelBtn": "Annuler",
+    "enterOtp": "Vérification du code",
+    "otpSent": "Entrez le code à 6 chiffres envoyé à {email}",
+    "verifyBtn": "Vérifier le code",
+    "verifying": "Vérification...",
+    "resend": "Renvoyer le code",
+    "resendIn": "Renvoyer dans {seconds}s",
+    "invalidOtp": "Code de vérification invalide.",
+    "invalidCredentials": "Email ou mot de passe incorrect.",
+    "registerSuccess": "Compte créé avec succès !",
+    "loginSuccess": "Connexion réussie !",
+    "loginFailed": "Échec de la connexion",
+    "missingFields": "Champs manquants",
+    "missingFieldsDesc": "Veuillez remplir tous les champs obligatoires.",
+    "invalidEmail": "Email invalide",
+    "invalidEmailDesc": "Veuillez entrer une adresse email valide.",
+    "invalidPhone": "Numéro de téléphone invalide",
+    "invalidPhoneDesc": "Le numéro doit comporter entre 8 et 13 chiffres.",
+    "weakPassword": "Mot de passe trop court",
+    "weakPasswordDesc": "Le mot de passe doit comporter au moins 8 caractères.",
+    "weakPassword6Desc": "Le mot de passe doit comporter au moins 6 caractères.",
+    "passwordMismatch": "Mots de passe différents",
+    "passwordMismatchDesc": "Les deux mots de passe ne correspondent pas.",
+    "otpSendFailed": "Impossible d'envoyer le code de vérification",
+    "otpResent": "Nouveau code envoyé !",
+    "otpResentDesc": "Un nouveau code de vérification a été envoyé.",
+    "resetSuccess": "Mot de passe modifié avec succès !",
+    "resetSuccessDesc": "Vous pouvez maintenant vous connecter avec votre nouveau mot de passe."
+  },
+  "OrderStatus": {
+    "PENDING": "En attente de confirmation",
+    "CONFIRMED": "En attente de préparation",
+    "PREPARING": "En préparation",
+    "READY": "Prête",
+    "READY_PICKUP": "En attente de retrait",
+    "READY_DELIVERY": "En attente de livraison",
+    "OUT_FOR_DELIVERY": "En cours de livraison",
+    "COMPLETED": "Terminée",
+    "CANCELLED": "Annulée"
+  },
+  "Admin": {
+    "dashboardTitle": "BlackHousse Admin",
+    "viewSite": "Voir le site web",
+    "logout": "Se déconnecter",
+    "roleAdmin": "Administrateur",
+    "groups": {
+      "sales": "Commandes & Ventes",
+      "finance": "Comptabilité",
+      "menu": "Menu & Restaurant",
+      "system": "Système & Données"
+    },
+    "nav": {
+      "orders": "Commandes en cours",
+      "history": "Historique",
+      "feedback": "Avis & Commentaires",
+      "finance": "Finances & Bilan",
+      "expenses": "Registre Dépenses",
+      "products": "Produits",
+      "options": "Options & Suppléments",
+      "categories": "Catégories",
+      "municipalities": "Municipalités & Frais",
+      "database": "Sauvegarde BDD (JSON)"
+    },
+    "orders": {
+      "activeCount": "{count} active{s}",
+      "connected": "Connecté en temps réel",
+      "disconnected": "Hors ligne - Tentative de reconnexion...",
+      "autoPrint": "Impression auto",
+      "autoPrintTooltip": "Imprimer automatiquement chaque nouvelle commande (ticket 88 mm)",
+      "autoConfirm": "Confirmation auto",
+      "autoConfirmTooltip": "Confirmer automatiquement chaque nouvelle commande dès sa réception",
+      "soundChime": "Sonnette",
+      "availability": "Disponibilité",
+      "availabilityTooltip": "Gérer la disponibilité des produits et options (stocks)",
+      "addOrder": "Ajouter une commande",
+      "refresh": "Actualiser",
+      "noPendingOrders": "Aucune commande en attente !",
+      "allProcessed": "Toutes les commandes ont été traitées ou terminées.",
+      "colConfirmed": "En attente",
+      "colConfirmedFull": "En attente de préparation",
+      "colPreparing": "En cuisine",
+      "colPreparingFull": "En préparation",
+      "colReady": "Prêtes",
+      "colReadyFull": "Prêtes / En livraison",
+      "emptyConfirmed": "Aucune nouvelle commande",
+      "emptyPreparing": "Rien en préparation",
+      "emptyReady": "Aucune commande prête",
+      "actionConfirm": "Confirmer la commande",
+      "actionStartPrep": "Démarrer la préparation",
+      "actionReadyDelivery": "Prête (Attente livraison)",
+      "actionReadyPickup": "Marquer prête (Retrait)",
+      "actionMarkPickedUp": "Marquer récupérée",
+      "actionConfirmDelivery": "Confirmer la livraison",
+      "actionStartDelivery": "Démarrer la livraison",
+      "badgeAwaitingPrep": "En attente prépa",
+      "badgeAwaitingCourier": "Attente livreur",
+      "badgeReadyPickup": "Prête pour retrait",
+      "badgeInDelivery": "En livraison",
+      "badgePending": "À confirmer",
+      "moreItems": "+ {count} autre(s) article(s)",
+      "undoStep": "Revenir en arrière",
+      "undoTo": "Revenir à l'étape précédente : {label}",
+      "cancelOrderConfirm": "Annuler la commande {ref} ?",
+      "replaySound": "Rejouer le son",
+      "closeNotification": "Fermer la notification",
+      "orderNumberDay": "Commande numéro {num} de la journée",
+      "justNow": "À l'instant",
+      "pickup": "Retrait",
+      "delivery": "Livraison",
+      "advanceToPrep": "Passer en cuisine",
+      "advanceToReady": "Marquer prête",
+      "advanceToDelivered": "Terminer la commande",
+      "cancel": "Annuler",
+      "undo": "Annuler l'étape précédente",
+      "print": "Imprimer le ticket",
+      "dailyNum": "Ticket #{num}",
+      "ref": "Réf : {ref}",
+      "notes": "Note : {notes}",
+      "deliveryFee": "Livraison : {fee}",
+      "subtotal": "Sous-total : {amount}",
+      "total": "Total : {amount}",
+      "newOrderAlert": "Nouvelle commande reçue !"
+    },
+    "history": {
+      "title": "Historique des commandes",
+      "subtitle": "Consultez, recherchez et filtrez l'ensemble des commandes passées.",
+      "searchPlaceholder": "Rechercher par référence, client, téléphone...",
+      "statusAll": "Tous les statuts",
+      "dateAll": "Toutes les dates",
+      "dateToday": "Aujourd'hui",
+      "dateYesterday": "Hier",
+      "date7days": "7 derniers jours",
+      "date30days": "30 derniers jours",
+      "totalOrders": "Total commandes",
+      "totalRevenue": "Chiffre d'affaires",
+      "orderRef": "Référence",
+      "client": "Client",
+      "mode": "Mode",
+      "items": "Articles",
+      "amount": "Montant",
+      "status": "Statut",
+      "date": "Date",
+      "actions": "Actions",
+      "viewDetails": "Détails",
+      "printTicket": "Imprimer"
+    },
+    "finance": {
+      "title": "Finances & Bilan",
+      "subtitle": "Indicateurs financiers, chiffre d'affaires et rentabilité.",
+      "today": "Aujourd'hui",
+      "thisWeek": "Cette semaine",
+      "thisMonth": "Ce mois-ci",
+      "revenue": "Chiffre d'affaires",
+      "expenses": "Total des dépenses",
+      "netProfit": "Bénéfice net",
+      "ordersCount": "Nombre de commandes",
+      "averageTicket": "Panier moyen",
+      "paymentBreakdown": "Répartition des encaissements",
+      "cashAtPickup": "Espèces au comptoir",
+      "cashAtDelivery": "Espèces à la livraison"
+    },
+    "expenses": {
+      "title": "Registre des Dépenses",
+      "subtitle": "Enregistrez vos achats de matières premières, emballages, charges.",
+      "addExpense": "Ajouter une dépense",
+      "description": "Description / Motif",
+      "amount": "Montant (DA)",
+      "category": "Catégorie",
+      "date": "Date",
+      "total": "Total dépenses : {total}",
+      "deleteConfirm": "Supprimer cette dépense ?",
+      "categories": {
+        "ingredients": "Ingrédients & Matières premières",
+        "packaging": "Emballages & Sachets",
+        "utilities": "Électricité, Gaz, Eau",
+        "rent": "Loyer & Charges",
+        "maintenance": "Maintenance & Équipements",
+        "salaries": "Salaires & Primes",
+        "other": "Autres dépenses"
+      }
+    },
+    "products": {
+      "title": "Gestion du Menu",
+      "subtitle": "Ajoutez, modifiez et organisez vos plats et boissons.",
+      "addProduct": "Ajouter un produit",
+      "editProduct": "Modifier le produit",
+      "name": "Nom du produit",
+      "description": "Description",
+      "price": "Prix (DA)",
+      "category": "Catégorie",
+      "image": "Image du produit",
+      "available": "Disponible à la vente",
+      "active": "Visible sur le menu",
+      "optionGroups": "Groupes d'options associés",
+      "sortOrder": "Ordre d'affichage",
+      "deleteConfirm": "Supprimer le produit « {name} » ?"
+    },
+    "options": {
+      "title": "Groupes d'options & Ingrédients",
+      "subtitle": "Gérez les sauces, tailles, garnitures et suppléments.",
+      "addGroup": "Ajouter un groupe",
+      "editGroup": "Modifier le groupe",
+      "name": "Nom du groupe",
+      "selectionType": "Type de choix",
+      "single": "Un seul choix (ex : taille)",
+      "multiple": "Plusieurs choix (ex : sauces)",
+      "required": "Sélection obligatoire",
+      "minSelect": "Nombre minimum de choix",
+      "maxSelect": "Nombre maximum de choix",
+      "optionsList": "Options du groupe",
+      "optionName": "Nom de l'option",
+      "extraPrice": "Prix supplémentaire (DA)",
+      "addOption": "Ajouter une option",
+      "deleteConfirm": "Supprimer ce groupe d'options ?"
+    },
+    "availability": {
+      "title": "Disponibilité des produits & options",
+      "realtimeBanner": "État des stocks en temps réel",
+      "realtimeSub": "{products} produits · {options} options au total",
+      "outOfStockAlert": "{prodCount} produit(s), {optCount} option(s) en rupture",
+      "allAvailable": "Tous les articles sont disponibles",
+      "tabProducts": "Produits",
+      "tabGroups": "Groupes d'options",
+      "onlyUnavailable": "Ruptures uniquement",
+      "searchPlaceholder": "Rechercher un plat, boisson ou ingrédient...",
+      "expandAll": "Tout déplier",
+      "collapseAll": "Tout replier",
+      "available": "Disponible",
+      "outOfStock": "Épuisé",
+      "dispo": "Dispo",
+      "rupture": "Rupture",
+      "footerTip": "Toute modification s'enregistre immédiatement et met à jour le menu des clients.",
+      "done": "Terminé"
+    },
+    "simple": {
+      "categoriesTitle": "Catégories du menu",
+      "categoriesSubtitle": "Burgers, Pizzas, Tacos, Boissons...",
+      "addCategory": "Ajouter une catégorie",
+      "municipalitiesTitle": "Municipalités & Tarifs de livraison",
+      "municipalitiesSubtitle": "Définissez les zones de livraison et les frais associés.",
+      "addMunicipality": "Ajouter une municipalité",
+      "name": "Nom",
+      "deliveryFee": "Frais de livraison (DA)",
+      "active": "Active",
+      "sortOrder": "Ordre",
+      "deleteConfirm": "Supprimer cet élément ?"
+    },
+    "database": {
+      "title": "Sauvegarde & Restauration de la Base de Données",
+      "subtitle": "Exportez une copie de secours JSON ou restaurez votre catalogue et historique.",
+      "exportTitle": "Exporter les données (Backup)",
+      "exportDesc": "Téléchargez un fichier JSON complet contenant les catégories, produits, options, commandes et clients.",
+      "exportBtn": "Télécharger la sauvegarde JSON",
+      "importTitle": "Importer des données (Restauration)",
+      "importDesc": "Sélectionnez un fichier JSON exporté précédemment pour restaurer les données.",
+      "importBtn": "Restaurer depuis un fichier",
+      "statsTitle": "Statistiques actuelles de la base"
+    },
+    "notifications": {
+      "title": "Notifications Sonores & Visuelles",
+      "subtitle": "Recevez une alerte sonore et une notification dès qu'une commande arrive.",
+      "soundLabel": "Sonnette automatique (Ding-Dong)",
+      "pushLabel": "Notifications système (Push Web)",
+      "testBtn": "Tester la sonnette",
+      "enablePush": "Activer les notifications",
+      "pushGranted": "Notifications actives sur cet appareil"
+    }
+  },
+  "Ticket": {
+    "storeName": "BlackHousse",
+    "delivery": "LIVRAISON",
+    "pickup": "RETRAIT",
+    "deliveryFee": "Livraison",
+    "subtotal": "Sous-total",
+    "total": "TOTAL",
+    "notes": "Note : {notes}",
+    "footer": "Merci pour votre commande !"
+  },
+  "Pwa": {
+    "installApp": "Installer l'application",
+    "installNavbar": "Installer l'app",
+    "installDrawer": "Installer l'application BlackHousse",
+    "modalTitle": "Installer BlackHousse sur votre appareil",
+    "modalSubtitle": "Accédez plus rapidement au menu et commandez en un clic.",
+    "iosTitle": "Sur iPhone / iPad (Safari) :",
+    "iosStep1": "Appuyez sur le bouton de partage en bas de l'écran.",
+    "iosStep2": "Faites défiler vers le bas et choisissez 'Sur l'écran d'accueil'.",
+    "iosStep3": "Confirmez en cliquant sur 'Ajouter' en haut à droite.",
+    "androidTitle": "Sur Android (Chrome) :",
+    "androidBtn": "Installer maintenant",
+    "close": "Fermer"
+  },
+  "Offline": {
+    "title": "Connexion interrompue",
+    "message": "Vous êtes actuellement hors ligne. Vos données et votre panier sont conservés.",
+    "retry": "Réessayer",
+    "checking": "Vérification...",
+    "onlineSuccess": "Connexion rétablie !"
+  }
+}

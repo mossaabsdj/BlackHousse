@@ -3,10 +3,9 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
-import content from "@/app/Texts/content.json";
+import { useI18n } from "@/lib/i18n/I18nContext";
 import { useRealtimeFeedback } from "@/lib/Firebase";
 
-const fb = content.FeedbackPage;
 const PAGE_SIZE = 6;
 
 const inputClass =
@@ -14,11 +13,14 @@ const inputClass =
 
 /* Static burger rating (read-only) */
 function Burgers({ value, className = "" }) {
+  const { content } = useI18n();
+  const fb = content.FeedbackPage;
+  const ratingIcon = fb?.ratingIcon || "🍔";
   return (
     <span className={`inline-flex gap-0.5 ${className}`} aria-label={`${value} / 5`}>
       {[1, 2, 3, 4, 5].map((v) => (
         <span key={v} className={v <= Math.round(value) ? "" : "opacity-30 grayscale"}>
-          {fb.ratingIcon}
+          {ratingIcon}
         </span>
       ))}
     </span>
@@ -27,6 +29,8 @@ function Burgers({ value, className = "" }) {
 
 /* Modal (portal, Esc + backdrop to close, locks page scroll) */
 function Modal({ onClose, labelledBy, children }) {
+  const { content } = useI18n();
+  const fb = content.FeedbackPage;
   const panelRef = useRef(null);
 
   useEffect(() => {
@@ -78,6 +82,8 @@ function Modal({ onClose, labelledBy, children }) {
 
 /* The form (rendered inside the modal) */
 function FeedbackForm({ onSubmit, onClose }) {
+  const { content } = useI18n();
+  const fb = content.FeedbackPage;
   const [name, setName] = useState("");
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
@@ -211,7 +217,7 @@ function FeedbackForm({ onSubmit, onClose }) {
       <div className="space-y-3">
         <span className="text-sm font-semibold text-gray-900">{fb.topicsLabel}</span>
         <div className="flex flex-wrap gap-2">
-          {fb.topics.map((t) => {
+          {(fb.topics || []).map((t) => {
             const on = topics.includes(t.id);
             return (
               <motion.button
@@ -288,10 +294,15 @@ function FeedbackForm({ onSubmit, onClose }) {
 }
 
 export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
+  const { content, isRTL } = useI18n();
+  const fb = content.FeedbackPage;
   const reduceMotion = useReducedMotion();
-  const titleLines = fb.title.split("\n");
+  const titleLines = (fb?.title || "").split("\n");
 
-  const [list, setList] = useState(reviews ?? fb.reviews);
+  // `list` is always an array (fb.reviews may not exist in the translations)
+  const [list, setList] = useState(
+    Array.isArray(reviews) ? reviews : Array.isArray(fb?.reviews) ? fb.reviews : []
+  );
   const [serverStats, setServerStats] = useState(null);
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(PAGE_SIZE);
@@ -307,7 +318,7 @@ export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
         if (Array.isArray(data.items) && data.items.length > 0) {
           setList(data.items);
         } else if (!reviews) {
-          setList(fb.reviews);
+          setList(Array.isArray(fb?.reviews) ? fb.reviews : []);
         }
       }
     } catch (err) {
@@ -325,15 +336,20 @@ export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
     onFeedbackStatusChange: () => fetchFeedback(),
   });
 
-  // Calculate overall rating: use serverStats computed from all DB ratings (pending, approved, rejected)
+  // Overall rating: use serverStats computed from all DB ratings, fall back to the loaded list
   const stats = useMemo(() => {
     if (serverStats && serverStats.total > 0) {
-      return serverStats;
+      return {
+        total: serverStats.total,
+        avg: Number(serverStats.avg) || 0,
+        dist: Array.isArray(serverStats.dist) ? serverStats.dist : [],
+      };
     }
-    const total = list.length;
-    const avg = total ? list.reduce((s, r) => s + r.rating, 0) / total : 0;
+    const safeList = Array.isArray(list) ? list : [];
+    const total = safeList.length;
+    const avg = total ? safeList.reduce((s, r) => s + (r.rating || 0), 0) / total : 0;
     const dist = [5, 4, 3, 2, 1].map((s) => {
-      const count = list.filter((r) => r.rating === s).length;
+      const count = safeList.filter((r) => r.rating === s).length;
       return { stars: s, count, pct: total ? (count / total) * 100 : 0 };
     });
     return { total, avg, dist };
@@ -362,7 +378,7 @@ export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
     return jsonRes;
   };
 
-  const topicOf = (id) => fb.topics.find((t) => t.id === id);
+  const topicOf = (id) => (fb?.topics || []).find((t) => t.id === id);
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-gray-100 px-6 py-12">
@@ -377,7 +393,7 @@ export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
             viewport={{ once: false, amount: 0.3 }}
           >
             <span className="uppercase tracking-widest text-3xl font-extrabold text-orange-600">
-              {fb.badge}
+              {fb?.badge}
             </span>
             <h1 className="text-4xl sm:text-6xl font-extrabold text-gray-900 leading-tight">
               {titleLines.map((line, i) => (
@@ -387,17 +403,17 @@ export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
                 </Fragment>
               ))}
             </h1>
-            <p className="text-gray-600 max-w-md text-lg">{fb.description}</p>
+            <p className="text-gray-600 max-w-md text-lg">{fb?.description}</p>
 
             <button
               onClick={() => setOpen(true)}
               className="inline-block px-8 py-3 text-white bg-orange-500 hover:bg-orange-600 rounded-full font-bold transition shadow-lg shadow-orange-500/30"
             >
-              {fb.addButton}
+              {fb?.addButton}
             </button>
 
             <div className="flex flex-wrap gap-4 pt-2" aria-hidden="true">
-              {fb.floatingIcons.map((icon, i) => (
+              {(fb?.floatingIcons || ["🍔", "🍟", "🍕", "🌮", "🥤", "🍰"]).map((icon, i) => (
                 <motion.div
                   key={icon}
                   className="w-14 h-14 rounded-full bg-white border border-gray-200 shadow-lg shadow-gray-300/60 flex items-center justify-center text-3xl"

@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 export default function OtpModal({ email, onExit }) {
+  const { t } = useI18n();
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -30,8 +32,9 @@ export default function OtpModal({ email, onExit }) {
     if (!otp) {
       Swal.fire({
         icon: "warning",
-        title: "Enter OTP",
-        text: "Please enter the verification code sent to your email.",
+        title: t("Auth.enterOtp"),
+        text: t("Auth.otpSent", { email }),
+        confirmButtonColor: "#000000",
       });
       return;
     }
@@ -39,8 +42,9 @@ export default function OtpModal({ email, onExit }) {
     if (!newPassword || !confirmNewPassword) {
       Swal.fire({
         icon: "warning",
-        title: "Missing Password",
-        text: "Please enter and confirm your new password.",
+        title: t("Auth.missingFields"),
+        text: t("Auth.missingFieldsDesc"),
+        confirmButtonColor: "#000000",
       });
       return;
     }
@@ -48,8 +52,9 @@ export default function OtpModal({ email, onExit }) {
     if (newPassword.length < 6) {
       Swal.fire({
         icon: "warning",
-        title: "Weak Password",
-        text: "Password must be at least 6 characters.",
+        title: t("Auth.weakPassword"),
+        text: t("Auth.weakPassword6Desc"),
+        confirmButtonColor: "#000000",
       });
       return;
     }
@@ -57,8 +62,9 @@ export default function OtpModal({ email, onExit }) {
     if (newPassword !== confirmNewPassword) {
       Swal.fire({
         icon: "error",
-        title: "Password Mismatch",
-        text: "The two passwords do not match.",
+        title: t("Auth.passwordMismatch"),
+        text: t("Auth.passwordMismatchDesc"),
+        confirmButtonColor: "#000000",
       });
       return;
     }
@@ -81,8 +87,8 @@ export default function OtpModal({ email, onExit }) {
     if (res.ok) {
       Swal.fire({
         icon: "success",
-        title: "Password Updated",
-        text: "Your password has been successfully reset.",
+        title: t("Auth.resetSuccess"),
+        text: t("Auth.resetSuccessDesc"),
         timer: 2000,
         showConfirmButton: false,
       });
@@ -91,8 +97,9 @@ export default function OtpModal({ email, onExit }) {
     } else {
       Swal.fire({
         icon: "error",
-        title: "Verification Failed",
-        text: data.message || "Invalid OTP or password error.",
+        title: t("Auth.invalidOtp"),
+        text: data.message || t("Auth.invalidOtp"),
+        confirmButtonColor: "#000000",
       });
     }
   };
@@ -111,16 +118,16 @@ export default function OtpModal({ email, onExit }) {
     if (resend.ok) {
       Swal.fire({
         icon: "success",
-        title: "OTP Sent!",
-        text: "A verification code has been sent.",
+        title: t("Auth.otpResent"),
+        text: t("Auth.otpResentDesc"),
         timer: 1500,
         showConfirmButton: false,
       });
     } else {
       Swal.fire({
         icon: "error",
-        title: "Send Failed",
-        text: "Could not send the verification code.",
+        title: t("Auth.otpSendFailed"),
+        confirmButtonColor: "#000000",
       });
 
       // allow resend again immediately
@@ -129,18 +136,19 @@ export default function OtpModal({ email, onExit }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-      <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm relative">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 p-4">
+      <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm relative">
         {/* EXIT BUTTON */}
         <button
           onClick={onExit}
-          className="absolute top-2 right-3 text-gray-500 hover:text-red-600 text-xl font-bold"
+          className="absolute top-3 end-3 text-gray-400 hover:text-red-600 text-lg font-bold p-1 rounded-lg"
+          aria-label={t("Auth.cancelBtn")}
         >
           ✕
         </button>
 
-        <h2 className="text-xl font-bold text-gray-800 text-center">
-          Reset Password
+        <h2 className="text-xl font-bold text-gray-900 text-center">
+          {t("Auth.resetPasswordTitle")}
         </h2>
 
         {/* NEW PASSWORD */}
@@ -148,8 +156,8 @@ export default function OtpModal({ email, onExit }) {
           type="password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="mt-3 w-full border border-gray-300 rounded-lg p-3"
-          placeholder="New Password"
+          className="mt-4 w-full border border-gray-300 rounded-xl p-3 text-sm focus:border-black focus:ring-1 focus:ring-black outline-none"
+          placeholder={t("Auth.newPassword")}
         />
 
         {/* CONFIRM PASSWORD */}
@@ -157,12 +165,12 @@ export default function OtpModal({ email, onExit }) {
           type="password"
           value={confirmNewPassword}
           onChange={(e) => setConfirmNewPassword(e.target.value)}
-          className="mt-3 w-full border border-gray-300 rounded-lg p-3"
-          placeholder="Confirm New Password"
+          className="mt-3 w-full border border-gray-300 rounded-xl p-3 text-sm focus:border-black focus:ring-1 focus:ring-black outline-none"
+          placeholder={t("Auth.confirmNewPassword")}
         />
 
-        <p className="text-gray-600 text-center mt-3">
-          Enter the OTP sent to <b>{email}</b>
+        <p className="text-gray-600 text-center mt-3 text-sm leading-relaxed">
+          {t("Auth.otpSent", { email })}
         </p>
         {/* OTP INPUT */}
         <input
@@ -171,31 +179,31 @@ export default function OtpModal({ email, onExit }) {
           onChange={(e) =>
             setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
           }
-          className="mt-4 w-full border border-gray-300 rounded-lg p-3 text-lg tracking-widest text-center"
+          className="mt-3 w-full border border-gray-300 rounded-xl p-3 text-lg tracking-widest text-center font-mono focus:border-black focus:ring-1 focus:ring-black outline-none"
           placeholder="123456"
         />
         {/* SEND/RESEND OTP TEXT BUTTON */}
-        <div className="text-center mt-2">
+        <div className="text-center mt-2 text-xs">
           <button
             onClick={handleResend}
-            className={`text-sm font-medium underline ${
+            className={`font-semibold underline ${
               canResend
-                ? "text-blue-600 hover:text-blue-700 cursor-pointer"
+                ? "text-orange-600 hover:text-orange-700 cursor-pointer"
                 : "text-gray-400 cursor-not-allowed"
             }`}
             disabled={!canResend}
           >
-            {canResend ? "Send OTP" : `Resend available in ${counter}s`}
+            {canResend ? t("Auth.resend") : t("Auth.resendIn", { seconds: counter })}
           </button>
         </div>
 
         {/* VERIFY BUTTON */}
         <button
           onClick={handleVerify}
-          className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-lg font-semibold"
+          className="w-full mt-4 bg-black hover:bg-neutral-800 text-white py-3.5 rounded-xl font-bold text-sm shadow-md transition disabled:opacity-60"
           disabled={loading}
         >
-          {loading ? "Processing..." : "Confirm Reset"}
+          {loading ? t("Auth.verifying") : t("Auth.verifyBtn")}
         </button>
       </div>
     </div>

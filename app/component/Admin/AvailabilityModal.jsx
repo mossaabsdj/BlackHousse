@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { api, formatPrice } from "./adminApi";
 import { Modal, Toggle, Badge, ErrorBox, btnGhost, btnPrimary, inputClass } from "./Ui";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 function ProductThumb({ src, name }) {
   const [failed, setFailed] = useState(false);
@@ -46,6 +47,7 @@ function ProductThumb({ src, name }) {
 }
 
 export default function AvailabilityModal({ onClose }) {
+  const { t, isRTL } = useI18n();
   // Catalog data
   const [products, setProducts] = useState([]);
   const [optionGroups, setOptionGroups] = useState([]);
@@ -242,20 +244,20 @@ export default function AvailabilityModal({ onClose }) {
 
   return (
     <Modal
-      title="Disponibilité des produits & options"
+      title={t("Admin.availability.title", {}, "Disponibilité des produits & options")}
       onClose={onClose}
       wide="sm:max-w-3xl lg:max-w-4xl"
       footer={
         <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <p className="text-gray-500 font-medium text-center sm:text-left">
-            💡 Toute modification s'enregistre immédiatement et met à jour le menu des clients.
+            💡 {t("Admin.availability.footerTip", {}, "Toute modification s'enregistre immédiatement et met à jour le menu des clients.")}
           </p>
           <button
             type="button"
             onClick={onClose}
             className={`${btnPrimary} px-6 whitespace-nowrap`}
           >
-            Terminé
+            {t("Admin.availability.done", {}, "Terminé")}
           </button>
         </div>
       }
@@ -283,7 +285,7 @@ export default function AvailabilityModal({ onClose }) {
                 }`}
               >
                 <Utensils className="w-3.5 h-3.5" />
-                Produits
+                {t("Admin.availability.tabProducts", {}, "Produits")}
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-gray-200 text-gray-700">
                   {products.length}
                 </span>
@@ -298,7 +300,7 @@ export default function AvailabilityModal({ onClose }) {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                Groupes d'options
+                {t("Admin.availability.tabGroups", {}, "Groupes d'options")}
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-gray-200 text-gray-700">
                   {optionGroups.length}
                 </span>
@@ -320,7 +322,7 @@ export default function AvailabilityModal({ onClose }) {
                   onlyUnavailable ? "bg-red-500" : "bg-gray-300"
                 }`}
               />
-              Ruptures uniquement
+              {t("Admin.availability.onlyUnavailable", {}, "Ruptures uniquement")}
               {(unavailableProductsCount > 0 || unavailableOptionsCount > 0) && (
                 <span
                   className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
@@ -335,24 +337,24 @@ export default function AvailabilityModal({ onClose }) {
 
           {/* Search bar */}
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={
                 activeTab === "products"
-                  ? "Rechercher un plat, boisson ou ingrédient..."
-                  : "Rechercher un groupe d'options ou une option..."
+                  ? t("Admin.availability.searchPlaceholder", {}, "Rechercher un plat, boisson ou ingrédient...")
+                  : t("Admin.options.title", {}, "Rechercher un groupe d'options ou une option...")
               }
-              className={`${inputClass} pl-10 pr-9`}
+              className={`${inputClass} ps-10 pe-9`}
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch("")}
                 aria-label="Effacer"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -371,7 +373,7 @@ export default function AvailabilityModal({ onClose }) {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200 font-semibold"
                 }`}
               >
-                Toutes
+                {t("Admin.history.statusAll", {}, "Toutes")}
               </button>
               {categories.map((c) => (
                 <button
@@ -394,7 +396,7 @@ export default function AvailabilityModal({ onClose }) {
           {activeTab === "products" && filteredProducts.length > 0 && (
             <div className="flex items-center justify-between text-xs text-gray-500 px-1">
               <span>
-                {filteredProducts.length} produit{filteredProducts.length > 1 ? "s" : ""} affiché{filteredProducts.length > 1 ? "s" : ""}
+                {filteredProducts.length} {t("Admin.products.title", {}, "produits")}
               </span>
               <div className="flex items-center gap-3">
                 <button
@@ -402,7 +404,7 @@ export default function AvailabilityModal({ onClose }) {
                   onClick={() => expandAll(filteredProducts.map((p) => p.id))}
                   className="font-semibold text-orange-600 hover:underline"
                 >
-                  Tout déplier
+                  {t("Admin.availability.expandAll", {}, "Tout déplier")}
                 </button>
                 <span>·</span>
                 <button
@@ -410,7 +412,7 @@ export default function AvailabilityModal({ onClose }) {
                   onClick={collapseAll}
                   className="font-semibold text-gray-600 hover:underline"
                 >
-                  Tout replier
+                  {t("Admin.availability.collapseAll", {}, "Tout replier")}
                 </button>
               </div>
             </div>
@@ -509,7 +511,7 @@ export default function AvailabilityModal({ onClose }) {
                               : "bg-red-50 text-red-700 border-red-200"
                           }`}
                         >
-                          {p.available ? "Disponible" : "Épuisé"}
+                          {p.available ? t("Admin.availability.available", {}, "Disponible") : t("Admin.availability.outOfStock", {}, "Épuisé")}
                         </span>
 
                         {/* Product toggle */}
@@ -599,7 +601,7 @@ export default function AvailabilityModal({ onClose }) {
                                               : "bg-red-50 text-red-600"
                                           }`}
                                         >
-                                          {o.available ? "Dispo" : "Rupture"}
+                                          {o.available ? t("Admin.availability.dispo", {}, "Dispo") : t("Admin.availability.rupture", {}, "Rupture")}
                                         </span>
                                         {isOptionBusy && (
                                           <Loader2 className="w-3 h-3 animate-spin text-orange-500" />
@@ -693,7 +695,7 @@ export default function AvailabilityModal({ onClose }) {
                                     : "bg-red-50 text-red-700 border-red-200"
                                 }`}
                               >
-                                {o.available ? "Disponible" : "Épuisé"}
+                                {o.available ? t("Admin.availability.available", {}, "Disponible") : t("Admin.availability.outOfStock", {}, "Épuisé")}
                               </span>
                               {isOptionBusy && (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500" />

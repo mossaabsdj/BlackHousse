@@ -2,7 +2,6 @@
 
 import {
   Facebook,
-  Twitter,
   Instagram,
   MapPin,
   Phone,
@@ -12,23 +11,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useNavigationLoading } from "@/app/component/NavigationLoading/NavigationLoadingContext";
-
-// === Text Variables ===
-const companyName = "Black Housse";
-const companyDescription = "where Elegance Meets Taste....";
-const address = "harrouch/skikda";
-const phoneNumber = "0658953461";
-const email = "BlackHousse@gmail.com";
-
-const companyLinks = [{ name: "About Us", href: "/aboutus" }];
-
-const supportLinks = [
-  { name: "Help Center", href: "/HelpCenter" },
-  { name: "Privacy Policy", href: "/Privacy&Policy" },
-  { name: "Terms & Conditions", href: "/Terms&conditions" },
-];
-
-const footerNote = `© ${new Date().getFullYear()} ${companyName}. All rights reserved.`;
+import { useI18n } from "@/lib/i18n/I18nContext";
+import LanguageSwitcher from "@/app/component/LanguageSwitcher";
 
 // === Color Variables (Tailwind utility class names) ===
 const bgColor = "bg-black";
@@ -44,30 +28,52 @@ const iconHoverColor = "hover:text-white";
 export default function Footer() {
   const pathname = usePathname();
   const { startLoading } = useNavigationLoading();
+  const { content, t, isRTL } = useI18n();
+  const f = content.Footer;
+
+  const companyName = f?.companyName || "Black Housse";
+  const companyDescription = f?.companyDescription || "where Elegance Meets Taste....";
+  const address = f?.address || "harrouch/skikda";
+  const phoneNumber = f?.phoneNumber || "0658953461";
+  const email = f?.email || "BlackHousse@gmail.com";
+
+  const companyLinks = [
+    { name: f?.links?.aboutUs || f?.aboutUs || "À propos", href: "/aboutus" }
+  ];
+
+  const supportLinks = [
+    { name: f?.links?.helpCenter || f?.helpCenter || "Centre d'aide", href: "/HelpCenter" },
+    { name: f?.links?.privacyPolicy || f?.privacyPolicy || "Politique de confidentialité", href: "/Privacy&Policy" },
+    { name: f?.links?.termsConditions || f?.termsConditions || "Conditions générales", href: "/Terms&conditions" },
+  ];
+
+  const year = new Date().getFullYear();
+  const footerNote = f?.copyright
+    ? f.copyright.replace("{year}", year)
+    : `© ${year} ${companyName}. ${f?.rightsReserved || "Tous droits réservés."}`;
 
   return (
     <footer
-    id="Footer"
+      id="Footer"
       className={`${bgColor} ${textColor} px-6 py-12 border-t ${borderColor}`}
     >
-      
       <div className="max-w-7xl mx-auto overflow-x-hidden grid grid-cols-1 md:grid-cols-4 gap-10 text-sm">
         {/* Company Info */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">{companyName}</h2>
           <p className={`${secondaryTextColor}`}>{companyDescription}</p>
           <div className={`space-y-2 ${secondaryTextColor}`}>
-            <div className="flex items-center">
-              <MapPin className={`w-4 h-4 mr-2 ${textColor}`} />
-              {address}
+            <div className="flex items-center gap-2">
+              <MapPin className={`w-4 h-4 flex-none ${textColor}`} />
+              <span>{address}</span>
             </div>
-            <div className="flex items-center">
-              <Phone className={`w-4 h-4 mr-2 ${textColor}`} />
-              {phoneNumber}
+            <div className="flex items-center gap-2">
+              <Phone className={`w-4 h-4 flex-none ${textColor}`} />
+              <span dir="ltr">{phoneNumber}</span>
             </div>
-            <div className="flex items-center">
-              <Mail className={`w-4 h-4 mr-2 ${textColor}`} />
-              {email}
+            <div className="flex items-center gap-2">
+              <Mail className={`w-4 h-4 flex-none ${textColor}`} />
+              <span>{email}</span>
             </div>
           </div>
         </div>
@@ -77,11 +83,11 @@ export default function Footer() {
           <h3
             className={`text-lg font-medium ${sectionTitleColor} border-b ${underlineBorderColor} pb-1`}
           >
-            Company
+            {f?.companyTitle || "Entreprise"}
           </h3>
           <ul className={`space-y-2 ${secondaryTextColor}`}>
             {companyLinks.map((link) => (
-              <li key={link.name}>
+              <li key={link.href}>
                 <Link
                   href={link.href}
                   onClick={() => {
@@ -101,11 +107,11 @@ export default function Footer() {
           <h3
             className={`text-lg font-medium ${sectionTitleColor} border-b ${underlineBorderColor} pb-1`}
           >
-            Support
+            {f?.supportTitle || "Assistance"}
           </h3>
           <ul className={`space-y-2 ${secondaryTextColor}`}>
             {supportLinks.map((link) => (
-              <li key={link.name}>
+              <li key={link.href}>
                 <Link
                   href={link.href}
                   onClick={() => {
@@ -120,14 +126,14 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Social Media */}
-        <div className="space-y-4 text-center md:text-left">
+        {/* Social Media & Language Switcher */}
+        <div className="space-y-4 text-center md:text-start">
           <h3
             className={`text-lg font-medium ${sectionTitleColor} border-b ${underlineBorderColor} pb-1`}
           >
-            Follow Us
+            {f?.contactTitle || f?.followUs || "Suivez-nous"}
           </h3>
-          <div className="flex justify-center md:justify-start space-x-4">
+          <div className="flex justify-center md:justify-start space-x-4 rtl:space-x-reverse">
             <a
               href="https://www.facebook.com/share/18vufNN8ym/?mibextid=wwXIfr23:22"
               aria-label="Facebook"
@@ -156,8 +162,7 @@ export default function Footer() {
                 width={24}
                 height={24}
                 className={`w-6 h-6 ${iconColor} ${iconHoverColor}`}
-              />{" "}
-              {/* Use Phone as fallback */}
+              />
             </a>
             <a
               href="https://t.me/BlackHousse"
@@ -170,10 +175,13 @@ export default function Footer() {
                 alt="Telegram"
                 width={24}
                 height={24}
-                className={`w-6 h-6 text-white ${iconColor} ${iconHoverColor}`}
-              />{" "}
-              {/* Use Mail as fallback */}
+                className={`w-6 h-6 mx-3 text-white ${iconColor} ${iconHoverColor}`}
+              />
             </a>
+          </div>
+
+          <div className="pt-2">
+            <LanguageSwitcher variant="footer" className="justify-center md:justify-start" />
           </div>
         </div>
       </div>

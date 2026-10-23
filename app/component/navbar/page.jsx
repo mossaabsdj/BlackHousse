@@ -40,41 +40,22 @@ import {
 } from "@/components/ui/navigation-menu";
 import { useSession, signOut } from "next-auth/react";
 import PwaInstallButton from "@/app/component/PWA/PwaInstallButton";
+import { useI18n } from "@/lib/i18n/I18nContext";
+import LanguageSwitcher from "@/app/component/LanguageSwitcher";
 
-const TEXTS = {
-  brandName: "BlackHousse",
-  navItems: [
-    "Home",
-    "Notre Menu",
-    "Commander",
-    "Avis Clients",
-    "Contact & Localisation",
-  ],
-  login: "Login",
-  logout: "Logout",
-  Admin: "DashBoard",
-};
-
-const NAV_ICONS = {
-  Home: House,
-  "Notre Menu": UtensilsCrossed,
-  Commander: ShoppingBasket,
-  "Avis Clients": Star,
-  "Contact & Localisation": MapPin,
-};
-
-const SHORT_LABELS = {
-  "Notre Menu": "Menu",
-  "Avis Clients": "Avis",
-  "Contact & Localisation": "Contact",
-  Commander: "Commander",
-};
+const NAV_DEFINITIONS = [
+  { id: "home", labelKey: "nav.home", shortKey: "nav.home", icon: House },
+  { id: "menu", labelKey: "nav.menu", shortKey: "nav.shortMenu", icon: UtensilsCrossed },
+  { id: "order", labelKey: "nav.order", shortKey: "nav.order", icon: ShoppingBasket },
+  { id: "feedback", labelKey: "nav.feedback", shortKey: "nav.shortFeedback", icon: Star },
+  { id: "contact", labelKey: "nav.contact", shortKey: "nav.shortContact", icon: MapPin },
+];
 
 // id de section (page d'accueil) -> item de navigation
 const SECTION_IDS = {
-  NotreMenu: "Notre Menu",
-  FeedBack: "Avis Clients",
-  Footer: "Contact & Localisation",
+  NotreMenu: "menu",
+  FeedBack: "feedback",
+  Footer: "contact",
 };
 
 const NavTab = ({ item, active, onClick, Icon, label }) => (
@@ -104,9 +85,10 @@ const NavTab = ({ item, active, onClick, Icon, label }) => (
 );
 
 export default function AppNavbar({}) {
+  const { t, isRTL } = useI18n();
   const [open, setOpen] = React.useState(false);
   const { data: session, status } = useSession();
-  const [SelectedItem, setselecteditem] = React.useState("Home");
+  const [SelectedItem, setselecteditem] = React.useState("home");
   const { startLoading } = useNavigationLoading();
   const route = useRouter();
   const pathname = usePathname();
@@ -119,13 +101,14 @@ export default function AppNavbar({}) {
 
   const handleLogout = () => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "You will be logged out.",
+      title: t("nav.logoutConfirmTitle"),
+      text: t("nav.logoutConfirmText"),
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, logout",
+      confirmButtonText: t("nav.logoutConfirmYes"),
+      cancelButtonText: t("nav.logoutConfirmCancel"),
     }).then((result) => {
       if (result.isConfirmed) {
         startLoading("/");
@@ -159,7 +142,7 @@ export default function AppNavbar({}) {
   // Suivi de la page et de la section visible
   useEffect(() => {
     if (pathname?.startsWith("/Commande")) {
-      setselecteditem("Commander");
+      setselecteditem("order");
       return;
     }
     if (pathname?.startsWith("/Admin")) {
@@ -179,7 +162,7 @@ export default function AppNavbar({}) {
         return SECTION_IDS.Footer;
 
       const line = window.innerHeight * 0.4;
-      let current = "Home";
+      let current = "home";
       let best = -Infinity;
       for (const id in SECTION_IDS) {
         const el = document.getElementById(id);
@@ -277,19 +260,18 @@ export default function AppNavbar({}) {
     };
   }, [pathname]);
 
-  const handleNavClick = (item) => {
-    if (item === "Notre Menu") ScroleInteView("NotreMenu");
-    else if (item === "Home") {
+  const handleNavClick = (id) => {
+    if (id === "menu") ScroleInteView("NotreMenu");
+    else if (id === "home") {
       if (pathname !== "/") {
         startLoading("/");
         route.push("/");
       } else {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
-    }
-    else if (item === "Avis Clients") ScroleInteView("FeedBack");
-    else if (item === "Contact & Localisation") ScroleInteView("Footer");
-    else if (item === "Commander") {
+    } else if (id === "feedback") ScroleInteView("FeedBack");
+    else if (id === "contact") ScroleInteView("Footer");
+    else if (id === "order") {
       if (pathname !== "/Commande") {
         startLoading("/Commande");
         route.push("/Commande");
@@ -299,11 +281,11 @@ export default function AppNavbar({}) {
     }
   };
 
-  const orderItem = "Commander";
-  const sideItems = TEXTS.navItems.filter((i) => i !== orderItem);
-  const leftItems = sideItems.slice(0, 2);
-  const rightItems = sideItems.slice(2);
-  const OrderIcon = NAV_ICONS[orderItem] ?? ShoppingBag;
+  const sideDefs = NAV_DEFINITIONS.filter((i) => i.id !== "order");
+  const leftItems = sideDefs.slice(0, 2);
+  const rightItems = sideDefs.slice(2);
+  const orderDef = NAV_DEFINITIONS.find((i) => i.id === "order");
+  const OrderIcon = orderDef?.icon ?? ShoppingBasket;
 
   return (
     <>
@@ -342,42 +324,46 @@ export default function AppNavbar({}) {
               className="rounded-lg w-11  h-10 sm:w-11 sm:h-10 object-contain"
             />
             <span className="text-sm sm:text-lg md:text-xl font-bold truncate">
-              {TEXTS.brandName}
+              {t("brandName", null, "BlackHousse")}
             </span>
           </Link>
 
           {/* Desktop Nav */}
           <NavigationMenu className="hidden lg:flex">
             <NavigationMenuList className="flex gap-4 xl:gap-6">
-              {TEXTS.navItems.map((item) => (
-                <NavigationMenuItem key={item}>
-                  <motion.button
-                    onClick={() => handleNavClick(item)}
-                    whileTap={{ scale: 0.95 }}
-                    animate={
-                      SelectedItem === item ? { scale: 1.08 } : { scale: 1 }
-                    }
-                    className={`text-sm font-medium transition ${
-                      SelectedItem === item && SelectedItem !== "order"
-                        ? "text-white bg-black font-bold rounded-2xl px-3 py-1.5"
-                        : "text-black hover:text-gray-600"
-                    }`}
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      {NAV_ICONS[item] &&
-                        React.createElement(NAV_ICONS[item], {
-                          className: "w-4 h-4",
-                        })}
-                      {item}
-                    </span>
-                  </motion.button>
-                </NavigationMenuItem>
-              ))}
+              {NAV_DEFINITIONS.map((def) => {
+                const Icon = def.icon;
+                const label = t(def.labelKey);
+                return (
+                  <NavigationMenuItem key={def.id}>
+                    <motion.button
+                      onClick={() => handleNavClick(def.id)}
+                      whileTap={{ scale: 0.95 }}
+                      animate={
+                        SelectedItem === def.id ? { scale: 1.08 } : { scale: 1 }
+                      }
+                      className={`text-sm font-medium transition ${
+                        SelectedItem === def.id && SelectedItem !== "order"
+                          ? "text-white bg-black font-bold rounded-2xl px-3 py-1.5"
+                          : "text-black hover:text-gray-600"
+                      }`}
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        {Icon && (
+                          <Icon className={`w-4 h-4 ${isRTL ? "rtl-flip" : ""}`} />
+                        )}
+                        {label}
+                      </span>
+                    </motion.button>
+                  </NavigationMenuItem>
+                );
+              })}
             </NavigationMenuList>
           </NavigationMenu>
 
-          {/* Desktop Login / Admin / PWA Install */}
+          {/* Desktop Login / Admin / LanguageSwitcher / PWA Install */}
           <div className="hidden lg:flex items-center gap-3">
+            <LanguageSwitcher variant="navbar" />
             <PwaInstallButton variant="navbar" />
             {status === "loading" ? (
               <div className="w-24 h-8 bg-gray-200 rounded animate-pulse" />
@@ -388,7 +374,7 @@ export default function AppNavbar({}) {
                     variant="outline"
                     className="font-semibold bg-black text-white hover:bg-gray-700 transition"
                   >
-                    DashBoard
+                    {t("nav.dashboard")}
                   </Button>
                 </DropdownMenuTrigger>
 
@@ -396,24 +382,23 @@ export default function AppNavbar({}) {
                   align="end"
                   className="w-48 bg-white shadow-lg rounded-xl border border-gray-200"
                 >
-                <DropdownMenuItem
-  asChild
-  className="flex items-center gap-2 text-black font-medium hover:bg-gray-100 px-3 py-2 rounded-lg cursor-pointer"
->
-  <Link
-    href="/Admin"
-    onClick={() => {
-      setselecteditem("admin");
-
-      if (pathname !== "/Admin") {
-        startLoading("/Admin");
-      }
-    }}
-  >
-    <LayoutDashboard className="w-4 h-4 text-black" />
-    <span>{TEXTS.Admin}</span>
-  </Link>
-</DropdownMenuItem>
+                  <DropdownMenuItem
+                    asChild
+                    className="flex items-center gap-2 text-black font-medium hover:bg-gray-100 px-3 py-2 rounded-lg cursor-pointer"
+                  >
+                    <Link
+                      href="/Admin"
+                      onClick={() => {
+                        setselecteditem("admin");
+                        if (pathname !== "/Admin") {
+                          startLoading("/Admin");
+                        }
+                      }}
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-black" />
+                      <span>{t("nav.dashboard")}</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
 
                   <DropdownMenuItem
@@ -421,7 +406,7 @@ export default function AppNavbar({}) {
                     className="flex items-center gap-2 text-red-600 font-semibold hover:bg-red-100 px-3 py-2 rounded-lg cursor-pointer"
                   >
                     <LogOut className="w-4 h-4 text-red-600" />
-                    <span>{TEXTS.logout}</span>
+                    <span>{t("nav.logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -439,7 +424,7 @@ export default function AppNavbar({}) {
                   }}
                   href="/Login"
                 >
-                  {TEXTS.login}
+                  {t("nav.login")}
                 </Link>
               </Button>
             )}
@@ -447,142 +432,152 @@ export default function AppNavbar({}) {
 
           {/* Emplacement mobile (à droite du header) :
               la page Commande y affiche ses boutons « Confirmer » et « Suivre » */}
-     <div className="lg:hidden flex items-center gap-1.5 sm:gap-2 ml-auto flex-shrink-0">
-  <div id="header-mobile-slot" className="flex items-center gap-1.5 sm:gap-2" />
+        <div
+  className={`lg:hidden flex items-center gap-1.5 sm:gap-2 flex-shrink-0 ${
+    isRTL ? "mr-auto" : "ml-auto"
+  }`}
+>
+  <div
+    id="header-mobile-slot"
+    dir={isRTL ? "rtl" : "ltr"}
+    className="flex items-center gap-1.5 sm:gap-2"
+  />
+            <LanguageSwitcher variant="navbar" />
 
-  <Sheet open={open} onOpenChange={setOpen}>
-    <SheetTrigger asChild>
-      <motion.button
-        type="button"
-        aria-label="Compte"
-        whileTap={{ scale: 0.92 }}
-        className={`flex flex-col items-center justify-center gap-0.5 w-14 sm:w-16 h-11 sm:h-12 rounded-xl border text-[9px] sm:text-[10px] font-bold transition ${
-          open
-            ? "bg-black border-black text-white shadow-md"
-            : "bg-white border-gray-300 text-gray-900 hover:border-orange-400 hover:text-orange-600"
-        }`}
-      >
-        <User className="w-4 h-4 sm:w-5 sm:h-5" />
-        <span>Compte</span>
-      </motion.button>
-    </SheetTrigger>
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <motion.button
+                  type="button"
+                  aria-label={t("nav.account")}
+                  whileTap={{ scale: 0.92 }}
+                  className={`flex flex-col items-center justify-center gap-0.5 w-14 sm:w-16 h-11 sm:h-12 rounded-xl border text-[9px] sm:text-[10px] font-bold transition ${
+                    open
+                      ? "bg-black border-black text-white shadow-md"
+                      : "bg-white border-gray-300 text-gray-900 hover:border-orange-400 hover:text-orange-600"
+                  }`}
+                >
+                  <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>{t("nav.account")}</span>
+                </motion.button>
+              </SheetTrigger>
 
-                    <SheetContent
-                      side="bottom"
-                      className="rounded-t-3xl bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+              <SheetContent
+                side="bottom"
+                className="rounded-t-3xl bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+              >
+                <div className="mx-auto mb-4 h-1.5 w-10 border-2 border-amber-300 rounded-full bg-gray-200" />
+                <div className="mb-4">
+                  <LanguageSwitcher variant="drawer" />
+                </div>
+                <div className="mb-3">
+                  <PwaInstallButton
+                    variant="drawer"
+                    label={t("Pwa.installDrawer", null, "Installer l'application BlackHousse")}
+                  />
+                </div>
+                <div className="space-y-2">
+                  {status === "loading" ? (
+                    <div className="w-full h-10 bg-gray-200 rounded animate-pulse" />
+                  ) : session ? (
+                    <>
+                      <Button
+                        asChild
+                        className="w-full bg-black text-white hover:bg-gray-700"
+                      >
+                        <Link
+                          href="/Admin"
+                          onClick={() => {
+                            setselecteditem("admin");
+                            setOpen(false);
+                            if (pathname !== "/Admin") {
+                              startLoading("/Admin");
+                            }
+                          }}
+                        >
+                          {t("nav.dashboard")}
+                        </Link>
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          handleLogout();
+                          setOpen(false);
+                        }}
+                        className="w-full bg-red-600 text-white hover:bg-red-700"
+                      >
+                        {t("nav.logout")}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      asChild
+                      className="w-full bg-black hover:bg-gray-700"
+                      onClick={() => setOpen(false)}
                     >
-                      <div className="mx-auto mb-4 h-1.5 w-10 border-2 border-amber-300 rounded-full bg-gray-200" />
-                      <div className="mb-3">
-                        <PwaInstallButton
-                          variant="drawer"
-                          label="Installer l'application BlackHousse"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        {status === "loading" ? (
-                          <div className="w-full h-10 bg-gray-200 rounded animate-pulse" />
-                        ) : session ? (
-                          <>
-                            <Button
-                              asChild
-                              className="w-full bg-black text-white hover:bg-gray-700"
-                            >
-                              <Link
-                                href="/Admin"
-                                onClick={() => {
-                                  setselecteditem("admin");
-                                  setOpen(false);
-                                  if (pathname !== "/Admin") {
-                                    startLoading("/Admin");
-                                  }
-                                }}
-                              >
-                                {TEXTS.Admin}
-                              </Link>
-                            </Button>
-                            <Button
-                              onClick={() => {
-                                handleLogout();
-                                setOpen(false);
-                              }}
-                              className="w-full bg-red-600 text-white hover:bg-red-700"
-                            >
-                              {TEXTS.logout}
-                            </Button>
-                          </>
-                        ) : (
-                          <Button
-                            asChild
-                            className="w-full bg-black hover:bg-gray-700"
-                            onClick={() => setOpen(false)}
-                          >
-                            <Link
-                              onClick={() => {
-                                if (pathname !== "/Login") {
-                                  startLoading("/Login");
-                                }
-                              }}
-                              href="/Login"
-                            >
-                              {TEXTS.login}
-                            </Link>
-                          </Button>
-                        )}
-                      </div>
-                    </SheetContent>
-                  </Sheet>          </div>
-         
+                      <Link
+                        onClick={() => {
+                          if (pathname !== "/Login") {
+                            startLoading("/Login");
+                          }
+                        }}
+                        href="/Login"
+                      >
+                        {t("nav.login")}
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
 
           {/* Mobile Bottom Navigation (portal -> toujours fixe et visible) */}
           {mounted &&
             createPortal(
               <nav
                 className="lg:hidden fixed bottom-0 inset-x-0 z-50 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-                aria-label="Navigation principale"
+                aria-label={t("nav.home")}
               >
                 <div className="mx-auto max-w-md flex items-end rounded-3xl border border-black/5 bg-white/90 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.18)] px-1 py-1.5">
-                  {leftItems.map((item) => (
+                  {leftItems.map((def) => (
                     <NavTab
-                      key={item}
-                      item={item}
-                      label={SHORT_LABELS[item] ?? item}
-                      Icon={NAV_ICONS[item]}
-                      active={SelectedItem === item}
-                      onClick={() => handleNavClick(item)}
+                      key={def.id}
+                      item={def.id}
+                      label={t(def.shortKey)}
+                      Icon={def.icon}
+                      active={SelectedItem === def.id}
+                      onClick={() => handleNavClick(def.id)}
                     />
                   ))}
 
                   {/* Bouton central Commander */}
                   <div className="flex-1 flex justify-center">
-                   <motion.button
-  animate={{ scale: SelectedItem === orderItem ? 1.1 : 1 }}
-  whileTap={{ scale: 0.9 }}
-  onClick={() => handleNavClick(orderItem)}
-  aria-label="Commander"
-  aria-current={SelectedItem === orderItem ? "page" : undefined}
-  className={`-mt-8 h-14 w-16 rounded-2xl   flex flex-col items-center justify-center transition-colors duration-200 ${
-    SelectedItem === orderItem
-      ? "bg-black text-white"
-      : "bg-white text-black"
-  }`}
->
-  <OrderIcon className="w-6 h-6" />
-  <span className="text-[10px] font-medium">Commander</span>
-</motion.button>
+                    <motion.button
+                      animate={{ scale: SelectedItem === "order" ? 1.1 : 1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleNavClick("order")}
+                      aria-label={t("nav.order")}
+                      aria-current={SelectedItem === "order" ? "page" : undefined}
+                      className={`-mt-8 h-14 w-16 rounded-2xl flex flex-col items-center justify-center transition-colors duration-200 ${
+                        SelectedItem === "order"
+                          ? "bg-black text-white"
+                          : "bg-white text-black"
+                      }`}
+                    >
+                      <OrderIcon className="w-6 h-6" />
+                      <span className="text-[10px] font-medium">{t("nav.order")}</span>
+                    </motion.button>
                   </div>
 
-                  {rightItems.map((item) => (
+                  {rightItems.map((def) => (
                     <NavTab
-                      key={item}
-                      item={item}
-                      label={SHORT_LABELS[item] ?? item}
-                      Icon={NAV_ICONS[item]}
-                      active={SelectedItem === item}
-                      onClick={() => handleNavClick(item)}
+                      key={def.id}
+                      item={def.id}
+                      label={t(def.shortKey)}
+                      Icon={def.icon}
+                      active={SelectedItem === def.id}
+                      onClick={() => handleNavClick(def.id)}
                     />
                   ))}
-
-                
                 </div>
               </nav>,
               document.body

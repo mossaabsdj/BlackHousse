@@ -6,29 +6,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useNavigationLoading } from "@/app/component/NavigationLoading/NavigationLoadingContext";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
-export default function PrivacyPolicy({
-  companyName = "Black Housse",
-  logo = "/images/logo.png",
-  title = "Politique de confidentialité",
-  subtitle = "Vos données personnelles sont protégées",
-  description = "Chez BlackHousse, nous accordons une importance primordiale à la confidentialité et à la sécurité de vos données personnelles.",
-  sections = [
-    {
-      title: "Collecte des données",
-      text: "Nous collectons uniquement les informations nécessaires au traitement de vos commandes (nom, numéro de téléphone, adresse de livraison et préférences de notification push).",
-    },
-    {
-      title: "Utilisation des données",
-      text: "Vos données sont utilisées exclusivement pour préparer vos repas, assurer la livraison dans les meilleures conditions et vous transmettre le suivi en temps réel.",
-    },
-    {
-      title: "Sécurité & Confidentialité",
-      text: "Nous appliquons des standards stricts de chiffrement et de sécurité. Vos informations personnelles ne sont jamais vendues, partagées ou transmises à des tiers sans votre accord.",
-    },
-  ],
-}) {
+export default function PrivacyPolicy() {
+  const { content, isRTL } = useI18n();
+  const p = content.PrivacyPolicy;
+  const f = content.Footer;
   const { startLoading } = useNavigationLoading();
+
+  const companyName = f?.companyName || "Black Housse";
+  const logo = "/images/logo.png";
+  const title = p?.title || "Politique de confidentialité";
+  const subtitle = p?.subtitle || "Vos données personnelles sont protégées";
+  const description = p?.description || "Chez BlackHousse, nous accordons une importance primordiale à la confidentialité et à la sécurité de vos données personnelles.";
+  const sections = p?.sections || [];
+  const backHome = p?.backHome || "Retour à l'accueil";
 
   return (
     <div className="min-h-screen bg-white text-black flex flex-col items-center justify-center px-6 py-16">
@@ -56,12 +48,12 @@ export default function PrivacyPolicy({
         </div>
 
         <Card className="border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition">
-          <CardContent className="p-8 space-y-6 text-left">
-            <p className="text-gray-800">{description}</p>
+          <CardContent className="p-8 space-y-6 text-start">
+            <p className="text-gray-800 leading-relaxed">{description}</p>
             {sections.map((section, index) => (
-              <div key={index}>
-                <h4 className="font-semibold text-lg">{section.title}</h4>
-                <p className="text-gray-700">{section.text}</p>
+              <div key={index} className="space-y-1.5 pt-2 border-t border-gray-100 first:border-0 first:pt-0">
+                <h4 className="font-bold text-base text-gray-900">{section.title}</h4>
+                <p className="text-gray-600 text-sm leading-relaxed">{section.text}</p>
               </div>
             ))}
           </CardContent>
@@ -74,14 +66,14 @@ export default function PrivacyPolicy({
             className="border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-300 px-6 py-2 rounded-full"
           >
             <Link href="/" onClick={() => startLoading("/")}>
-              ← Back to Home
+              <span className={isRTL ? "rtl-flip inline-block mr-1" : "inline-block mr-1"}>←</span> {backHome}
             </Link>
           </Button>
         </div>
       </div>
 
       <p className="mt-16 text-sm text-gray-500">
-        © {new Date().getFullYear()} {companyName}. All rights reserved.
+        © {new Date().getFullYear()} {companyName}. {f?.rightsReserved || "Tous droits réservés."}
       </p>
     </div>
   );

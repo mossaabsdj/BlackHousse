@@ -19,17 +19,23 @@ import {
 import { api, formatPrice } from "./adminApi";
 import { card, inputClass, btnPrimary, btnGhost, ErrorBox } from "./Ui";
 import { EXPENSE_CATEGORIES } from "@/lib/admin/finance";
-
-const PERIOD_OPTIONS = [
-  { id: "today", label: "Aujourd'hui" },
-  { id: "yesterday", label: "Hier" },
-  { id: "this_week", label: "Cette semaine" },
-  { id: "this_month", label: "Ce mois-ci" },
-  { id: "last_month", label: "Mois dernier" },
-  { id: "custom", label: "Personnalisé" },
-];
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 export default function FinancePanel({ onNavigateToExpenses }) {
+  const { t } = useI18n();
+
+  const periodOptions = useMemo(
+    () => [
+      { id: "today", label: t("Admin.finance.periods.today", {}, "Aujourd'hui") },
+      { id: "yesterday", label: t("Admin.finance.periods.yesterday", {}, "Hier") },
+      { id: "this_week", label: t("Admin.finance.periods.this_week", {}, "Cette semaine") },
+      { id: "this_month", label: t("Admin.finance.periods.this_month", {}, "Ce mois-ci") },
+      { id: "last_month", label: t("Admin.finance.periods.last_month", {}, "Mois dernier") },
+      { id: "custom", label: t("Admin.finance.periods.custom", {}, "Personnalisé") },
+    ],
+    [t]
+  );
+
   // Period filter states
   const [period, setPeriod] = useState("today");
   const [customFrom, setCustomFrom] = useState(() => {
@@ -88,9 +94,9 @@ export default function FinancePanel({ onNavigateToExpenses }) {
       <div className={`${card} p-4 space-y-3`}>
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5 mr-1">
-            <Calendar className="w-3.5 h-3.5 text-orange-500" /> Période :
+            <Calendar className="w-3.5 h-3.5 text-orange-500" /> {t("Admin.history.periodsLabel", {}, "Période :")}
           </span>
-          {PERIOD_OPTIONS.map((opt) => (
+          {periodOptions.map((opt) => (
             <button
               key={opt.id}
               type="button"
@@ -110,7 +116,7 @@ export default function FinancePanel({ onNavigateToExpenses }) {
           <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-100">
             <div className="flex items-center gap-2 text-sm">
               <label htmlFor="custom-from" className="font-semibold text-gray-700 text-xs">
-                Du :
+                {t("Admin.finance.from", {}, "Du :")}
               </label>
               <input
                 id="custom-from"
@@ -122,7 +128,7 @@ export default function FinancePanel({ onNavigateToExpenses }) {
             </div>
             <div className="flex items-center gap-2 text-sm">
               <label htmlFor="custom-to" className="font-semibold text-gray-700 text-xs">
-                Au :
+                {t("Admin.finance.to", {}, "Au :")}
               </label>
               <input
                 id="custom-to"
@@ -137,7 +143,7 @@ export default function FinancePanel({ onNavigateToExpenses }) {
               onClick={() => loadStats()}
               className="px-3 py-1.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition"
             >
-              Appliquer
+              {t("Admin.finance.apply", {}, "Appliquer")}
             </button>
           </div>
         )}

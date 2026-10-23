@@ -161,3 +161,31 @@
   padding-right: max(1rem, calc(1rem + env(safe-area-inset-right, 0px)));
 }
 
+/* ------------------------------------------------------------------ */
+/* RTL (Right-to-Left) Arabic Support                                */
+/* ------------------------------------------------------------------ */
+html[dir="rtl"],
+body.rtl {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans Arabic", "Cairo", sans-serif;
+  letter-spacing: normal !important;
+}
+
+html[dir="rtl"] * {
+  letter-spacing: normal !important;
+}
+
+/* Flip directional icons in RTL */
+html[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Text direction helpers */
+html[dir="rtl"] .text-start-rtl {
+  text-align: right;
+}
+
+html[dir="ltr"] .text-start-rtl {
+  text-align: left;
+}
+
+

@@ -24,6 +24,9 @@ import {
   PanelLeftOpen,
   MessageSquareQuote,
 } from "lucide-react";
+import { useMemo } from "react";
+import { useI18n } from "@/lib/i18n/I18nContext";
+import LanguageSwitcher from "../LanguageSwitcher";
 import { api, formatPrice } from "./adminApi";
 import { card, btnPrimary } from "./Ui";
 import OrdersPanel from "./Orderspanel";
@@ -37,55 +40,60 @@ import DatabaseBackupPanel from "./DatabaseBackupPanel";
 import FeedbackPanel from "./FeedbackPanel";
 import AdminNotificationToggle from "./AdminNotificationToggle";
 
-const NAV_GROUPS = [
+const NAV_GROUPS_CONFIG = [
   {
-    title: "Commandes & Ventes",
+    key: "sales",
+    defaultTitle: "Commandes & Ventes",
     items: [
-      { id: "orders", label: "Commandes en cours", icon: ShoppingBag },
-      { id: "history", label: "Historique", icon: History },
-      { id: "feedback", label: "Avis & Commentaires", icon: MessageSquareQuote },
+      { id: "orders", key: "orders", defaultLabel: "Commandes en cours", icon: ShoppingBag },
+      { id: "history", key: "history", defaultLabel: "Historique", icon: History },
+      { id: "feedback", key: "feedback", defaultLabel: "Avis & Commentaires", icon: MessageSquareQuote },
     ],
   },
   {
-    title: "Comptabilité",
+    key: "finance",
+    defaultTitle: "Comptabilité",
     items: [
-      { id: "finance", label: "Finances & Bilan", icon: TrendingUp },
-      { id: "expenses", label: "Registre Dépenses", icon: Receipt },
+      { id: "finance", key: "finance", defaultLabel: "Finances & Bilan", icon: TrendingUp },
+      { id: "expenses", key: "expenses", defaultLabel: "Registre Dépenses", icon: Receipt },
     ],
   },
   {
-    title: "Menu & Restaurant",
+    key: "menu",
+    defaultTitle: "Menu & Restaurant",
     items: [
-      { id: "products", label: "Produits", icon: UtensilsCrossed },
-      { id: "options", label: "Options & Suppléments", icon: Sliders },
-      { id: "categories", label: "Catégories", icon: Layers },
-      { id: "municipalities", label: "Municipalités & Frais", icon: Truck },
+      { id: "products", key: "products", defaultLabel: "Produits", icon: UtensilsCrossed },
+      { id: "options", key: "options", defaultLabel: "Options & Suppléments", icon: Sliders },
+      { id: "categories", key: "categories", defaultLabel: "Catégories", icon: Layers },
+      { id: "municipalities", key: "municipalities", defaultLabel: "Municipalités & Frais", icon: Truck },
     ],
   },
   {
-    title: "Système & Données",
+    key: "system",
+    defaultTitle: "Système & Données",
     items: [
-      { id: "database", label: "Sauvegarde BDD (JSON)", icon: Database },
+      { id: "database", key: "database", defaultLabel: "Sauvegarde BDD (JSON)", icon: Database },
     ],
   },
 ];
 
 function Categories() {
+  const { t } = useI18n();
   return (
     <SimplePanel
-      title="Catégories"
+      title={t("Admin.simple.categoriesTitle", {}, "Catégories")}
       url="/api/admin/categories"
-      addLabel="Ajouter une catégorie"
+      addLabel={t("Admin.simple.addCategory", {}, "Ajouter une catégorie")}
       blank={{ sortOrder: "0" }}
       columns={[
-        { key: "name", label: "Nom" },
-        { key: "productCount", label: "Produits" },
-        { key: "sortOrder", label: "Ordre" },
+        { key: "name", label: t("Admin.simple.name", {}, "Nom") },
+        { key: "productCount", label: t("Admin.nav.products", {}, "Produits") },
+        { key: "sortOrder", label: t("Admin.simple.sortOrder", {}, "Ordre") },
       ]}
       fields={[
-        { key: "name", label: "Nom", type: "text" },
-        { key: "sortOrder", label: "Ordre d'affichage", type: "int", hint: "Plus petit = affiché en premier" },
-        { key: "isActive", label: "Visible sur le menu", type: "switch" },
+        { key: "name", label: t("Admin.simple.name", {}, "Nom"), type: "text" },
+        { key: "sortOrder", label: t("Admin.simple.sortOrder", {}, "Ordre d'affichage"), type: "int", hint: "Plus petit = affiché en premier" },
+        { key: "isActive", label: t("Admin.simple.active", {}, "Visible sur le menu"), type: "switch" },
       ]}
       describeDelete={(c) => `Supprimer la catégorie « ${c.name} » ?`}
     />
@@ -93,17 +101,18 @@ function Categories() {
 }
 
 function Municipalities() {
+  const { t } = useI18n();
   return (
     <SimplePanel
-      title="Municipalités de livraison"
+      title={t("Admin.simple.municipalitiesTitle", {}, "Municipalités de livraison")}
       url="/api/admin/municipalities"
-      addLabel="Ajouter une municipalité"
+      addLabel={t("Admin.simple.addMunicipality", {}, "Ajouter une municipalité")}
       blank={{ sortOrder: "0", deliveryFee: "" }}
       columns={[
-        { key: "name", label: "Municipalité" },
+        { key: "name", label: t("Admin.simple.name", {}, "Municipalité") },
         {
           key: "deliveryFee",
-          label: "Frais de livraison",
+          label: t("Admin.simple.deliveryFee", {}, "Frais de livraison"),
           render: (m) =>
             m.deliveryFee == null ? (
               <span className="text-gray-400">non défini</span>
@@ -113,19 +122,19 @@ function Municipalities() {
               formatPrice(m.deliveryFee)
             ),
         },
-        { key: "orderCount", label: "Commandes" },
+        { key: "orderCount", label: t("Admin.nav.orders", {}, "Commandes") },
       ]}
       fields={[
-        { key: "name", label: "Nom de la municipalité", type: "text" },
+        { key: "name", label: t("Admin.simple.name", {}, "Nom de la municipalité"), type: "text" },
         {
           key: "deliveryFee",
-          label: "Frais de livraison (DA)",
+          label: t("Admin.simple.deliveryFee", {}, "Frais de livraison (DA)"),
           type: "int",
           nullable: true,
           hint: "Vide = aucun frais configuré · 0 = livraison gratuite",
         },
-        { key: "sortOrder", label: "Ordre d'affichage", type: "int" },
-        { key: "isActive", label: "Livraison active", type: "switch" },
+        { key: "sortOrder", label: t("Admin.simple.sortOrder", {}, "Ordre d'affichage"), type: "int" },
+        { key: "isActive", label: t("Admin.simple.active", {}, "Livraison active"), type: "switch" },
       ]}
       describeDelete={(m) => `Supprimer « ${m.name} » ? Les anciennes commandes gardent leur copie du nom.`}
     />
@@ -133,6 +142,7 @@ function Municipalities() {
 }
 
 export default function AdminDashboard() {
+  const { t, locale, isRTL } = useI18n();
   const [gate, setGate] = useState({ status: "loading" });
   const [tab, setTab] = useState("orders");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -155,6 +165,22 @@ export default function AdminDashboard() {
       );
   }, []);
 
+  const navGroups = useMemo(
+    () =>
+      NAV_GROUPS_CONFIG.map((group) => ({
+        ...group,
+        title: t(`Admin.groups.${group.key}`, {}, group.defaultTitle),
+        items: group.items.map((item) => ({
+          ...item,
+          label: t(`Admin.nav.${item.key}`, {}, item.defaultLabel),
+        })),
+      })),
+    [t]
+  );
+
+  const allNavItems = useMemo(() => navGroups.flatMap((g) => g.items), [navGroups]);
+  const activeItem = allNavItems.find((i) => i.id === tab) || allNavItems[0];
+
   if (gate.status !== "ok") {
     const text = {
       loading: "Vérification de l'accès...",
@@ -170,7 +196,7 @@ export default function AdminDashboard() {
           </p>
           {gate.status === "login" && (
             <a href="/Login" className={`${btnPrimary} inline-block`}>
-              Se connecter
+              {t("Auth.signInBtn", {}, "Se connecter")}
             </a>
           )}
         </div>
@@ -178,17 +204,13 @@ export default function AdminDashboard() {
     );
   }
 
-  // Find active navigation item info
-  const allNavItems = NAV_GROUPS.flatMap((g) => g.items);
-  const activeItem = allNavItems.find((i) => i.id === tab) || allNavItems[0];
-
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col lg:flex-row">
       {/* ============================================================== */}
       {/* 1. DESKTOP SIDEBAR (Collapsible, Icons-Only by Default)        */}
       {/* ============================================================== */}
       <aside
-        className={`hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 bg-zinc-950 text-zinc-300 border-r border-zinc-800/80 shadow-2xl transition-all duration-300 ease-in-out ${
+        className={`hidden lg:flex flex-col fixed inset-y-0 start-0 z-30 bg-zinc-950 text-zinc-300 border-e border-zinc-800/80 shadow-2xl transition-all duration-300 ease-in-out ${
           sidebarExpanded ? "w-72" : "w-20"
         }`}
       >
@@ -201,14 +223,14 @@ export default function AdminDashboard() {
           {sidebarExpanded ? (
             <>
               <div className="flex items-center gap-3 min-w-0">
-<Image src="/images/logo.png" width={30} height={30}  alt="BlackHousse" className=" object-contain" />
+                <Image src="/images/logo.png" width={30} height={30} alt="BlackHousse" className="object-contain" />
                 <div className="truncate">
                   <h1 className="font-black text-base text-white tracking-wider uppercase leading-tight truncate">
                     Black<span className="text-orange-500">Housse</span>
                   </h1>
                   <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 font-medium mt-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Administration</span>
+                    <span>{t("Admin.dashboardTitle", {}, "Administration")}</span>
                   </div>
                 </div>
               </div>
@@ -219,26 +241,26 @@ export default function AdminDashboard() {
                 aria-label="Réduire le menu"
                 className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition flex-none"
               >
-                <PanelLeftClose className="w-5 h-5" />
+                <PanelLeftClose className="w-5 h-5 rtl-flip" />
               </button>
             </>
           ) : (
             <button
               type="button"
               onClick={() => setSidebarExpanded(true)}
-              title="Agrandir le menu (Barre latérale)"
+              title="Agrandir le menu"
               aria-label="Agrandir le menu"
-              className="w-12 h-12 rounded-2xl  flex items-center justify-center shadow-lg  hover:scale-105 active:scale-95 transition-all group"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all group"
             >
-<Image src="/images/logo.png" width={30} height={30}  alt="BlackHousse" className=" object-contain" />
-              <PanelLeftOpen className="w-5 h-5 text-white hidden group-hover:block" />
+              <Image src="/images/logo.png" width={30} height={30} alt="BlackHousse" className="object-contain" />
+              <PanelLeftOpen className="w-5 h-5 text-white hidden group-hover:block rtl-flip" />
             </button>
           )}
         </div>
 
         {/* Nav Groups / Items */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5 scrollbar-thin scrollbar-thumb-zinc-800">
-          {NAV_GROUPS.map((group, gIdx) => (
+          {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1">
               {sidebarExpanded ? (
                 <p className="px-3 text-[10px] font-extrabold uppercase tracking-widest text-zinc-500 select-none">
@@ -258,11 +280,10 @@ export default function AdminDashboard() {
                         type="button"
                         onClick={() => {
                           setTab(item.id);
-                          // Automatically collapse sidebar after clicking a navigation item
                           setSidebarExpanded(false);
                         }}
                         title={!sidebarExpanded ? item.label : undefined}
-                        className={`transition-all duration-200 text-left ${
+                        className={`transition-all duration-200 text-start ${
                           sidebarExpanded
                             ? `w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold ${
                                 isActive
@@ -281,7 +302,7 @@ export default function AdminDashboard() {
                           {sidebarExpanded && <span className="truncate text-xs">{item.label}</span>}
                         </div>
                         {sidebarExpanded && isActive && (
-                          <ChevronRight className="w-3.5 h-3.5 flex-none opacity-80" />
+                          <ChevronRight className="w-3.5 h-3.5 flex-none opacity-80 rtl-flip" />
                         )}
                       </button>
 
@@ -289,7 +310,7 @@ export default function AdminDashboard() {
                       {!sidebarExpanded && (
                         <div
                           role="tooltip"
-                          className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-zinc-900 text-white text-xs font-bold rounded-xl shadow-2xl border border-zinc-700/80 whitespace-nowrap pointer-events-none opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150 z-50 flex items-center gap-2"
+                          className="absolute start-full ms-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-zinc-900 text-white text-xs font-bold rounded-xl shadow-2xl border border-zinc-700/80 whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 flex items-center gap-2"
                         >
                           <span>{item.label}</span>
                           {isActive && (
@@ -306,7 +327,10 @@ export default function AdminDashboard() {
         </nav>
 
         {/* Footer: User profile & Quick Links */}
-        <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/90">
+        <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/90 space-y-2">
+          <div className="flex justify-center pb-1">
+            <LanguageSwitcher variant="admin" className={sidebarExpanded ? "w-full" : ""} />
+          </div>
           {sidebarExpanded ? (
             <div className="space-y-3">
               <div className="flex items-center gap-3 px-2 py-1">
@@ -317,7 +341,7 @@ export default function AdminDashboard() {
                   <p className="text-xs font-bold text-white truncate">{gate.me?.email}</p>
                   <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-medium">
                     <ShieldCheck className="w-3 h-3 text-emerald-500 inline" />
-                    <span>Administrateur</span>
+                    <span>{t("Admin.roleAdmin", {}, "Administrateur")}</span>
                   </div>
                 </div>
               </div>
@@ -328,13 +352,13 @@ export default function AdminDashboard() {
                   className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition font-medium"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Voir le site</span>
+                  <span>{t("Admin.viewSite", {}, "Voir le site")}</span>
                 </Link>
                 <button
                   type="button"
                   onClick={handleLogout}
                   className="flex items-center gap-1 text-zinc-400 hover:text-red-400 transition"
-                  title="Se déconnecter"
+                  title={t("Admin.logout", {}, "Se déconnecter")}
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -347,42 +371,23 @@ export default function AdminDashboard() {
                 title={gate.me?.email || "Administrateur"}
               >
                 {gate.me?.email?.slice(0, 2).toUpperCase() || "AD"}
-                <div
-                  role="tooltip"
-                  className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-zinc-900 text-white text-xs font-bold rounded-xl shadow-2xl border border-zinc-700/80 whitespace-nowrap pointer-events-none opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150 z-50"
-                >
-                  <p>{gate.me?.email}</p>
-                  <p className="text-[10px] text-emerald-400 font-normal">Administrateur</p>
-                </div>
               </div>
 
               <Link
                 href="/"
-                className="relative group p-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition"
-                title="Voir le site web"
+                className="p-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition"
+                title={t("Admin.viewSite", {}, "Voir le site web")}
               >
                 <ExternalLink className="w-4 h-4" />
-                <div
-                  role="tooltip"
-                  className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-zinc-900 text-white text-xs font-bold rounded-xl shadow-2xl border border-zinc-700/80 whitespace-nowrap pointer-events-none opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150 z-50"
-                >
-                  Voir le site web
-                </div>
               </Link>
 
               <button
                 type="button"
                 onClick={handleLogout}
-                className="relative group p-2.5 rounded-xl text-zinc-400 hover:text-red-400 hover:bg-zinc-900 transition"
-                title="Se déconnecter"
+                className="p-2.5 rounded-xl text-zinc-400 hover:text-red-400 hover:bg-zinc-900 transition"
+                title={t("Admin.logout", {}, "Se déconnecter")}
               >
                 <LogOut className="w-4 h-4" />
-                <div
-                  role="tooltip"
-                  className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-zinc-900 text-red-400 text-xs font-bold rounded-xl shadow-2xl border border-zinc-700/80 whitespace-nowrap pointer-events-none opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150 z-50"
-                >
-                  Se déconnecter
-                </div>
               </button>
             </div>
           )}
@@ -390,9 +395,9 @@ export default function AdminDashboard() {
       </aside>
 
       {/* ============================================================== */}
-      {/* 2. MOBILE TOP BAR HEADER (Preserved unchanged)                 */}
+      {/* 2. MOBILE TOP BAR HEADER                                       */}
       {/* ============================================================== */}
-      <header className="lg:hidden sticky top-0 z-30 bg-zinc-950 text-white admin-header-safe-area pb-3 flex items-center justify-between shadow-md border-b border-zinc-800">
+      <header className="lg:hidden sticky top-0 z-30 bg-zinc-950 text-white admin-header-safe-area pb-3 flex items-center justify-between shadow-md border-b border-zinc-800 px-4">
         <div className="flex items-center gap-2.5">
           <button
             type="button"
@@ -403,7 +408,7 @@ export default function AdminDashboard() {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <Image width={30} height={30} src="/images/logo.png" alt="BlackHousse" className=" object-contain" />
+            <Image width={30} height={30} src="/images/logo.png" alt="BlackHousse" className="object-contain" />
             <span className="font-extrabold text-sm uppercase tracking-wider">
               Black<span className="text-orange-500">Housse</span>
             </span>
@@ -411,6 +416,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher variant="admin" />
           <AdminNotificationToggle compact />
           <span className="px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold border border-orange-500/30">
             {activeItem.label}
@@ -419,7 +425,7 @@ export default function AdminDashboard() {
       </header>
 
       {/* ============================================================== */}
-      {/* 3. MOBILE SLIDE-OVER DRAWER (Preserved unchanged)              */}
+      {/* 3. MOBILE SLIDE-OVER DRAWER                                    */}
       {/* ============================================================== */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -428,8 +434,8 @@ export default function AdminDashboard() {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
-          {/* Drawer container (full width w-72 with labels) */}
-          <div className="fixed inset-y-0 left-0 w-72 max-w-[85vw] z-50 shadow-2xl bg-zinc-950 flex flex-col h-full animate-in slide-in-from-left duration-200">
+          {/* Drawer container */}
+          <div className="fixed inset-y-0 start-0 w-72 max-w-[85vw] z-50 shadow-2xl bg-zinc-950 flex flex-col h-full animate-in duration-200">
             {/* Brand Header */}
             <div className="p-6 border-b border-zinc-800/80 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -440,7 +446,7 @@ export default function AdminDashboard() {
                   </h1>
                   <div className="flex items-center gap-1.5 text-[11px] text-zinc-300 font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Console d'Administration</span>
+                    <span>{t("Admin.dashboardTitle", {}, "Console d'Administration")}</span>
                   </div>
                 </div>
               </div>
@@ -455,7 +461,7 @@ export default function AdminDashboard() {
 
             {/* Navigation Groups */}
             <nav className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
-              {NAV_GROUPS.map((group, gIdx) => (
+              {navGroups.map((group, gIdx) => (
                 <div key={gIdx} className="space-y-1.5">
                   <p className="px-3 text-[10px] font-extrabold uppercase tracking-widest text-zinc-300/80">
                     {group.title}
@@ -472,7 +478,7 @@ export default function AdminDashboard() {
                             setTab(item.id);
                             setMobileMenuOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 text-left ${
+                          className={`w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 text-start ${
                             isActive
                               ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow-lg shadow-orange-500/25 ring-1 ring-orange-400/40"
                               : "text-zinc-300 hover:text-white hover:bg-zinc-900"
@@ -482,7 +488,7 @@ export default function AdminDashboard() {
                             <Icon className={`w-4 h-4 flex-none ${isActive ? "text-white" : "text-zinc-400"}`} />
                             <span className="truncate">{item.label}</span>
                           </div>
-                          {isActive && <ChevronRight className="w-3.5 h-3.5 flex-none opacity-80" />}
+                          {isActive && <ChevronRight className="w-3.5 h-3.5 flex-none opacity-80 rtl-flip" />}
                         </button>
                       );
                     })}
@@ -493,6 +499,9 @@ export default function AdminDashboard() {
 
             {/* Profile Footer */}
             <div className="p-4 border-t border-zinc-800/80 space-y-3 bg-zinc-950/80">
+              <div className="flex justify-center pb-1">
+                <LanguageSwitcher variant="admin" className="w-full" />
+              </div>
               <div className="flex items-center gap-3 px-2 py-1">
                 <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-bold text-orange-400">
                   {gate.me?.email?.slice(0, 2).toUpperCase() || "AD"}
@@ -501,7 +510,7 @@ export default function AdminDashboard() {
                   <p className="text-xs font-bold text-white truncate">{gate.me?.email}</p>
                   <div className="flex items-center gap-1 text-[10px] text-zinc-300 font-medium">
                     <ShieldCheck className="w-3 h-3 text-emerald-500 inline" />
-                    <span>Administrateur</span>
+                    <span>{t("Admin.roleAdmin", {}, "Administrateur")}</span>
                   </div>
                 </div>
               </div>
@@ -513,7 +522,7 @@ export default function AdminDashboard() {
                   className="flex items-center gap-1.5 text-zinc-300 hover:text-white transition font-medium"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Voir le site</span>
+                  <span>{t("Admin.viewSite", {}, "Voir le site")}</span>
                 </Link>
                 <button
                   type="button"
@@ -522,7 +531,7 @@ export default function AdminDashboard() {
                     handleLogout();
                   }}
                   className="flex items-center gap-1 text-zinc-300 hover:text-red-400 transition"
-                  title="Se déconnecter"
+                  title={t("Admin.logout", {}, "Se déconnecter")}
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -537,7 +546,7 @@ export default function AdminDashboard() {
       {/* ============================================================== */}
       <main
         className={`flex-1 min-h-screen flex flex-col transition-all duration-300 ease-in-out ${
-          sidebarExpanded ? "lg:pl-72" : "lg:pl-20"
+          sidebarExpanded ? "lg:ps-72" : "lg:ps-20"
         }`}
       >
         {/* Desktop Top Header Bar with Sidebar Toggle */}
@@ -552,15 +561,15 @@ export default function AdminDashboard() {
               className="p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200 transition focus:outline-none"
             >
               {sidebarExpanded ? (
-                <PanelLeftClose className="w-5 h-5 text-gray-700" />
+                <PanelLeftClose className="w-5 h-5 text-gray-700 rtl-flip" />
               ) : (
-                <PanelLeftOpen className="w-5 h-5 text-gray-700" />
+                <PanelLeftOpen className="w-5 h-5 text-gray-700 rtl-flip" />
               )}
             </button>
 
             <div>
               <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                <span>Administration</span>
+                <span>{t("Admin.dashboardTitle", {}, "Administration")}</span>
                 <span>/</span>
                 <span className="text-orange-600 font-bold">{activeItem.label}</span>
               </div>
@@ -569,11 +578,12 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex items-center gap-3 text-xs">
+            <LanguageSwitcher variant="admin" />
             <AdminNotificationToggle />
             <div className="flex items-center gap-1.5 text-gray-500 font-semibold bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full">
               <Calendar className="w-3.5 h-3.5 text-orange-500" />
               <span>
-                {new Date().toLocaleDateString("fr-FR", {
+                {new Date().toLocaleDateString(locale === "ar" ? "ar-DZ" : locale === "en" ? "en-US" : "fr-FR", {
                   weekday: "long",
                   day: "numeric",
                   month: "long",

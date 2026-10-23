@@ -66,8 +66,7 @@ export function useList(url) {
   return { ...state, reload: load };
 }
 
-export const formatPrice = (n) => `${new Intl.NumberFormat("fr-FR").format(Number(n) || 0)} DA`;
-export const formatDate = (iso) => {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "" : d.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
-};
+import { formatPriceStatic, formatDateStatic } from "@/lib/i18n/I18nContext";
+
+export const formatPrice = (n) => formatPriceStatic(n);
+export const formatDate = (iso, options) => formatDateStatic(iso, null, options);

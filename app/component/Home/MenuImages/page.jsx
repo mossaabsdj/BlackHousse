@@ -1,23 +1,40 @@
 "use client";
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import content from "@/app/Texts/content.json";
+import { useI18n } from "@/lib/i18n/I18nContext";
 import Link from "next/link";
 import { useNavigationLoading } from "@/app/component/NavigationLoading/NavigationLoadingContext";
-const menuPage = content.MenuPage;
-const slides = menuPage.slides;
+
+const DEFAULT_SLIDES = [
+  { src: "/images/menu/pizza.jpg", alt: "Burgers BlackHousse" },
+  { src: "/images/menu/tacos.jpg", alt: "Tacos BlackHousse" },
+  { src: "/images/menu/poutine.jpg", alt: "Pizzas BlackHousse" },
+  { src: "/images/menu/pizza.jpg", alt: "Sandwichs BlackHousse" },
+  { src: "/images/menu/crispy.jpg", alt: "Burgers BlackHousse" },
+];
+
 const AUTOPLAY_MS = 4500;
 const pad = (v) => String(v).padStart(2, "0");
 
 export default function BlackHousseMenuCarousel() {
+  const { content, isRTL } = useI18n();
+  const menuPage = content.MenuPage;
+  const rawSlides = menuPage?.slides || [];
+  const slides = useMemo(() => {
+    return rawSlides.map((s, idx) => ({
+      ...DEFAULT_SLIDES[idx % DEFAULT_SLIDES.length],
+      ...s,
+    }));
+  }, [rawSlides]);
+
   const { startLoading } = useNavigationLoading();
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const n = slides.length;
-  const titleLines = menuPage.title.split("\n");
+  const n = slides.length || 1;
+  const titleLines = (menuPage?.title || "").split("\n");
 
   const go = useCallback((i) => setIndex(((i % n) + n) % n), [n]);
   const next = useCallback(() => setIndex((i) => (i + 1) % n), [n]);
@@ -155,10 +172,10 @@ export default function BlackHousseMenuCarousel() {
               {pad(index + 1)} / {pad(n)}
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
-              {slides[index].title}
+              {slides[index]?.title}
             </h2>
             <p className="text-gray-600 max-w-md mx-auto">
-              {slides[index].subtitle}
+              {slides[index]?.subtitle}
             </p>
           </motion.div>
         </AnimatePresence>
@@ -166,17 +183,17 @@ export default function BlackHousseMenuCarousel() {
         {/* Controls */}
         <div className="flex items-center justify-center gap-5">
           <button
-            onClick={prev}
+            onClick={isRTL ? next : prev}
             aria-label="Previous"
             className="w-11 h-11 flex items-center justify-center rounded-full bg-white border border-gray-300 text-gray-600 hover:border-orange-400 hover:text-orange-600 transition"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className={`w-5 h-5 ${isRTL ? "rtl-flip" : ""}`} />
           </button>
 
           <div className="flex items-center gap-2">
             {slides.map((s, i) => (
               <button
-                key={s.src}
+                key={s.src || i}
                 onClick={() => go(i)}
                 aria-label={s.title}
                 className={`h-2.5 rounded-full transition-all ${
@@ -187,11 +204,11 @@ export default function BlackHousseMenuCarousel() {
           </div>
 
           <button
-            onClick={next}
+            onClick={isRTL ? prev : next}
             aria-label="Next"
             className="w-11 h-11 flex items-center justify-center rounded-full bg-white border border-gray-300 text-gray-600 hover:border-orange-400 hover:text-orange-600 transition"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className={`w-5 h-5 ${isRTL ? "rtl-flip" : ""}`} />
           </button>
         </div>
 
@@ -201,7 +218,7 @@ export default function BlackHousseMenuCarousel() {
             onClick={() => startLoading("/Commande")}
             className="inline-block px-8 py-3 text-white bg-orange-500 hover:bg-orange-600 rounded-full font-bold transition shadow-lg shadow-orange-500/30"
           >
-            {menuPage.button}
+            {menuPage?.button || "Commander maintenant"}
           </Link>
         </div>
       </div>

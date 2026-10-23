@@ -1,14 +1,16 @@
 "use client";
 
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Bell, BellOff, Check, Loader2, Sparkles } from "lucide-react";
 import { usePushNotifications } from "@/lib/Firebase";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 export default function CustomerNotificationButton({
   orderReference,
   customerPhone = null,
   className = "",
 }) {
+  const { t, isRTL } = useI18n();
   const { isSupported, isSubscribed, loading, error, subscribe, unsubscribe } =
     usePushNotifications({
       role: "CLIENT",
@@ -47,7 +49,7 @@ export default function CustomerNotificationButton({
     if (isSubscribed) {
       const res = await unsubscribe();
       if (res?.success) {
-        setFeedbackMsg("Notifications désactivées.");
+        setFeedbackMsg(t("OrderingPage.notifications.disabledMsg", null, "Notifications désactivées."));
         setTimeout(() => setFeedbackMsg(""), 3500);
       }
     } else {
@@ -57,7 +59,7 @@ export default function CustomerNotificationButton({
         customerPhone,
       });
       if (res?.success) {
-        setFeedbackMsg("Vous serez notifié à chaque changement de statut !");
+        setFeedbackMsg(t("OrderingPage.notifications.enabledMsg", null, "Vous serez notifié à chaque changement de statut !"));
         setTimeout(() => setFeedbackMsg(""), 4500);
       }
     }
@@ -86,12 +88,14 @@ export default function CustomerNotificationButton({
           </div>
           <div className="min-w-0">
             <p className="text-xs font-bold truncate">
-              {isSubscribed ? "Notifications de suivi activées" : "Suivre ma commande en direct"}
+              {isSubscribed
+                ? t("OrderingPage.notifications.activeTitle", null, "Notifications de suivi activées")
+                : t("OrderingPage.notifications.inactiveTitle", null, "Suivre ma commande en direct")}
             </p>
             <p className="text-[11px] text-gray-500 truncate">
               {isSubscribed
-                ? "Alerte reçue même si vous fermez le site"
-                : "Recevez une alerte dès que votre commande est prête"}
+                ? t("OrderingPage.notifications.activeSubtitle", null, "Alerte reçue même si vous fermez le site")
+                : t("OrderingPage.notifications.inactiveSubtitle", null, "Recevez une alerte dès que votre commande est prête")}
             </p>
           </div>
         </div>
@@ -109,17 +113,17 @@ export default function CustomerNotificationButton({
           {loading ? (
             <>
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Chargement</span>
+              <span>{t("OrderingPage.notifications.loading", null, "Chargement")}</span>
             </>
           ) : isSubscribed ? (
             <>
               <BellOff className="w-3.5 h-3.5" />
-              <span>Désactiver</span>
+              <span>{t("OrderingPage.notifications.disable", null, "Désactiver")}</span>
             </>
           ) : (
             <>
               <Sparkles className="w-3.5 h-3.5" />
-              <span>M'alerter</span>
+              <span>{t("OrderingPage.notifications.enable", null, "M'alerter")}</span>
             </>
           )}
         </button>
