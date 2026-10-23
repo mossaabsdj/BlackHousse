@@ -660,7 +660,7 @@
     }
   },
   "Ticket": {
-    "storeName": "بلاك هاوس",
+    "storeName": "BlackHousse ",
     "delivery": "توصيل",
     "pickup": "استلام",
     "deliveryFee": "التوصيل",
@@ -691,3 +691,4 @@
     "onlineSuccess": "تمت استعادة الاتصال بنجاح !"
   }
 }
+storeName
