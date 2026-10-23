@@ -46,38 +46,38 @@
     "button": "Commander maintenant",
     "slides": [
       {
-        "src": "/images/menu/pizza.jpg",
+        "src": "/images/menu/pizza.JPG",
         "alt": "Burgers BlackHousse",
         "tag": "Burgers",
         "title": "Burgers grillés au feu",
         "subtitle": "Bœuf 100% frais, pain moelleux et sauces maison."
       },
       {
-        "src": "/images/menu/tacos.jpg",
+        "src": "/images/menu/tacos.JPG",
         "alt": "Tacos BlackHousse",
         "tag": "Tacos",
         "title": "Tacos généreux",
         "subtitle": "Poulet ou viande hachée, frites et sauce fromagère."
       },
       {
-        "src": "/images/menu/poutine.jpg",
+        "src": "/images/menu/poutine.JPG",
         "alt": "Pizzas BlackHousse",
         "tag": "Pizzas",
         "title": "Pizzas croustillantes",
         "subtitle": "Pâte fine, mozzarella fondante et garnitures fraîches."
       },
       {
-        "src": "/images/menu/pizza.jpg",
+        "src": "/images/menu/pizza.JPG",
         "alt": "Sandwichs BlackHousse",
         "tag": "Sandwichs",
         "title": "Sandwichs toastés",
         "subtitle": "Paninis et clubs garnis, chauds et croustillants."
       },
       {
-        "src": "/images/menu/crispy.jpg",
-        "alt": "Burgers BlackHousse",
-        "tag": "Burgers",
-        "title": "Burgers grillés au feu",
+        "src": "/images/menu/crispy.JPG",
+        "alt": "Crispy BlackHousse",
+        "tag": "Crispy",
+        "title": "Crispy grillés au feu",
         "subtitle": "Bœuf 100% frais, pain moelleux et sauces maison."
       }
     ]

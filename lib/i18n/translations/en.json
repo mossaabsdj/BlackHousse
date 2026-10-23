@@ -46,35 +46,35 @@
     "button": "Order now",
     "slides": [
       {
-        "src": "/images/menu/pizza.jpg",
+        "src": "/images/menu/pizza.JPG",
         "alt": "BlackHousse Burgers",
         "tag": "Burgers",
         "title": "Flame-grilled Burgers",
         "subtitle": "100% fresh beef, fluffy brioche buns and homemade sauces."
       },
       {
-        "src": "/images/menu/tacos.jpg",
+        "src": "/images/menu/tacos.JPG",
         "alt": "BlackHousse Tacos",
         "tag": "Tacos",
         "title": "Loaded French Tacos",
         "subtitle": "Tender chicken or minced beef, fries and warm cheese sauce."
       },
       {
-        "src": "/images/menu/poutine.jpg",
+        "src": "/images/menu/poutine.JPG",
         "alt": "BlackHousse Pizzas",
         "tag": "Pizzas",
         "title": "Crispy Artisanal Pizzas",
         "subtitle": "Thin crust, melted mozzarella and fresh toppings."
       },
-      {
-        "src": "/images/menu/pizza.jpg",
-        "alt": "BlackHousse Sandwiches",
-        "tag": "Sandwiches",
-        "title": "Toasted Sandwiches",
-        "subtitle": "Hot paninis and club sandwiches, crispy and loaded."
+     {
+        "src": "/images/menu/pizza.JPG",
+        "alt": "BlackHousse Burgers",
+        "tag": "Burgers",
+        "title": "Flame-grilled Burgers",
+        "subtitle": "100% fresh beef, fluffy brioche buns and homemade sauces."
       },
       {
-        "src": "/images/menu/crispy.jpg",
+        "src": "/images/menu/crispy.JPG",
         "alt": "BlackHousse Crispy Chicken Burgers",
         "tag": "Burgers",
         "title": "Crispy Chicken Burgers",
