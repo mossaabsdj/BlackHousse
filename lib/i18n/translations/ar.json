@@ -46,38 +46,32 @@
     "button": "اطلب الآن",
     "slides": [
       {
-        "src": "/images/menu/pizza.jpg",
+        "src": "/images/menu/pizza.JPG",
         "alt": "برغر بلاك هاوس",
         "tag": "برغر",
         "title": "برغر مشوي على اللهب",
         "subtitle": "لحم بقر 100% طازج، خبز طري وصلصات منزلية الصنع."
       },
       {
-        "src": "/images/menu/tacos.jpg",
+        "src": "/images/menu/tacos.JPG",
         "alt": "تاكوس بلاك هاوس",
         "tag": "تاكوس",
-        "title": "تاكوس فرنسي غني",
+        "title": "تاكوس  غني",
         "subtitle": "دجاج أو لحم مفروم مع بطاطا وصلصة الجبن الخاصة."
       },
       {
-        "src": "/images/menu/poutine.jpg",
+        "src": "/images/menu/poutine.JPG",
         "alt": "بيتزا بلاك هاوس",
         "tag": "بيتزا",
         "title": "بيتزا مقرمشة وفاخرة",
         "subtitle": "عجينة إيطالية رقيقة مع موزاريلا ذائبة وخضار طازجة."
       },
+     
       {
-        "src": "/images/menu/pizza.jpg",
-        "alt": "سندويشات بلاك هاوس",
-        "tag": "سندويشات",
-        "title": "سندويشات محمصة",
-        "subtitle": "بانيني وكلوب ساخن ومقرمش بأشهى الحشوات."
-      },
-      {
-        "src": "/images/menu/crispy.jpg",
-        "alt": "برغر كرسبي بلاك هاوس",
-        "tag": "برغر",
-        "title": "برغر مقرمش ولذيذ",
+        "src": "/images/menu/crispy.JPG",
+        "alt": " كرسبي بلاك هاوس",
+        "tag": "كرسبي",
+        "title": "كرسبي مقرمش ولذيذ",
         "subtitle": "دجاج كرسبي شهي مع جبن شيدر ذائب."
       }
     ]
@@ -691,4 +685,3 @@
     "onlineSuccess": "تمت استعادة الاتصال بنجاح !"
   }
 }
-storeName
