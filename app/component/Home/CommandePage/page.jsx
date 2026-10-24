@@ -1,7 +1,6 @@
 "use client";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, ClipboardList, Search, ShoppingBag } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nContext";
 import { createOrder, fetchCatalog, fetchMunicipalities } from "./api";
@@ -13,6 +12,8 @@ import CheckoutModal from "./Checkoutmodal";
 import TrackModal from "./Trackmodal";
 import { useRealtimeProducts } from "@/lib/Firebase.js";
 import Progression from "@/app/component/Proogression/page";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+
 
 // Doit correspondre à l'id de l'emplacement dans le header (AppNavbar)
 const HEADER_SLOT_ID = "header-mobile-slot";
@@ -33,6 +34,24 @@ export default function OrderingPage() {
   const [headerSlot, setHeaderSlot] = useState(null); // emplacement des boutons dans le header (mobile)
   const abortRef = useRef(null);
 
+const reduceMotion = useReducedMotion();
+const prevShowBar = useRef(showBar);
+const [justActivated, setJustActivated] = useState(false);
+
+useEffect(() => {
+  const wasActive = prevShowBar.current;
+  prevShowBar.current = showBar;
+
+  if (!showBar) {
+    setJustActivated(false);
+    return;
+  }
+  if (!wasActive) {
+    setJustActivated(true);
+    const id = setTimeout(() => setJustActivated(false), 900);
+    return () => clearTimeout(id);
+  }
+}, [showBar]);
   // Retrouve l'emplacement du header (quelques essais au cas où il se monte après la page)
   useEffect(() => {
     const find = () => {
@@ -271,30 +290,97 @@ export default function OrderingPage() {
       {headerSlot &&
         createPortal(
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <button
-              type="button"
-              onClick={() => setCartOpen(true)}
-              disabled={!showBar}
-              aria-label={showBar ? barLabel : "Panier vide"}
-              title={
-                showBar
-                  ? `${barLabel} · ${catalogReady ? formatPrice(totals.subtotal, t.currency) : t.bar.unknownTotal}`
-                  : "Panier vide"
-              }
-              className={`relative flex flex-col items-center justify-center gap-0.5 w-14 sm:w-16 h-11 sm:h-12 rounded-xl border text-[9px] sm:text-[10px] font-bold transition active:scale-95 ${
-                showBar
-                  ? "bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/30"
-                  : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>{isRTL ? "تأكيد" : t.locale === "en" ? "Confirm" : "Confirmer"}</span>
-              {showBar && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-4 sm:min-w-5 h-4 sm:h-5 px-1 rounded-full bg-black text-white text-[9px] sm:text-[10px] leading-none flex items-center justify-center">
-                  {itemCount}
-                </span>
-              )}
-            </button>
+          <motion.button
+  type="button"
+  onClick={() => setCartOpen(true)}
+  disabled={!showBar}
+  aria-label={showBar ? barLabel : "Panier vide"}
+  title={
+    showBar
+      ? `${barLabel} · ${catalogReady ? formatPrice(totals.subtotal, t.currency) : t.bar.unknownTotal}`
+      : "Panier vide"
+  }
+  animate={
+    justActivated && !reduceMotion
+      ? { scale: [1, 1.16, 0.97, 1] }
+      : { scale: 1 }
+  }
+  transition={{ duration: 0.6, ease: "easeOut" }}
+  whileHover={showBar && !reduceMotion ? { y: -2 } : undefined}
+  whileTap={showBar ? { scale: 0.95 } : undefined}
+  className={`relative flex flex-col items-center justify-center gap-0.5 w-14 sm:w-16 h-11 sm:h-12 rounded-xl border text-[9px] sm:text-[10px] font-bold transition-[background-color,border-color,color,box-shadow] duration-500 ${
+    showBar
+      ? "bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/30"
+      : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+  }`}
+>
+  {/* Shine sweep (clipped inside the button) */}
+  <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl">
+    <AnimatePresence>
+      {justActivated && !reduceMotion && (
+        <motion.span
+          className="absolute inset-y-0 left-0 w-2/5 -skew-x-[20deg] bg-gradient-to-r from-transparent via-white/50 to-transparent"
+          initial={{ x: "-150%" }}
+          animate={{ x: "380%" }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+        />
+      )}
+    </AnimatePresence>
+  </span>
+
+  {/* Expanding ring pulse */}
+  <AnimatePresence>
+    {justActivated && !reduceMotion && (
+      <motion.span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-xl border-2 border-orange-400"
+        initial={{ opacity: 0.7, scale: 1 }}
+        animate={{ opacity: 0, scale: 1.7 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      />
+    )}
+  </AnimatePresence>
+
+  {/* Icon wiggle */}
+  <motion.span
+    className="flex"
+    animate={
+      justActivated && !reduceMotion
+        ? { rotate: [0, -14, 10, -5, 0] }
+        : { rotate: 0 }
+    }
+    transition={{ duration: 0.7, delay: 0.1 }}
+  >
+    <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
+  </motion.span>
+
+  <span>{isRTL ? "تأكيد" : t.locale === "en" ? "Confirm" : "Confirmer"}</span>
+
+  {/* Badge: springs in, bumps when the count changes */}
+  <AnimatePresence>
+    {showBar && (
+      <motion.span
+        key="badge"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0 }}
+        transition={{ type: "spring", stiffness: 500, damping: 18 }}
+        className="absolute -top-1.5 -right-1.5 min-w-4 sm:min-w-5 h-4 sm:h-5 px-1 rounded-full bg-black text-white text-[9px] sm:text-[10px] leading-none flex items-center justify-center"
+      >
+        <motion.span
+          key={itemCount}
+          initial={reduceMotion ? false : { scale: 1.5 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 500, damping: 15 }}
+        >
+          {itemCount}
+        </motion.span>
+      </motion.span>
+    )}
+  </AnimatePresence>
+</motion.button>
 
             <button
               type="button"
