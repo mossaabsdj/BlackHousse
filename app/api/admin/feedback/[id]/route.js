@@ -23,8 +23,10 @@ export const PATCH = admin(async ({ params, body }) => {
     data: { status: data.status },
   });
 
-  // Sync to Firebase
-  await syncFeedbackStatus(id, data.status);
+  const eventId = `evt_feedback_status_${id}_${data.status}_${new Date(updated.updatedAt).getTime()}`;
+
+  // Sync to Firebase with stable eventId
+  await syncFeedbackStatus(id, data.status, { eventId });
 
   return json({
     success: true,

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState ,useCallback} from "react";
 import {
   RefreshCw,
   Search,
@@ -621,11 +621,29 @@ export default function OrdersPanel() {
     }
   };
 
+  // Guard against overlapping API refreshes
+  const isRefreshingRef = useRef(false);
+
+  const safeReload = useCallback(
+    async (silent = true) => {
+      if (isRefreshingRef.current) return;
+      isRefreshingRef.current = true;
+      try {
+        await reload(silent);
+      } finally {
+        isRefreshingRef.current = false;
+      }
+    },
+    [reload]
+  );
+
   // Firebase Real-time Listener for Instant Order Notifications & Sound
   const { connected } = useRealtimeAdminOrders({
     onNewOrder: (event) => {
+      console.log("[Firebase] New order event:", event);
+
       // Reload order list silently and immediately without requiring a page refresh
-      reload(true);
+      safeReload(true);
 
       // Play audible restaurant notification chime
       playOrderChime();
@@ -645,7 +663,11 @@ export default function OrdersPanel() {
     },
     onStatusChange: () => {
       // Keep statuses in sync if modified in another tab or worker
-      reload(true);
+      safeReload(true);
+    },
+    onReconnect: () => {
+      // Refresh authoritative data silently on reconnect
+      safeReload(true);
     },
   });
 
@@ -669,9 +691,9 @@ export default function OrdersPanel() {
   // Fallback background polling only if Firebase is not connected
   useEffect(() => {
     if (connected) return;
-    const id = setInterval(() => reload(true), 45000);
+    const id = setInterval(() => safeReload(true), 45000);
     return () => clearInterval(id);
-  }, [reload, connected]);
+  }, [safeReload, connected]);
 
   const allStatuses = extra.allStatuses || extra.statuses || [];
   const pages = Math.max(1, Math.ceil((extra.total ?? 0) / (extra.pageSize ?? 20)));

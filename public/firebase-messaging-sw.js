@@ -30,24 +30,23 @@ firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
 
-// In-memory deduplication set to prevent displaying the exact same push notification multiple times
-const recentEvents = new Map();
-const SW_DEDUPE_MS = 15000; // 15 seconds window
+// Bounded in-memory deduplication set to prevent displaying the exact same push notification multiple times
+const MAX_SW_EVENTS = 500;
+const processedSwEvents = new Set();
+const swEventQueue = [];
 
 function isDuplicatePush(eventId) {
   if (!eventId) return false;
-  const now = Date.now();
-  // Garbage collect expired IDs
-  for (const [key, time] of recentEvents.entries()) {
-    if (now - time > SW_DEDUPE_MS) {
-      recentEvents.delete(key);
-    }
-  }
-  if (recentEvents.has(eventId)) {
+  if (processedSwEvents.has(eventId)) {
     console.log(`[FCM ServiceWorker] Suppressed duplicate push for eventId: ${eventId}`);
     return true;
   }
-  recentEvents.set(eventId, now);
+  if (swEventQueue.length >= MAX_SW_EVENTS) {
+    const oldest = swEventQueue.shift();
+    processedSwEvents.delete(oldest);
+  }
+  processedSwEvents.add(eventId);
+  swEventQueue.push(eventId);
   return false;
 }
 
