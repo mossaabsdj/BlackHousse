@@ -1,23 +1,26 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
-import { serializeTracking } from "@/lib/ordering/orders";
+import { serializeTracking, ORDER_INCLUDE } from "@/lib/ordering/orders";
 import { canonicalPhone, clientIp, isValidPhone, rateLimit } from "@/lib/ordering/security";
 
 export const dynamic = "force-dynamic";
 
 const WINDOW_MS = 10 * 60 * 1000;
-// Only recent orders can be looked up by phone number (limits what a stranger could ever see).
-const RECENT_HOURS = Number(process.env.TRACK_WINDOW_HOURS) || 48;
+// Order tracking is strictly limited to orders created within the last 6 hours
+const TRACK_WINDOW_HOURS = 6;
 
 const fail = (status, code, message) => NextResponse.json({ code, message }, { status });
 
 /**
- * Tracking by phone number only.
- * Returns, for that number's recent orders, ONLY: customer full name + status + time(s).
+ * Public order tracking endpoint.
+ * Allows customers to track orders created within the last 6 hours (including active & cancelled orders).
+ * Returns complete order details (items, options, pricing, status, and history).
  */
 export async function POST(request) {
-  if (!rateLimit(`track:ip:${clientIp(request)}`, { limit: 30, windowMs: WINDOW_MS })) return fail(429, "RATE_LIMITED", "Too many requests");
+  if (!rateLimit(`track:ip:${clientIp(request)}`, { limit: 30, windowMs: WINDOW_MS })) {
+    return fail(429, "RATE_LIMITED", "Too many requests");
+  }
 
   let body;
   try {
@@ -28,19 +31,42 @@ export async function POST(request) {
     return fail(400, "INVALID_JSON", "Invalid JSON");
   }
 
-  const phone = canonicalPhone(body?.phone);
-  if (!isValidPhone(phone)) return fail(400, "INVALID_PHONE", "Invalid phone number");
-  if (!rateLimit(`track:phone:${phone}`, { limit: 15, windowMs: WINDOW_MS })) return fail(429, "RATE_LIMITED", "Too many requests");
+  const rawRef = typeof body?.reference === "string" ? body.reference.trim() : null;
+  const rawPhone = body?.phone ? canonicalPhone(body.phone) : null;
+
+  if (!rawPhone && !rawRef) {
+    return fail(400, "INVALID_REQUEST", "Veuillez fournir un numéro de téléphone ou une référence de commande");
+  }
+
+  if (rawPhone && !isValidPhone(rawPhone)) {
+    return fail(400, "INVALID_PHONE", "Numéro de téléphone invalide");
+  }
+
+  const rateKey = rawPhone ? `track:phone:${rawPhone}` : `track:ref:${rawRef}`;
+  if (!rateLimit(rateKey, { limit: 20, windowMs: WINDOW_MS })) {
+    return fail(429, "RATE_LIMITED", "Trop de requêtes, veuillez patienter un instant");
+  }
+
+  const sixHoursAgo = new Date(Date.now() - TRACK_WINDOW_HOURS * 60 * 60 * 1000);
+
+  // Filter criteria: Orders created within the last 6 hours.
+  // Active and Cancelled orders are returned (completed orders are excluded from active tracking).
+  const whereClause = {
+    createdAt: { gte: sixHoursAgo },
+    status: { notIn: ["COMPLETED"] },
+    ...(rawPhone ? { customerPhone: rawPhone } : {}),
+    ...(rawRef ? { reference: rawRef } : {}),
+  };
 
   const orders = await prisma.order.findMany({
-    where: {
-      customerPhone: phone,
-      status: { notIn: ["COMPLETED", "CANCELLED"] },
-      createdAt: { gte: new Date(Date.now() - RECENT_HOURS * 3600 * 1000) },
-    },
-    include: { history: { orderBy: { createdAt: "asc" } } },
+    where: whereClause,
+    include: ORDER_INCLUDE,
     orderBy: { createdAt: "desc" },
     take: 10,
   });
-  return NextResponse.json({ orders: orders.map(serializeTracking) }, { headers: { "Cache-Control": "no-store" } });
+
+  return NextResponse.json(
+    { orders: orders.map(serializeTracking) },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }

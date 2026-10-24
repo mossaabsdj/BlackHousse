@@ -8,7 +8,7 @@ export const ENDPOINTS = {
   catalog: "/api/products", // GET  -> categories + products (with option groups)
   municipalities: "/api/delivery/municipalities", // GET  -> optional list of delivery municipalities
   createOrder: "/api/orders", // POST -> creates the order
-  trackOrders: "/api/orders/track", // POST { phone } -> customer name + status + time of that phone's recent orders
+  trackOrders: "/api/orders/track", // POST { phone, reference } -> customer orders created within last 6 hours
 };
 
 export class ApiError extends Error {
@@ -151,18 +151,20 @@ export function normalizeOrder(o) {
     return {
       name: str(it.name ?? it.product?.name ?? it.productName),
       quantity,
+      unitPrice: it.unitPrice == null ? null : num(it.unitPrice),
       options: (it.options ?? it.selectedOptions ?? [])
-        .map((x) => (typeof x === "string" ? x : x?.name ?? x?.label))
+        .map((x) => (typeof x === "string" ? x : x?.name ?? x?.label ?? x?.optionName))
         .filter(Boolean),
       total: num(it.total ?? it.lineTotal, num(it.unitPrice ?? it.price) * quantity),
     };
   });
-  const delivery = o.delivery ?? null;
+  const delivery = o.delivery ?? (o.municipalityName || o.address ? { municipality: o.municipalityName, address: o.address } : null);
   return {
     reference: str(o.reference ?? o.ref ?? o.orderNumber ?? o.id),
     status: o.status ?? null,
     statusLabel: o.statusLabel ?? null,
     statusHistory: (o.statusHistory ?? o.history ?? []).map((h) => ({
+      status: h.status ?? null,
       label: h.label ?? h.status ?? null,
       at: h.at ?? h.createdAt ?? h.date ?? null,
     })),
@@ -178,19 +180,16 @@ export function normalizeOrder(o) {
   };
 }
 
-/** Public tracking view: reference + customer name + status + time. */
+/** Public tracking view with complete order details */
 function normalizeTracked(o) {
+  if (!o) return null;
+  const normalized = normalizeOrder(o);
   return {
-    reference: str(o.reference ?? o.ref ?? o.orderNumber ?? o.id),
+    ...normalized,
+    dailyNumber: o.dailyNumber ?? null,
     customerName: str(o.customerName ?? o.name),
-    status: o.status ?? null,
-    statusLabel: o.statusLabel ?? null,
+    customerPhone: str(o.customerPhone ?? o.phone),
     updatedAt: o.updatedAt ?? null,
-    statusHistory: (o.statusHistory ?? o.history ?? []).map((h) => ({
-      status: h.status ?? null,
-      label: h.label ?? h.status ?? null,
-      at: h.at ?? h.createdAt ?? null,
-    })),
   };
 }
 
@@ -222,11 +221,14 @@ export async function createOrder(payload, idempotencyKey) {
   return order;
 }
 
-export async function trackOrders({ phone }) {
+export async function trackOrders({ phone, reference } = {}) {
   try {
-    const d = await request(ENDPOINTS.trackOrders, { method: "POST", body: { phone } });
+    const d = await request(ENDPOINTS.trackOrders, {
+      method: "POST",
+      body: { phone, reference },
+    });
     const list = Array.isArray(d) ? d : d?.orders ?? [];
-    return list.map(normalizeTracked);
+    return list.map(normalizeTracked).filter(Boolean);
   } catch (e) {
     if (e?.status === 404) return [];
     throw e;

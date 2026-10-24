@@ -30,14 +30,51 @@ firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
 
-// Handle background messages via Firebase SDK
+// In-memory deduplication set to prevent displaying the exact same push notification multiple times
+const recentEvents = new Map();
+const SW_DEDUPE_MS = 15000; // 15 seconds window
+
+function isDuplicatePush(eventId) {
+  if (!eventId) return false;
+  const now = Date.now();
+  // Garbage collect expired IDs
+  for (const [key, time] of recentEvents.entries()) {
+    if (now - time > SW_DEDUPE_MS) {
+      recentEvents.delete(key);
+    }
+  }
+  if (recentEvents.has(eventId)) {
+    console.log(`[FCM ServiceWorker] Suppressed duplicate push for eventId: ${eventId}`);
+    return true;
+  }
+  recentEvents.set(eventId, now);
+  return false;
+}
+
+// Handle background messages via Firebase SDK (Primary FCM handler)
 messaging.onBackgroundMessage((payload) => {
-  console.log("[firebase-messaging-sw] Received background message:", payload);
+  console.log("[FCM ServiceWorker] Received background message payload:", payload);
+
+  const eventId =
+    payload.data?.eventId ||
+    (payload.data?.reference
+      ? `ref_${payload.data.reference}_${payload.data.status || payload.data.type || "update"}`
+      : null) ||
+    payload.fcmMessageId ||
+    payload.messageId;
+
+  if (eventId && isDuplicatePush(eventId)) {
+    return Promise.resolve();
+  }
 
   const notificationTitle =
     payload.notification?.title ||
     payload.data?.title ||
     "BlackHousse";
+
+  const tag =
+    payload.data?.tag ||
+    (payload.data?.reference ? `bh-order-${payload.data.reference}` : "blackhousse-order");
 
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.body || "Nouvelle mise à jour de commande.",
@@ -52,23 +89,44 @@ messaging.onBackgroundMessage((payload) => {
         "/",
       ...payload.data,
     },
-    tag: payload.data?.tag || payload.data?.reference || "blackhousse-order",
-    renotify: true,
+    tag,
+    renotify: false, // Prevents repeat sound/vibration alerts when updating existing notification tag
   };
 
+  console.log(`[FCM ServiceWorker] Displaying notification: "${notificationTitle}" (tag: ${tag}, eventId: ${eventId || "none"})`);
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Native push event listener as robust fallback
+// Guarded native push event: Only handles non-FCM pushes to prevent duplicate display
 self.addEventListener("push", (event) => {
   if (!event.data) return;
 
   try {
     const rawData = event.data.json();
+
+    // FCM payloads (containing from, fcmMessageId, google.c.*, or eventId)
+    // are already processed by messaging.onBackgroundMessage. Dropping here prevents dual display.
+    const isFcm =
+      rawData.from ||
+      rawData.fcmMessageId ||
+      rawData["google.c.sender.id"] ||
+      rawData.fcmOptions ||
+      (rawData.data && (rawData.data["google.c.sender.id"] || rawData.data.eventId));
+
+    if (isFcm) {
+      return;
+    }
+
     const notification = rawData.notification || {};
     const data = rawData.data || {};
+    const eventId = data.eventId || (data.reference ? `raw_${data.reference}` : null);
+
+    if (eventId && isDuplicatePush(eventId)) {
+      return;
+    }
 
     const title = notification.title || data.title || "BlackHousse";
+    const tag = data.tag || (data.reference ? `bh-order-${data.reference}` : "blackhousse-order");
     const options = {
       body: notification.body || data.body || "",
       icon: notification.icon || data.icon || "/icons/icon-192x192.png",
@@ -78,17 +136,21 @@ self.addEventListener("push", (event) => {
         url: rawData.fcmOptions?.link || data.url || data.click_action || "/",
         ...data,
       },
-      tag: data.tag || data.reference || "blackhousse-order",
-      renotify: true,
+      tag,
+      renotify: false,
     };
 
+    console.log(`[FCM ServiceWorker] Displaying non-FCM fallback notification: "${title}"`);
     event.waitUntil(self.registration.showNotification(title, options));
   } catch (e) {
-    // If not json, display raw text
+    // If payload is plain text and not FCM JSON
+    console.log("[FCM ServiceWorker] Displaying text fallback notification");
     event.waitUntil(
       self.registration.showNotification("BlackHousse", {
         body: event.data.text(),
         icon: "/icons/icon-192x192.png",
+        tag: "blackhousse-text",
+        renotify: false,
       })
     );
   }

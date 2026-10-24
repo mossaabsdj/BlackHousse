@@ -42,19 +42,30 @@ export async function POST(request) {
     const customerPhone = typeof body.customerPhone === "string" ? body.customerPhone.trim() : null;
     const userAgent = request.headers.get("user-agent") || null;
 
+    const existing = await prisma.pushSubscription.findUnique({
+      where: { token },
+      select: { role: true },
+    });
+
+    // If device is already registered as ADMIN, do not downgrade to CLIENT if an order is placed on that device
+    const effectiveRole =
+      existing?.role === "ADMIN" && requestedRole === "CLIENT"
+        ? "ADMIN"
+        : requestedRole;
+
     const subscription = await prisma.pushSubscription.upsert({
       where: { token },
       create: {
         token,
-        role: requestedRole,
+        role: effectiveRole,
         adminEmail,
         orderReference,
         customerPhone,
         userAgent,
       },
       update: {
-        role: requestedRole,
-        adminEmail: requestedRole === "ADMIN" ? adminEmail : undefined,
+        role: effectiveRole,
+        adminEmail: effectiveRole === "ADMIN" ? adminEmail || undefined : undefined,
         orderReference: orderReference || undefined,
         customerPhone: customerPhone || undefined,
         userAgent: userAgent || undefined,

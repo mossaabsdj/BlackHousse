@@ -422,6 +422,7 @@ export default function OrderingPage() {
             key="track"
             t={t}
             initialPhone={trackOpen.phone}
+            initialReference={trackOpen.reference}
             autoSearch={trackOpen.autoSearch}
             onClose={() => setTrackOpen(null)}
           />
