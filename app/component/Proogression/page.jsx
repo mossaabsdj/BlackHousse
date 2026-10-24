@@ -3,15 +3,36 @@
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 
-const FLOAT = { repeat: Infinity, duration: 2.6, ease: "easeInOut" };
+const FLOAT = { repeat: Infinity, duration: 2.8, ease: "easeInOut" };
+
+function Dots({ reduceMotion }) {
+  return (
+    <div className="flex items-center gap-2" aria-hidden="true">
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          className="block h-2.5 w-2.5 rounded-full bg-orange-500"
+          animate={
+            reduceMotion
+              ? { opacity: [0.3, 1, 0.3] }
+              : { y: [0, -8, 0], opacity: [0.35, 1, 0.35] }
+          }
+          transition={{
+            repeat: Infinity,
+            duration: 1,
+            ease: "easeInOut",
+            delay: i * 0.15,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 /**
- * BlackHousse Progression & Splash Screen Component
- *
- * Supports two distinct modes:
- * 1. "splash": Immersive, full-screen branded startup screen with pure black background,
- *    centered floating logo, ambient orange halo, brand slogan, and animated gradient progress bar.
- * 2. "transition": Lightweight backdrop-blur overlay for page-to-page navigation loading.
+ * BlackHousse Splash / Transition
+ * - "splash": clean light full-screen intro, logo + brand + 3 animated dots
+ * - "transition": light blurred overlay with 3 dots
  */
 export default function PageTransition({
   isVisible = true,
@@ -32,113 +53,75 @@ export default function PageTransition({
           onClick={onDismiss}
           className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center select-none overflow-hidden ${
             splashMode
-              ? "bg-[#070709] px-6 py-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
-              : "backdrop-blur-md bg-black/60 pointer-events-auto cursor-pointer"
+              ? "bg-white px-6 py-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
+              : "backdrop-blur-md bg-white/70 pointer-events-auto cursor-pointer"
           }`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: splashMode ? 0.98 : 1 }}
+          exit={{ opacity: 0, scale: splashMode ? 1.02 : 1 }}
           transition={{ duration: splashMode ? 0.45 : 0.2, ease: "easeInOut" }}
         >
-          {/* Subtle Ambient Radial Glow (Splash Mode) */}
+          {/* Very subtle halo (splash only) */}
           {splashMode && (
-            <>
-              <div
-                aria-hidden="true"
-                className="absolute w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-orange-500/12 blur-3xl pointer-events-none"
-              />
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(249,115,22,0.12),rgba(0,0,0,0))] pointer-events-none"
-              />
-            </>
+            <div
+              aria-hidden="true"
+              className="absolute h-72 w-72 sm:h-96 sm:w-96 rounded-full bg-orange-100/70 blur-3xl pointer-events-none"
+            />
           )}
 
           <div className="relative z-10 flex flex-col items-center pointer-events-none">
-            {/* Floating BlackHousse Logo */}
+            {/* Floating logo */}
             <motion.div
-              animate={reduceMotion ? undefined : { y: [0, -12, 0] }}
+              animate={reduceMotion ? undefined : { y: [0, -10, 0] }}
               transition={FLOAT}
-              className={splashMode ? "w-28 h-28 sm:w-32 sm:h-32 relative" : "w-24 h-24 relative"}
+              className={splashMode ? "relative h-28 w-28 sm:h-32 sm:w-32" : "relative h-20 w-20"}
             >
               <Image
                 src="/images/logo.png"
                 alt="Logo BlackHousse"
-                width={splashMode ? 128 : 106}
-                height={splashMode ? 128 : 106}
+                width={splashMode ? 128 : 80}
+                height={splashMode ? 128 : 80}
                 priority
-                className={
-                  splashMode
-                    ? "w-full h-full object-contain drop-shadow-[0_12px_28px_rgba(249,115,22,0.35)]"
-                    : "w-full h-full object-contain"
-                }
+                className="h-full w-full object-contain"
               />
             </motion.div>
 
-            {/* Dynamic soft shadow responding to logo elevation */}
+            {/* Soft shadow under the logo */}
             <motion.div
               aria-hidden="true"
               animate={
-                reduceMotion
-                  ? undefined
-                  : { scaleX: [1, 0.65, 1], opacity: [0.5, 0.2, 0.5] }
+                reduceMotion ? undefined : { scaleX: [1, 0.7, 1], opacity: [0.18, 0.08, 0.18] }
               }
               transition={FLOAT}
-              className={`mt-4 rounded-full blur-md ${
-                splashMode
-                  ? "h-2 w-20 bg-orange-950/60"
-                  : "h-2.5 w-16 bg-black/40"
-              }`}
+              className="mt-4 h-2 w-16 rounded-full bg-neutral-900 blur-md"
             />
 
-            {/* Brand Title and Slogan (Splash Mode) */}
+            {/* Brand + slogan */}
             {splashMode && (
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15, duration: 0.5 }}
                 className="mt-6 text-center"
               >
-                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-[0.25em] uppercase font-sans">
+                <h1 className="font-sans text-2xl sm:text-3xl font-extrabold uppercase tracking-[0.25em] text-neutral-900">
                   Black<span className="text-orange-500">Housse</span>
                 </h1>
-                <p className="mt-1 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-[0.35em] text-orange-400/90">
+                <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.35em] text-neutral-400">
                   Where Elegance Meets Taste
                 </p>
               </motion.div>
             )}
 
-            {/* Modern Animated Progress Indicator (Splash Mode) */}
-            {splashMode && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.28, duration: 0.4 }}
-                className="mt-8 flex flex-col items-center gap-2.5"
-              >
-                <div className="w-48 h-1.5 rounded-full bg-zinc-900 border border-zinc-800/80 overflow-hidden relative shadow-inner">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-orange-600 via-amber-400 to-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.6)]"
-                    animate={
-                      reduceMotion
-                        ? { width: "100%" }
-                        : {
-                            x: ["-100%", "100%"],
-                          }
-                    }
-                    transition={{
-                      repeat: Infinity,
-                      duration: 1.5,
-                      ease: "easeInOut",
-                    }}
-                    style={{ width: "65%" }}
-                  />
-                </div>
-                <span className="text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">
-                  Chargement...
-                </span>
-              </motion.div>
-            )}
+            {/* 3-dot loader */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: splashMode ? 0.3 : 0.1, duration: 0.4 }}
+              className={splashMode ? "mt-10" : "mt-6"}
+            >
+              <Dots reduceMotion={reduceMotion} />
+            </motion.div>
           </div>
         </motion.div>
       )}
