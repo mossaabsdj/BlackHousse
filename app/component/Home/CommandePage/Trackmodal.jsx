@@ -35,13 +35,19 @@ export const isCancelledOrder = (status) => {
   return s === "CANCELLED" || s.includes("ANNUL");
 };
 
-/** Horizontal steps (oldest first), auto-scrolled to the current step */
+/** Horizontal steps (oldest first), auto-scrolled to the current step. RTL-safe. */
 function HorizontalSteps({ steps, isCancelled = false, title }) {
   const ref = useRef(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (el) el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+    if (!el) return;
+    const isRtl = getComputedStyle(el).direction === "rtl";
+    // In RTL, scrollLeft runs from 0 (start, right side) to negative values (left side)
+    el.scrollTo({
+      left: isRtl ? -el.scrollWidth : el.scrollWidth,
+      behavior: "smooth",
+    });
   }, [steps.length]);
 
   return (
@@ -60,7 +66,8 @@ function HorizontalSteps({ steps, isCancelled = false, title }) {
               {i > 0 && (
                 <span
                   aria-hidden="true"
-                  className={`absolute top-3 right-1/2 w-full h-0.5 ${
+                  // `end-1/2` is logical: right in LTR, left in RTL
+                  className={`absolute top-3 end-1/2 w-full h-0.5 ${
                     isStepCancelled ? "bg-red-300" : isCurrent ? "bg-orange-300" : "bg-emerald-400"
                   }`}
                 />
@@ -364,23 +371,6 @@ export default function TrackModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Real-time background sync fallback: re-checks order statuses every 3.5s while open
-  useEffect(() => {
-    if (!orders || orders.length === 0 || (!phone && !initialReference)) return;
-    const interval = setInterval(async () => {
-      try {
-        const fresh = await trackOrders({
-          phone: phone ? normalizePhone(phone) : undefined,
-          reference: initialReference || undefined,
-        });
-        if (fresh && Array.isArray(fresh)) {
-          setOrders(fresh);
-          setUpdatedAt(new Date());
-        }
-      } catch {}
-    }, 3500);
-    return () => clearInterval(interval);
-  }, [orders, phone, initialReference]);
 
   // Auto-link FCM token to tracked active & cancelled orders if notification permission is granted
   useEffect(() => {
