@@ -12,11 +12,46 @@ const NavigationLoadingContext = createContext({
 
 export function NavigationLoadingProvider({ children }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const timeoutRef = useRef(null);
 
-  // Stop loading immediately when route (pathname or searchParams) changes
+  // Initial Application Launch Splash Screen Lifecycle
+  useEffect(() => {
+    const startTime = Date.now();
+    const MIN_SPLASH_MS = 900; // Minimum pleasant display time for branding
+
+    const dismissSplash = () => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, MIN_SPLASH_MS - elapsed);
+      setTimeout(() => {
+        setIsSplashVisible(false);
+      }, remaining);
+    };
+
+    if (typeof document !== "undefined") {
+      if (document.readyState === "complete") {
+        dismissSplash();
+      } else {
+        window.addEventListener("load", dismissSplash, { once: true });
+      }
+    }
+
+    // Failsafe timeout: never stay locked for more than 2.5 seconds
+    const failsafe = setTimeout(() => {
+      setIsSplashVisible(false);
+    }, 2500);
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("load", dismissSplash);
+      }
+      clearTimeout(failsafe);
+    };
+  }, []);
+
+  // Stop navigation loading immediately when route (pathname or searchParams) changes
   useEffect(() => {
     setIsLoading(false);
     if (timeoutRef.current) {
@@ -35,7 +70,7 @@ export function NavigationLoadingProvider({ children }) {
       }
     };
 
-    const handlePageShow = (e) => {
+    const handlePageShow = () => {
       // bfcache restored page
       setIsLoading(false);
       if (timeoutRef.current) {
@@ -47,6 +82,7 @@ export function NavigationLoadingProvider({ children }) {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
         setIsLoading(false);
+        setIsSplashVisible(false);
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
           timeoutRef.current = null;
@@ -111,7 +147,20 @@ export function NavigationLoadingProvider({ children }) {
   return (
     <NavigationLoadingContext.Provider value={{ isLoading, startLoading, stopLoading }}>
       {children}
-      <Progression isVisible={isLoading} onDismiss={stopLoading} />
+      {/* 1. Initial Application / PWA Launch Splash Screen */}
+      <Progression
+        isVisible={isSplashVisible}
+        mode="splash"
+        onDismiss={() => setIsSplashVisible(false)}
+      />
+      {/* 2. Route-to-Route Navigation Transition Loading */}
+      {!isSplashVisible && (
+        <Progression
+          isVisible={isLoading}
+          mode="transition"
+          onDismiss={stopLoading}
+        />
+      )}
     </NavigationLoadingContext.Provider>
   );
 }

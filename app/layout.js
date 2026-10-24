@@ -6,8 +6,8 @@ const geistMono = { variable: "--font-geist-mono" };
 
 export const viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f97316" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+    { media: "(prefers-color-scheme: light)", color: "#070709" },
+    { media: "(prefers-color-scheme: dark)", color: "#070709" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -27,7 +27,7 @@ export const metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "BlackHousse",
   },
   formatDetection: {
@@ -55,11 +55,11 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167x167.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180x180.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="BlackHousse" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className="antialiased">
+      <body className="antialiased bg-[#070709] text-foreground">
         <Providers>
           {children}
         </Providers>
@@ -67,3 +67,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
