@@ -34,24 +34,7 @@ export default function OrderingPage() {
   const [headerSlot, setHeaderSlot] = useState(null); // emplacement des boutons dans le header (mobile)
   const abortRef = useRef(null);
 
-const reduceMotion = useReducedMotion();
-const prevShowBar = useRef(showBar);
-const [justActivated, setJustActivated] = useState(false);
 
-useEffect(() => {
-  const wasActive = prevShowBar.current;
-  prevShowBar.current = showBar;
-
-  if (!showBar) {
-    setJustActivated(false);
-    return;
-  }
-  if (!wasActive) {
-    setJustActivated(true);
-    const id = setTimeout(() => setJustActivated(false), 900);
-    return () => clearTimeout(id);
-  }
-}, [showBar]);
   // Retrouve l'emplacement du header (quelques essais au cas où il se monte après la page)
   useEffect(() => {
     const find = () => {
@@ -182,6 +165,24 @@ useEffect(() => {
 
   // Espace en bas de page : navigation du bas (mobile) / barre flottante (PC)
   const bottomPad = `pb-28 ${showBar || hasOrders ? "lg:pb-36" : "lg:pb-12"}`;
+const reduceMotion = useReducedMotion();
+const prevShowBar = useRef(showBar);
+const [justActivated, setJustActivated] = useState(false);
+
+useEffect(() => {
+  const wasActive = prevShowBar.current;
+  prevShowBar.current = showBar;
+
+  if (!showBar) {
+    setJustActivated(false);
+    return;
+  }
+  if (!wasActive) {
+    setJustActivated(true);
+    const id = setTimeout(() => setJustActivated(false), 900);
+    return () => clearTimeout(id);
+  }
+}, [showBar]);
 
   return (
     <>
