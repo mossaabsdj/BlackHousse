@@ -444,7 +444,11 @@ export default function AppNavbar({}) {
   />
             <LanguageSwitcher variant="navbar" />
 
-            <Sheet open={open} onOpenChange={setOpen}>
+           
+          </div>
+
+          {/* Mobile Bottom Navigation
+          account  <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
                 <motion.button
                   type="button"
@@ -528,9 +532,8 @@ export default function AppNavbar({}) {
                 </div>
               </SheetContent>
             </Sheet>
-          </div>
-
-          {/* Mobile Bottom Navigation (portal -> toujours fixe et visible) */}
+          
+          (portal -> toujours fixe et visible) */}
           {mounted &&
             createPortal(
               <nav
