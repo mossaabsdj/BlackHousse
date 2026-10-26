@@ -1,11 +1,14 @@
 "use client";
 import { useRef, useState } from "react";
-import { AlertTriangle, Check, Loader2, Store, Truck } from "lucide-react";
+import { AlertTriangle, Check, Loader2, Store, Truck, Ban, XCircle } from "lucide-react";
 import Overlay from "./Overlay";
 import { inputClass, primaryBtn } from "./UI";
 import { buildOrderPayload, formatPrice, fmt, isValidPhone, makeKey, normalizePhone } from "./Logic";
+import { cancelCustomerOrder } from "./api";
 import { useRealtimeOrder } from "@/lib/Firebase";
 import CustomerNotificationButton from "./CustomerNotificationButton";
+import { useI18n } from "@/lib/i18n/I18nContext";
+import { getLocalizedOrderStatus } from "./Trackmodal";
 
 const FIELD_IDS = { name: "co-name", phone: "co-phone", fulfillment: "co-fulfillment", municipality: "co-municipality", address: "co-address" };
 
@@ -56,6 +59,7 @@ export default function CheckoutModal({
   onPlaced,
   onTrack,
 }) {
+  const { content, locale } = useI18n();
   const c = t.checkout;
   const [name, setName] = useState(initialCustomer?.name || "");
   const [phone, setPhone] = useState(initialCustomer?.phone || "");
@@ -68,6 +72,10 @@ export default function CheckoutModal({
   const [serverError, setServerError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [placed, setPlaced] = useState(null); // { order, snapshot, name }
+  const [cancelling, setCancelling] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [cancelError, setCancelError] = useState("");
+  const cancelInFlight = useRef(false);
   const submittingRef = useRef(false); // hard guard against double submit
   const idem = useRef({ hash: null, key: null }); // same payload => same Idempotency-Key (safe retries)
   const { liveOrder } = useRealtimeOrder(placed?.order?.reference);
@@ -202,11 +210,45 @@ export default function CheckoutModal({
   if (placed) {
     const { order, snapshot } = placed;
     const items = order.items.length ? order.items : snapshot.items;
-    const statusText = liveOrder?.statusLabel ?? liveOrder?.status ?? order.statusLabel ?? order.status;
+    const rawStatus = liveOrder?.status ?? order.status;
+    const orderFulfillment = order.fulfillment ?? fulfillment;
+    const statusText =
+      getLocalizedOrderStatus(rawStatus, orderFulfillment, content) ||
+      (liveOrder?.statusLabel ?? order.statusLabel ?? rawStatus);
+    const isCancelled =
+      String(rawStatus ?? "").toUpperCase() === "CANCELLED" ||
+      String(statusText ?? "").toUpperCase().includes("ANNUL");
+    // Order can be cancelled when PENDING (en attente de confirmation) or CONFIRMED (en attente de préparation)
+    const isCancellable = ["PENDING", "CONFIRMED"].includes(String(rawStatus ?? "").toUpperCase());
     const s = c.success;
+    const trackText = content?.OrderingPage?.track || t?.track || {};
+
+    const handleCancel = async () => {
+      if (cancelInFlight.current || cancelling || !isCancellable) return;
+      cancelInFlight.current = true;
+      setCancelling(true);
+      setCancelError("");
+      try {
+        await cancelCustomerOrder({
+          reference: order.reference,
+          phone: normalizePhone(phone),
+        });
+        setConfirmingCancel(false);
+      } catch (err) {
+        setCancelError(
+          err?.code === "ORDER_NOT_CANCELLABLE" || err?.status === 422
+            ? (trackText.cancelDisabled || "La commande ne peut plus être annulée car sa préparation a déjà commencé.")
+            : (err?.message || trackText.errors?.generic || "Erreur lors de l'annulation.")
+        );
+      } finally {
+        cancelInFlight.current = false;
+        setCancelling(false);
+      }
+    };
+
     return (
       <Overlay
-        title={s.title}
+        title={isCancelled ? (locale === "ar" ? "طلب ملغى" : "Commande annulée") : s.title}
         closeLabel={s.close}
         onClose={onClose}
         footer={
@@ -228,10 +270,14 @@ export default function CheckoutModal({
       >
         <div className="space-y-5" role="status">
           <div className="text-center space-y-2">
-            <div className="mx-auto w-14 h-14 rounded-full bg-orange-500 text-white flex items-center justify-center">
-              <Check className="w-7 h-7" />
+            <div className={`mx-auto w-14 h-14 rounded-full text-white flex items-center justify-center ${isCancelled ? "bg-red-500 shadow-lg shadow-red-500/20" : "bg-orange-500 shadow-lg shadow-orange-500/20"}`}>
+              {isCancelled ? <XCircle className="w-7 h-7" /> : <Check className="w-7 h-7" />}
             </div>
-            <p className="text-gray-600 text-sm">{fmt(s.message, { name: placed.name })}</p>
+            <p className="text-gray-600 text-sm">
+              {isCancelled
+                ? (trackText.cancelSuccess || (locale === "ar" ? "تم إلغاء طلبك بنجاح." : "Votre commande a été annulée avec succès."))
+                : fmt(s.message, { name: placed.name })}
+            </p>
           </div>
 
           <dl className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-2 text-sm">
@@ -242,7 +288,7 @@ export default function CheckoutModal({
             {statusText && (
               <div className="flex justify-between gap-3">
                 <dt className="text-gray-600">{s.status}</dt>
-                <dd className="font-bold text-orange-600">{statusText}</dd>
+                <dd className={`font-bold ${isCancelled ? "text-red-600 font-black" : "text-orange-600"}`}>{statusText}</dd>
               </div>
             )}
             <div className="flex justify-between gap-3">
@@ -250,11 +296,80 @@ export default function CheckoutModal({
               <dd className="font-semibold text-gray-900">{(order.fulfillment ?? fulfillment) === "delivery" ? c.delivery : c.pickup}</dd>
             </div>
           </dl>
-
-          <CustomerNotificationButton
+<div className="flex flex-row justify-between"> <CustomerNotificationButton
             orderReference={order.reference}
             customerPhone={normalizePhone(phone)}
           />
+
+          {/* Cancellation button: enabled only when order is PENDING (en attente de préparation) */}
+          {!isCancelled && (
+            <div className="space-y-2 pt-1">
+              {cancelError && (
+                <p role="alert" className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl p-2.5">
+                  {cancelError}
+                </p>
+              )}
+
+              {confirmingCancel ? (
+                <div className="rounded-2xl border border-red-200 bg-red-50/70 p-3.5 space-y-2.5 animate-in fade-in duration-200">
+                  <p className="text-xs font-bold text-red-900">
+                    {trackText.cancelConfirm || (locale === "ar" ? "هل أنت متأكد من رغبتك في إلغاء طلبك؟" : "Êtes-vous sûr de vouloir annuler votre commande ?")}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={cancelling}
+                      onClick={handleCancel}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold shadow-sm transition disabled:opacity-50"
+                    >
+                      {cancelling && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                      {cancelling
+                        ? (trackText.cancelling || (locale === "ar" ? "جاري الإلغاء..." : "Annulation en cours..."))
+                        : (locale === "ar" ? "نعم، إلغاء الطلب" : "Oui, annuler la commande")}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={cancelling}
+                      onClick={() => {
+                        setConfirmingCancel(false);
+                        setCancelError("");
+                      }}
+                      className="py-2 px-3 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-xs font-bold transition disabled:opacity-50"
+                    >
+                      {locale === "ar" ? "تراجع" : "Retour"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <button
+                    type="button"
+                    disabled={!isCancellable || cancelling}
+                    onClick={() => setConfirmingCancel(true)}
+                    title={
+                      !isCancellable
+                        ? (trackText.cancelDisabled || (locale === "ar" ? "بدأ تحضير طلبك بالفعل ولا يمكن إلغاؤه الآن." : "La préparation de la commande a déjà commencé. Annulation impossible."))
+                        : undefined
+                    }
+                    className={`w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl text-xs font-extrabold transition ${
+                      isCancellable
+                        ? "border border-red-200 bg-white text-red-600 hover:bg-red-50 hover:border-red-400 active:scale-[0.99] shadow-2xs"
+                        : "border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                    }`}
+                  >
+                    <Ban className="w-3.5 h-3.5" />
+                    {trackText.cancelOrder || (locale === "ar" ? "إلغاء طلبي" : "Annuler ma commande")}
+                  </button>
+                  {!isCancellable && (
+                    <p className="text-[11px] text-gray-500 text-center px-1">
+                      {trackText.cancelDisabled || (locale === "ar" ? "بدأ تحضير طلبك بالفعل ولا يمكن إلغاؤه الآن." : "La préparation de la commande a déjà commencé. Annulation impossible.")}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}</div>
+         
 
           <ItemList items={items} currency={t.currency} />
 

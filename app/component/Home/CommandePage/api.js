@@ -9,6 +9,7 @@ export const ENDPOINTS = {
   municipalities: "/api/delivery/municipalities", // GET  -> optional list of delivery municipalities
   createOrder: "/api/orders", // POST -> creates the order
   trackOrders: "/api/orders/track", // POST { phone, reference } -> customer orders created within last 6 hours
+  cancelOrder: "/api/orders/cancel", // POST { reference, phone } -> cancels customer order if PENDING
 };
 
 export class ApiError extends Error {
@@ -233,4 +234,11 @@ export async function trackOrders({ phone, reference } = {}) {
     if (e?.status === 404) return [];
     throw e;
   }
+}
+
+export async function cancelCustomerOrder({ reference, phone } = {}) {
+  return await request(ENDPOINTS.cancelOrder, {
+    method: "POST",
+    body: { reference, phone },
+  });
 }

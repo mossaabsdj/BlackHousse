@@ -66,7 +66,7 @@
         "title": "بيتزا مقرمشة وفاخرة",
         "subtitle": "عجينة إيطالية رقيقة مع موزاريلا ذائبة وخضار طازجة."
       },
-     {
+      {
         "src": "/images/menu/pizza.JPG",
         "alt": "برغر بلاك هاوس",
         "tag": "برغر",
@@ -108,13 +108,41 @@
     ],
     "topicsLabel": "ما الذي نال إعجابك أكثر؟",
     "topics": [
-      { "id": "burgers", "label": "البرغر", "icon": "🍔" },
-      { "id": "tacos", "label": "التاكوس", "icon": "🌮" },
-      { "id": "pizzas", "label": "البيتزا", "icon": "🍕" },
-      { "id": "drinks", "label": "المشروبات", "icon": "🥤" },
-      { "id": "desserts", "label": "الحلويات", "icon": "🍰" },
-      { "id": "service", "label": "الخدمة", "icon": "😊" },
-      { "id": "delivery", "label": "التوصيل", "icon": "🛵" }
+      {
+        "id": "burgers",
+        "label": "البرغر",
+        "icon": "🍔"
+      },
+      {
+        "id": "tacos",
+        "label": "التاكوس",
+        "icon": "🌮"
+      },
+      {
+        "id": "pizzas",
+        "label": "البيتزا",
+        "icon": "🍕"
+      },
+      {
+        "id": "drinks",
+        "label": "المشروبات",
+        "icon": "🥤"
+      },
+      {
+        "id": "desserts",
+        "label": "الحلويات",
+        "icon": "🍰"
+      },
+      {
+        "id": "service",
+        "label": "الخدمة",
+        "icon": "😊"
+      },
+      {
+        "id": "delivery",
+        "label": "التوصيل",
+        "icon": "🛵"
+      }
     ],
     "commentLabel": "تعليقك وملاحظاتك",
     "commentPlaceholder": "شاركنا تفاصيل تجربتك معنا...",
@@ -248,7 +276,12 @@
         "network": "تعذر الاتصال بالشبكة. حاول مرة أخرى.",
         "tooMany": "محاولات متكررة. يرجى الانتظار قليلاً.",
         "generic": "تعذر جلب حالة الطلب حالياً."
-      }
+      },
+      "cancelOrder": "إلغاء طلبي",
+      "cancelConfirm": "هل أنت متأكد من رغبتك في إلغاء طلبك؟",
+      "cancelling": "جاري الإلغاء...",
+      "cancelDisabled": "بدأ تحضير طلبك بالفعل ولا يمكن إلغاؤه الآن.",
+      "cancelSuccess": "تم إلغاء طلبك بنجاح."
     }
   },
   "Footer": {

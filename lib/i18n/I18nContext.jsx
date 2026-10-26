@@ -181,6 +181,15 @@ export function I18nProvider({ children }) {
         document.documentElement.classList.remove("rtl");
       }
     }
+    // Sync locale to Cache Storage so background Service Worker can read it
+    try {
+      if (typeof window !== "undefined" && "caches" in window) {
+        caches
+          .open("blackhousse-locale")
+          .then((c) => c.put("/locale", new Response(loc)))
+          .catch(() => {});
+      }
+    } catch {}
   };
 
   const setLocale = useCallback((newLocale) => {

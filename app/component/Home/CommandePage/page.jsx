@@ -19,7 +19,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 const HEADER_SLOT_ID = "header-mobile-slot";
 
 export default function OrderingPage() {
-  const { content, isRTL, currency } = useI18n();
+  const { content, isRTL, currency, locale } = useI18n();
   const t = content.OrderingPage;
   const cart = useCart();
   const myOrders = useMyOrders();
@@ -357,7 +357,7 @@ useEffect(() => {
     <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
   </motion.span>
 
-  <span>{isRTL ? "تأكيد" : t.locale === "en" ? "Confirm" : "Confirmer"}</span>
+  <span>{isRTL ? "تأكيد" : locale === 'en' ? "Confirm" : "Confirmer"}</span>
 
   {/* Badge: springs in, bumps when the count changes */}
   <AnimatePresence>
@@ -396,7 +396,7 @@ useEffect(() => {
               }`}
             >
               <ClipboardList className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>{isRTL ? "تتبع" : t.locale === "en" ? "Track" : "Suivre"}</span>
+              <span>{isRTL ? "تتبع" : locale === 'en' ? "Track" : "Suivre"}</span>
             </button>
           </div>,
           headerSlot

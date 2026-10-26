@@ -108,13 +108,41 @@
     ],
     "topicsLabel": "Qu'avez-vous aimé ?",
     "topics": [
-      { "id": "burgers", "label": "Burgers", "icon": "🍔" },
-      { "id": "tacos", "label": "Tacos", "icon": "🌮" },
-      { "id": "pizzas", "label": "Pizzas", "icon": "🍕" },
-      { "id": "drinks", "label": "Boissons", "icon": "🥤" },
-      { "id": "desserts", "label": "Desserts", "icon": "🍰" },
-      { "id": "service", "label": "Service", "icon": "😊" },
-      { "id": "delivery", "label": "Livraison", "icon": "🛵" }
+      {
+        "id": "burgers",
+        "label": "Burgers",
+        "icon": "🍔"
+      },
+      {
+        "id": "tacos",
+        "label": "Tacos",
+        "icon": "🌮"
+      },
+      {
+        "id": "pizzas",
+        "label": "Pizzas",
+        "icon": "🍕"
+      },
+      {
+        "id": "drinks",
+        "label": "Boissons",
+        "icon": "🥤"
+      },
+      {
+        "id": "desserts",
+        "label": "Desserts",
+        "icon": "🍰"
+      },
+      {
+        "id": "service",
+        "label": "Service",
+        "icon": "😊"
+      },
+      {
+        "id": "delivery",
+        "label": "Livraison",
+        "icon": "🛵"
+      }
     ],
     "commentLabel": "Votre commentaire",
     "commentPlaceholder": "Racontez-nous votre expérience...",
@@ -248,7 +276,12 @@
         "network": "Connexion impossible. Réessayez dans un instant.",
         "tooMany": "Trop de tentatives. Patientez un instant avant de réessayer.",
         "generic": "Impossible de récupérer le statut pour le moment."
-      }
+      },
+      "cancelOrder": "Annuler ma commande",
+      "cancelConfirm": "Êtes-vous sûr de vouloir annuler votre commande ?",
+      "cancelling": "Annulation en cours...",
+      "cancelDisabled": "La préparation de la commande a déjà commencé. Annulation impossible.",
+      "cancelSuccess": "Votre commande a été annulée avec succès."
     }
   },
   "Footer": {

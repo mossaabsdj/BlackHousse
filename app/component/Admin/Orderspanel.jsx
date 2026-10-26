@@ -20,6 +20,8 @@ import {
   Printer,
   Undo2,
   SlidersHorizontal,
+  EyeOff,
+  XCircle,
 } from "lucide-react";
 import { api, formatDate, formatPrice, useList } from "./adminApi";
 import { ErrorBox, btnGhost, btnPrimary, card, inputClass } from "./Ui";
@@ -119,6 +121,24 @@ const ALIASES = {
 };
 
 const CLOSED = [...ALIASES.pickupDone, ...ALIASES.deliveryDone, ...ALIASES.cancelled];
+const COMPLETED_STATUSES = [...ALIASES.pickupDone, ...ALIASES.deliveryDone];
+
+const DISMISSED_CANCELLED_KEY = "blackhousse:dismissed_cancelled_orders";
+
+function loadDismissedCancelled() {
+  try {
+    const raw = sessionStorage.getItem(DISMISSED_CANCELLED_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDismissedCancelled(set) {
+  try {
+    sessionStorage.setItem(DISMISSED_CANCELLED_KEY, JSON.stringify([...set]));
+  } catch {}
+}
 
 const norm = (s) => String(s ?? "").toUpperCase();
 
@@ -268,6 +288,7 @@ function OrderCard({
   onCancel,
   onUndo,
   onPrint,
+  onDismiss,
 }) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
@@ -276,32 +297,59 @@ function OrderCard({
   const items = order.items ?? [];
   const visible = expanded ? items : items.slice(0, 4);
   const hiddenCount = items.length - visible.length;
-  const ActionIcon = action.icon;
+  const ActionIcon = action?.icon;
+  const isCancelled = norm(order.status) === "CANCELLED";
 
   return (
     <article
-      className={`${card} p-3 space-y-2.5 transition-shadow hover:shadow-md ${
-        isNew ? "ring-2 ring-orange-400" : ""
+      onClick={() => {
+        if (isCancelled && onDismiss) onDismiss(order.reference);
+      }}
+      className={`${card} p-3 space-y-2.5 transition-all ${
+        isCancelled
+          ? "opacity-65 grayscale hover:grayscale-0 hover:opacity-90 bg-zinc-100/90 dark:bg-zinc-800/80 border-2 border-dashed border-red-300 dark:border-red-900/60 shadow-xs hover:shadow-md cursor-pointer select-none group relative"
+          : isNew
+          ? "ring-2 ring-orange-400 hover:shadow-md"
+          : "hover:shadow-md"
       }`}
+      title={isCancelled ? t("Admin.orders.clickToDismissTitle", {}, "Cliquer pour masquer cette commande annulée de la liste") : undefined}
     >
+      {/* Bannière commande annulée */}
+      {isCancelled && (
+        <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 text-xs font-bold">
+          <span className="flex items-center gap-1.5">
+            <XCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-none" />
+            {t("Admin.orders.badgeCancelled", {}, "Commande annulée")}
+          </span>
+          <span className="text-[10px] text-red-500 font-medium group-hover:underline flex items-center gap-1">
+            <EyeOff className="w-3.5 h-3.5" />
+            {t("Admin.orders.clickToDismiss", {}, "Cliquer pour masquer")}
+          </span>
+        </div>
+      )}
+
       {/* En-tête : numéro, référence, attente */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           {order.dailyNumber != null && (
             <span
-              className="flex items-center justify-center min-w-9 h-9 px-2.5 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white font-black text-base shadow-sm"
+              className={`flex items-center justify-center min-w-9 h-9 px-2.5 rounded-xl font-black text-base shadow-sm ${
+                isCancelled
+                  ? "bg-gray-400 text-white"
+                  : "bg-gradient-to-br from-orange-500 to-orange-600 text-white"
+              }`}
               title={t("Admin.orders.orderNumberDay", { num: order.dailyNumber }, `Commande numéro ${order.dailyNumber} de la journée`)}
             >
               #{order.dailyNumber}
             </span>
           )}
-          <p className="font-bold text-gray-900 text-sm truncate">{order.customerName}</p>
+          <p className="font-bold text-gray-900 dark:text-gray-100 text-sm truncate">{order.customerName}</p>
         </div>
         <span
           title={formatDate(order.createdAt)}
-          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${waitTone(
-            minutes
-          )}`}
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${
+            isCancelled ? "bg-gray-100 text-gray-500 border-gray-200" : waitTone(minutes)
+          }`}
         >
           <Clock className="w-3 h-3" />
           {formatWait(minutes, t)}
@@ -322,32 +370,42 @@ function OrderCard({
             {isDelivery ? t("Admin.orders.delivery", {}, "Livraison") : t("Admin.orders.pickup", {}, "Retrait")}
           </span>
 
-          {norm(order.status) === "PENDING" && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
-              {t("Admin.orders.badgePending", {}, "À confirmer")}
+          {isCancelled ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-red-100 text-red-700 border border-red-300">
+              <XCircle className="w-3.5 h-3.5 text-red-600" />
+              {t("Admin.orders.cancelled", {}, "Annulée")}
             </span>
-          )}
+          ) : (
+            <>
+              {norm(order.status) === "PENDING" && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                  {t("Admin.orders.badgePending", {}, "À confirmer")}
+                </span>
+              )}
 
-          {norm(order.status) === "CONFIRMED" && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-300">
-              {t("Admin.orders.badgeAwaitingPrep", {}, "En attente prépa")}
-            </span>
-          )}
+              {norm(order.status) === "CONFIRMED" && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-300">
+                  {t("Admin.orders.badgeAwaitingPrep", {}, "En attente prépa")}
+                </span>
+              )}
 
-          {norm(order.status) === "READY" && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-              {isDelivery ? t("Admin.orders.badgeAwaitingCourier", {}, "Attente livreur") : t("Admin.orders.badgeReadyPickup", {}, "Prête pour retrait")}
-            </span>
-          )}
+              {norm(order.status) === "READY" && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  {isDelivery ? t("Admin.orders.badgeAwaitingCourier", {}, "Attente livreur") : t("Admin.orders.badgeReadyPickup", {}, "Prête pour retrait")}
+                </span>
+              )}
 
-          {norm(order.status) === "OUT_FOR_DELIVERY" && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-300">
-              {t("Admin.orders.badgeInDelivery", {}, "En livraison")}
-            </span>
+              {norm(order.status) === "OUT_FOR_DELIVERY" && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-300">
+                  {t("Admin.orders.badgeInDelivery", {}, "En livraison")}
+                </span>
+              )}
+            </>
           )}
 
           <a
             href={`tel:${order.customerPhone}`}
+            onClick={(e) => e.stopPropagation()}
             className="inline-flex items-center gap-1.5 text-orange-600 font-semibold text-xs ms-auto"
           >
             <Phone className="w-3 h-3" />
@@ -408,53 +466,82 @@ function OrderCard({
         </span>
       </div>
 
-      {/* Action principale + retour + impression + annulation (colonne Confirmée seulement) */}
-      <div className="flex items-stretch gap-2">
-        <button
-          type="button"
-          onClick={() => onAdvance(order)}
-          disabled={busy || !action.next}
-          title={!action.next ? "Statut indisponible" : undefined}
-          className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white shadow-md transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed ${accent}`}
-        >
-          {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ActionIcon className="w-4 h-4" />}
-          {action.label}
-        </button>
-        {canUndo && (
+      {/* Actions de la carte */}
+      {isCancelled ? (
+        <div className="flex items-stretch gap-2 pt-1">
           <button
             type="button"
-            onClick={() => onUndo(order)}
-            disabled={busy}
-            aria-label={t("Admin.orders.undoTo", { label: prevLabel }, `Revenir à l'étape précédente : ${prevLabel}`)}
-            title={t("Admin.orders.undoTo", { label: prevLabel }, `Revenir à l'étape précédente : ${prevLabel}`)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDismiss?.(order.reference);
+            }}
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black bg-white hover:bg-red-50 text-red-700 border border-red-200 dark:bg-zinc-700 dark:text-red-300 dark:border-red-900 shadow-2xs transition active:scale-[0.98]"
+          >
+            <EyeOff className="w-4 h-4" />
+            {t("Admin.orders.dismissFromList", {}, "Masquer de la liste")}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPrint(order);
+            }}
+            disabled={printing}
+            aria-label={t("Admin.orders.print", {}, "Imprimer le ticket")}
+            title={t("Admin.orders.print", {}, "Imprimer le ticket")}
             className="px-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
           >
-            <Undo2 className="w-4 h-4 rtl-flip" />
+            {printing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
           </button>
-        )}
-        <button
-          type="button"
-          onClick={() => onPrint(order)}
-          disabled={printing}
-          aria-label={t("Admin.orders.print", {}, "Imprimer le ticket")}
-          title={t("Admin.orders.print", {}, "Imprimer le ticket")}
-          className="px-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
-        >
-          {printing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
-        </button>
-        {canCancel && (
+        </div>
+      ) : (
+        <div className="flex items-stretch gap-2">
           <button
             type="button"
-            onClick={() => onCancel(order)}
-            disabled={busy}
-            aria-label={t("Admin.orders.cancel", {}, "Annuler la commande")}
-            title={t("Admin.orders.cancel", {}, "Annuler la commande")}
-            className="px-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition disabled:opacity-50"
+            onClick={() => onAdvance(order)}
+            disabled={busy || !action.next}
+            title={!action.next ? "Statut indisponible" : undefined}
+            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white shadow-md transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed ${accent}`}
           >
-            <X className="w-4 h-4" />
+            {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ActionIcon className="w-4 h-4" />}
+            {action.label}
           </button>
-        )}
-      </div>
+          {canUndo && (
+            <button
+              type="button"
+              onClick={() => onUndo(order)}
+              disabled={busy}
+              aria-label={t("Admin.orders.undoTo", { label: prevLabel }, `Revenir à l'étape précédente : ${prevLabel}`)}
+              title={t("Admin.orders.undoTo", { label: prevLabel }, `Revenir à l'étape précédente : ${prevLabel}`)}
+              className="px-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              <Undo2 className="w-4 h-4 rtl-flip" />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => onPrint(order)}
+            disabled={printing}
+            aria-label={t("Admin.orders.print", {}, "Imprimer le ticket")}
+            title={t("Admin.orders.print", {}, "Imprimer le ticket")}
+            className="px-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+          >
+            {printing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
+          </button>
+          {canCancel && (
+            <button
+              type="button"
+              onClick={() => onCancel(order)}
+              disabled={busy}
+              aria-label={t("Admin.orders.cancel", {}, "Annuler la commande")}
+              title={t("Admin.orders.cancel", {}, "Annuler la commande")}
+              className="px-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition disabled:opacity-50"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
     </article>
   );
 }
@@ -482,6 +569,17 @@ export default function OrdersPanel() {
   const autoConfirmRef = useRef(true);
   const autoConfirmInFlight = useRef(new Set());
   const inFlight = useRef(new Set());
+  const [dismissedCancelled, setDismissedCancelled] = useState(() => loadDismissedCancelled());
+
+  const dismissCancelledOrder = useCallback((reference) => {
+    if (!reference) return;
+    setDismissedCancelled((prev) => {
+      const next = new Set(prev);
+      next.add(reference);
+      saveDismissedCancelled(next);
+      return next;
+    });
+  }, []);
 
   const columns = useMemo(
     () => [
@@ -661,9 +759,19 @@ export default function OrdersPanel() {
         at: new Date(),
       });
     },
-    onStatusChange: () => {
+    onStatusChange: (event) => {
       // Keep statuses in sync if modified in another tab or worker
       safeReload(true);
+      if (event?.status === "CANCELLED" || event?.newStatus === "CANCELLED") {
+        setNotification({
+          type: "ORDER_CANCELLED",
+          reference: event.reference,
+          dailyNumber: event.dailyNumber ?? null,
+          customerName: event.customerName || "Un client",
+          total: event.total,
+          at: new Date(),
+        });
+      }
     },
     onReconnect: () => {
       // Refresh authoritative data silently on reconnect
@@ -705,20 +813,28 @@ export default function OrdersPanel() {
     [items, overrides]
   );
 
-  // Répartition en 3 colonnes, les plus anciennes en premier
+  // Répartition en 3 colonnes, les plus anciennes en premier (commandes annulées affichées jusqu'au clic)
   const grouped = useMemo(() => {
     const g = { confirmed: [], preparing: [], ready: [] };
     for (const o of orders) {
-      if (CLOSED.includes(norm(o.status))) continue;
+      if (COMPLETED_STATUSES.includes(norm(o.status))) continue;
+      const isCancelled = norm(o.status) === "CANCELLED";
+      if (isCancelled && dismissedCancelled.has(o.reference)) continue;
       if (type === "delivery" && o.fulfillment !== "delivery") continue;
       if (type === "pickup" && o.fulfillment === "delivery") continue;
       g[columnOf(o)].push(o);
     }
     for (const k of Object.keys(g)) {
-      g[k].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      g[k].sort((a, b) => {
+        const aCancelled = norm(a.status) === "CANCELLED";
+        const bCancelled = norm(b.status) === "CANCELLED";
+        if (aCancelled && !bCancelled) return -1;
+        if (!aCancelled && bCancelled) return 1;
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      });
     }
     return g;
-  }, [orders, type]);
+  }, [orders, type, dismissedCancelled]);
 
   /** Applique un statut avec protection anti-doublon et retour arrière en cas d'erreur */
   const applyStatus = async (order, next, { track = true } = {}) => {
@@ -816,17 +932,27 @@ export default function OrdersPanel() {
       {notification && (
         <div
           role="alert"
-          className="fixed top-4 end-4 z-[60] w-[calc(100vw-2rem)] max-w-xs overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-xl shadow-orange-500/25 ring-1 ring-orange-400/40 animate-in fade-in duration-300"
+          className={`fixed top-4 end-4 z-[60] w-[calc(100vw-2rem)] max-w-xs overflow-hidden rounded-2xl text-white shadow-xl ring-1 animate-in fade-in duration-300 ${
+            notification.type === "ORDER_CANCELLED"
+              ? "bg-gradient-to-r from-red-600 to-rose-500 shadow-red-500/25 ring-red-400/40"
+              : "bg-gradient-to-r from-orange-600 to-amber-500 shadow-orange-500/25 ring-orange-400/40"
+          }`}
         >
           <div className="flex items-start gap-3 p-3">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-none ring-1 ring-white/30">
-              <Bell className="w-4 h-4 animate-bounce" />
+              {notification.type === "ORDER_CANCELLED" ? (
+                <XCircle className="w-4 h-4" />
+              ) : (
+                <Bell className="w-4 h-4 animate-bounce" />
+              )}
             </div>
 
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-black uppercase tracking-wider text-orange-100">
-                {t("Admin.orders.newOrderAlert", {}, "Nouvelle commande")} ·{" "}
-                {formatDate(notification.at, { hour: "2-digit", minute: "2-digit" })}
+                {notification.type === "ORDER_CANCELLED"
+                  ? t("Admin.orders.cancelledOrderAlert", {}, "Commande annulée")
+                  : t("Admin.orders.newOrderAlert", {}, "Nouvelle commande")}{" "}
+                · {formatDate(notification.at, { hour: "2-digit", minute: "2-digit" })}
               </p>
               <p className="font-extrabold text-sm truncate">
                 {notification.dailyNumber ? `#${notification.dailyNumber} · ` : ""}
@@ -842,15 +968,17 @@ export default function OrdersPanel() {
             </div>
 
             <div className="flex items-center gap-0.5 flex-none">
-              <button
-                type="button"
-                onClick={() => playOrderChime()}
-                title={t("Admin.orders.replaySound", {}, "Rejouer le son")}
-                aria-label={t("Admin.orders.replaySound", {}, "Rejouer le son")}
-                className="p-1.5 rounded-lg hover:bg-white/20 transition"
-              >
-                <Volume2 className="w-4 h-4" />
-              </button>
+              {notification.type !== "ORDER_CANCELLED" && (
+                <button
+                  type="button"
+                  onClick={() => playOrderChime()}
+                  title={t("Admin.orders.replaySound", {}, "Rejouer le son")}
+                  aria-label={t("Admin.orders.replaySound", {}, "Rejouer le son")}
+                  className="p-1.5 rounded-lg hover:bg-white/20 transition"
+                >
+                  <Volume2 className="w-4 h-4" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setNotification(null)}
@@ -1112,8 +1240,8 @@ export default function OrdersPanel() {
                           action={getAction(o, allStatuses, t)}
                           busy={!!saving[o.reference]}
                           printing={!!printing[o.reference]}
-                          canCancel={col.key === "confirmed"}
-                          canUndo={col.key !== "confirmed" && !!getPrev(o, allStatuses)}
+                          canCancel={col.key === "confirmed" && norm(o.status) !== "CANCELLED"}
+                          canUndo={col.key !== "confirmed" && !!getPrev(o, allStatuses) && norm(o.status) !== "CANCELLED"}
                           prevLabel={prevLabelOf(o, t)}
                           isNew={newRefs.includes(o.reference)}
                           now={now}
@@ -1122,6 +1250,7 @@ export default function OrdersPanel() {
                           onCancel={cancelOrder}
                           onUndo={undo}
                           onPrint={printOrder}
+                          onDismiss={dismissCancelledOrder}
                         />
                       ))
                     )}

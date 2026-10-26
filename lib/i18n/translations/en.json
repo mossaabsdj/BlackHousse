@@ -66,7 +66,7 @@
         "title": "Crispy Artisanal Pizzas",
         "subtitle": "Thin crust, melted mozzarella and fresh toppings."
       },
-     {
+      {
         "src": "/images/menu/pizza.JPG",
         "alt": "BlackHousse Burgers",
         "tag": "Burgers",
@@ -108,13 +108,41 @@
     ],
     "topicsLabel": "What did you enjoy most?",
     "topics": [
-      { "id": "burgers", "label": "Burgers", "icon": "🍔" },
-      { "id": "tacos", "label": "Tacos", "icon": "🌮" },
-      { "id": "pizzas", "label": "Pizzas", "icon": "🍕" },
-      { "id": "drinks", "label": "Drinks", "icon": "🥤" },
-      { "id": "desserts", "label": "Desserts", "icon": "🍰" },
-      { "id": "service", "label": "Service", "icon": "😊" },
-      { "id": "delivery", "label": "Delivery", "icon": "🛵" }
+      {
+        "id": "burgers",
+        "label": "Burgers",
+        "icon": "🍔"
+      },
+      {
+        "id": "tacos",
+        "label": "Tacos",
+        "icon": "🌮"
+      },
+      {
+        "id": "pizzas",
+        "label": "Pizzas",
+        "icon": "🍕"
+      },
+      {
+        "id": "drinks",
+        "label": "Drinks",
+        "icon": "🥤"
+      },
+      {
+        "id": "desserts",
+        "label": "Desserts",
+        "icon": "🍰"
+      },
+      {
+        "id": "service",
+        "label": "Service",
+        "icon": "😊"
+      },
+      {
+        "id": "delivery",
+        "label": "Delivery",
+        "icon": "🛵"
+      }
     ],
     "commentLabel": "Your comments",
     "commentPlaceholder": "Tell us about your experience...",
@@ -248,7 +276,12 @@
         "network": "Connection failed. Please try again.",
         "tooMany": "Too many attempts. Please wait a moment.",
         "generic": "Unable to retrieve order status at this time."
-      }
+      },
+      "cancelOrder": "Cancel my order",
+      "cancelConfirm": "Are you sure you want to cancel your order?",
+      "cancelling": "Cancelling...",
+      "cancelDisabled": "Order preparation has already started and cannot be cancelled.",
+      "cancelSuccess": "Your order has been successfully cancelled."
     }
   },
   "Footer": {

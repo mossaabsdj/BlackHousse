@@ -50,8 +50,30 @@ function isDuplicatePush(eventId) {
   return false;
 }
 
+// Helper to detect stored customer locale (from Cache Storage synced by I18nContext, or device navigator)
+async function getStoredLocale() {
+  try {
+    if (typeof caches !== "undefined") {
+      const cache = await caches.open("blackhousse-locale");
+      const match = await cache.match("/locale");
+      if (match) {
+        const stored = (await match.text()).trim();
+        if (stored) return stored;
+      }
+    }
+  } catch (_) {}
+
+  if (self.navigator?.language?.toLowerCase().startsWith("ar")) {
+    return "ar";
+  }
+  if (self.navigator?.language?.toLowerCase().startsWith("en")) {
+    return "en";
+  }
+  return "fr";
+}
+
 // Handle background messages via Firebase SDK (Primary FCM handler)
-messaging.onBackgroundMessage((payload) => {
+messaging.onBackgroundMessage(async (payload) => {
   console.log("[FCM ServiceWorker] Received background message payload:", payload);
 
   const eventId =
@@ -63,20 +85,36 @@ messaging.onBackgroundMessage((payload) => {
     payload.messageId;
 
   if (eventId && isDuplicatePush(eventId)) {
-    return Promise.resolve();
+    return;
   }
 
-  const notificationTitle =
+  const locale = await getStoredLocale();
+
+  let notificationTitle =
     payload.notification?.title ||
     payload.data?.title ||
     "BlackHousse";
+
+  let notificationBody =
+    payload.notification?.body ||
+    payload.data?.body ||
+    "Nouvelle mise à jour de commande.";
+
+  // Apply multilingual notification title & body based on user locale
+  if (locale === "ar") {
+    if (payload.data?.title_ar) notificationTitle = payload.data.title_ar;
+    if (payload.data?.body_ar) notificationBody = payload.data.body_ar;
+  } else if (locale === "en") {
+    if (payload.data?.title_en) notificationTitle = payload.data.title_en;
+    if (payload.data?.body_en) notificationBody = payload.data.body_en;
+  }
 
   const tag =
     payload.data?.tag ||
     (payload.data?.reference ? `bh-order-${payload.data.reference}` : "blackhousse-order");
 
   const notificationOptions = {
-    body: payload.notification?.body || payload.data?.body || "Nouvelle mise à jour de commande.",
+    body: notificationBody,
     icon: payload.notification?.icon || payload.data?.icon || "/icons/icon-192x192.png",
     badge: payload.notification?.badge || payload.data?.badge || "/icons/icon-72x72.png",
     vibrate: [200, 100, 200],

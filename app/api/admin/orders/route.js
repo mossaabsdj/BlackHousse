@@ -24,6 +24,7 @@ export const toAdminOrder = (o) => ({
   deliveryFee: o.deliveryFee,
   total: o.total,
   createdAt: o.createdAt.toISOString(),
+  updatedAt: o.updatedAt ? o.updatedAt.toISOString() : o.createdAt.toISOString(),
   items: o.items.map((i) => ({
     name: i.productName,
     quantity: i.quantity,
@@ -43,34 +44,45 @@ export const GET = admin(async ({ request }) => {
   const page = Math.max(1, parseInt(sp.get("page") || "1", 10) || 1);
   const pageSize = Math.min(100, Math.max(5, parseInt(sp.get("pageSize") || String(PAGE_SIZE), 10) || PAGE_SIZE));
 
-  const where = {};
+  const conditions = [];
 
   // Status and Scope filtering
   if (status && Object.prototype.hasOwnProperty.call(STATUS_LABELS, status)) {
-    where.status = status;
+    conditions.push({ status });
   } else if (scope === "active") {
-    // Only active (non-completed, non-cancelled) orders
-    where.status = { notIn: ["COMPLETED", "CANCELLED"] };
+    // Active orders plus recently cancelled orders (last 24 hours) so admin can inspect and dismiss them
+    const recentCancelledCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    conditions.push({
+      OR: [
+        { status: { notIn: ["COMPLETED", "CANCELLED"] } },
+        { status: "CANCELLED", updatedAt: { gte: recentCancelledCutoff } },
+      ],
+    });
   } else if (scope === "history") {
     // Only completed or cancelled orders
-    where.status = { in: ["COMPLETED", "CANCELLED"] };
+    conditions.push({ status: { in: ["COMPLETED", "CANCELLED"] } });
   }
 
   // Search filter
   if (q) {
-    where.OR = [
-      { reference: { contains: q.toUpperCase() } },
-      { customerName: { contains: q, mode: "insensitive" } },
-      { customerPhone: { contains: canonicalPhone(q) } },
-    ];
+    conditions.push({
+      OR: [
+        { reference: { contains: q.toUpperCase() } },
+        { customerName: { contains: q, mode: "insensitive" } },
+        { customerPhone: { contains: canonicalPhone(q) } },
+      ],
+    });
   }
 
   // Date range filter
   if (from || to) {
-    where.createdAt = {};
-    if (from) where.createdAt.gte = new Date(from.includes("T") ? from : `${from}T00:00:00.000Z`);
-    if (to) where.createdAt.lte = new Date(to.includes("T") ? to : `${to}T23:59:59.999Z`);
+    const dateFilter = {};
+    if (from) dateFilter.gte = new Date(from.includes("T") ? from : `${from}T00:00:00.000Z`);
+    if (to) dateFilter.lte = new Date(to.includes("T") ? to : `${to}T23:59:59.999Z`);
+    conditions.push({ createdAt: dateFilter });
   }
+
+  const where = conditions.length > 0 ? { AND: conditions } : {};
 
   const [rows, total] = await Promise.all([
     prisma.order.findMany({
