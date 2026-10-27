@@ -236,8 +236,8 @@ export default function CheckoutModal({
         setConfirmingCancel(false);
       } catch (err) {
         setCancelError(
-          err?.code === "ORDER_NOT_CANCELLABLE" || err?.status === 422
-            ? (trackText.cancelDisabled || "La commande ne peut plus être annulée car sa préparation a déjà commencé.")
+          err?.code === "ORDER_NOT_CANCELLABLE" || err?.status === 422 || err?.status === 409
+            ? (trackText.cancelDisabled || (locale === "ar" ? "بدأ تحضير طلبك بالفعل ولا يمكن إلغاؤه الآن." : "La préparation de la commande a déjà commencé. Annulation impossible."))
             : (err?.message || trackText.errors?.generic || "Erreur lors de l'annulation.")
         );
       } finally {

@@ -841,6 +841,12 @@ export default function OrdersPanel() {
     const ref = order.reference;
     if (!next || inFlight.current.has(ref) || norm(next) === norm(order.status)) return;
 
+    // Protection stricte : Ne jamais tenter de modifier une commande déjà annulée
+    if (norm(order.status) === "CANCELLED" && norm(next) !== "CANCELLED") {
+      setActionError(`${ref} : Cette commande a été annulée et ne peut plus être modifiée.`);
+      return;
+    }
+
     const label = statusLabel(next);
     const from = order.status;
     inFlight.current.add(ref);
@@ -848,13 +854,20 @@ export default function OrdersPanel() {
     setOverrides((o) => ({ ...o, [ref]: next }));
     setActionError("");
     try {
-      await api.patch(`/api/admin/orders/${ref}`, { status: next });
+      await api.patch(`/api/admin/orders/${ref}`, {
+        status: next,
+        expectedStatus: from,
+      });
       await reload(true);
-      // Mémorise le changement pour proposer « Revenir en arrière » (même si la carte a quitté le tableau)
-      if (track) setLastAction({ order, from, to: next, label });
+      // Mémorise le changement pour « Revenir en arrière » UNIQUEMENT si aucun statut n'est CANCELLED
+      if (track && norm(next) !== "CANCELLED" && norm(from) !== "CANCELLED") {
+        setLastAction({ order, from, to: next, label });
+      } else {
+        setLastAction(null);
+      }
     } catch (err) {
       setActionError(`${ref} → « ${label} » : ${err.message}`);
-      reload(true);
+      await reload(true);
     } finally {
       setOverrides((o) => {
         const { [ref]: _removed, ...rest } = o;
@@ -911,17 +924,20 @@ export default function OrdersPanel() {
   /** Bouton « Retour » d'une carte : revient à l'étape précédente */
   const undo = (order) => applyStatus(order, getPrev(order, allStatuses));
 
-  /** Barre « Revenir en arrière » : annule le dernier changement (y compris terminé / annulé) */
+  /** Barre « Revenir en arrière » : annule le dernier changement (ne restaure jamais une commande annulée) */
   const undoLast = () => {
     if (!lastAction) return;
     const { order, from, to } = lastAction;
     setLastAction(null);
+    if (norm(to) === "CANCELLED" || norm(from) === "CANCELLED" || norm(order?.status) === "CANCELLED") {
+      return;
+    }
     applyStatus({ ...order, status: to }, from, { track: false });
   };
 
   const cancelOrder = (order) => {
-    // L'annulation n'est possible que dans la colonne « Confirmée »
-    if (columnOf(order) !== "confirmed" || inFlight.current.has(order.reference)) return;
+    // L'annulation n'est possible que dans la colonne « Confirmée » et si pas déjà annulée
+    if (columnOf(order) !== "confirmed" || inFlight.current.has(order.reference) || norm(order.status) === "CANCELLED") return;
     if (!window.confirm(t("Admin.orders.cancelOrderConfirm", { ref: order.reference }, `Annuler la commande ${order.reference} ?`))) return;
     applyStatus(order, pickStatus("cancelled", allStatuses) ?? "CANCELLED");
   };

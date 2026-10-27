@@ -263,7 +263,7 @@ export const POST = admin(async ({ body }) => {
   order.dailyNumber = dailyNumber;
 
   // Real-time synchronization to Firebase
-  syncOrderCreated(order).catch((err) =>
+  await syncOrderCreated(order).catch((err) =>
     console.warn("[admin-orders] Firebase sync error:", err.message)
   );
 

@@ -171,7 +171,7 @@ function HorizontalSteps({ steps, isCancelled = false, title, fulfillment, conte
   );
 }
 
-function TrackedOrder({ order, t }) {
+function TrackedOrder({ order, t, onRefresh }) {
   const { content, locale } = useI18n();
   const k = t.track;
   const ar = locale === "ar";
@@ -209,12 +209,14 @@ function TrackedOrder({ order, t }) {
     try {
       await cancelCustomerOrder({ reference: order.reference, phone: order.customerPhone });
       setConfirmingCancel(false);
+      if (onRefresh) onRefresh();
     } catch (err) {
       setCancelError(
-        err?.code === "ORDER_NOT_CANCELLABLE" || err?.status === 422
+        err?.code === "ORDER_NOT_CANCELLABLE" || err?.status === 422 || err?.status === 409
           ? disabledMsg
           : err?.message || k.errors.generic
       );
+      if (onRefresh) onRefresh();
     } finally {
       cancelInFlight.current = false;
       setCancelling(false);
@@ -730,7 +732,12 @@ export default function TrackModal({
 
               <ul className="space-y-4">
                 {displayOrders.map((o, i) => (
-                  <TrackedOrder key={o.reference || i} order={o} t={t} />
+                  <TrackedOrder
+                    key={o.reference || i}
+                    order={o}
+                    t={t}
+                    onRefresh={() => run(phone, initialReference)}
+                  />
                 ))}
               </ul>
             </>

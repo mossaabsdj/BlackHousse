@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { changeOrderStatus, getOrderStatusLabel } from "@/lib/ordering/orders";
+import { changeOrderStatus, getOrderStatusLabel, OrderStatusConflictError } from "@/lib/ordering/orders";
 import { canonicalPhone, clientIp, rateLimit } from "@/lib/ordering/security";
 import { notifyAdminsOrderCancelled } from "@/lib/firebase-admin";
 
@@ -108,6 +108,21 @@ export async function POST(request) {
       },
     });
   } catch (err) {
+    if (err instanceof OrderStatusConflictError) {
+      if (err.code === "ORDER_ALREADY_CANCELLED") {
+        return NextResponse.json({
+          success: true,
+          alreadyCancelled: true,
+          message: "Cette commande a déjà été annulée.",
+          order: {
+            reference: order.reference,
+            status: "CANCELLED",
+            statusLabel: getOrderStatusLabel("CANCELLED", order.fulfillment),
+          },
+        });
+      }
+      return fail(409, err.code, err.message, { currentStatus: err.currentStatus });
+    }
     console.error("[orders/cancel] Error cancelling order:", err);
     return fail(500, "INTERNAL_ERROR", "Une erreur est survenue lors de l'annulation de la commande.");
   }
