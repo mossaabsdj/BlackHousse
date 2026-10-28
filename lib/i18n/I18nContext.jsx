@@ -6,7 +6,7 @@ import ar from "./translations/ar.json";
 import en from "./translations/en.json";
 
 export const SUPPORTED_LOCALES = ["fr", "ar", "en"];
-export const DEFAULT_LOCALE = "fr";
+export const DEFAULT_LOCALE = "ar";
 export const LOCALE_STORAGE_KEY = "blackhousse:locale";
 
 export const LOCALE_META = {

@@ -4,11 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 export const STORAGE = {
   cart: "blackhousse:cart:v1",
   orders: "blackhousse:orders:v1", // true once an order was placed here (shows "Track my order")
-  customer: "blackhousse:customer:v1", // { name, phone }  (prefill only)
+  customer: "blackhousse:customer:v1", // persistent customer profile: { name, phone, fulfillment, municipalityId, municipalityText, address }
+  checkoutDraft: "blackhousse:checkout:draft:v1", // in-progress checkout draft: { notes, ... }
 };
 export const MAX_QTY = 50;
 
-const read = (key, fallback) => {
+export const read = (key, fallback) => {
+  if (typeof window === "undefined") return fallback;
   try {
     const raw = window.localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
@@ -16,7 +18,8 @@ const read = (key, fallback) => {
     return fallback;
   }
 };
-const write = (key, value) => {
+export const write = (key, value) => {
+  if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
   } catch {
@@ -276,14 +279,29 @@ export function useMyOrders() {
   useEffect(() => {
     setHasOrders(Boolean(read(STORAGE.orders, false)));
     const c = read(STORAGE.customer, null);
-    if (c) setCustomer({ name: String(c.name || ""), phone: String(c.phone || "") });
+    if (c) {
+      setCustomer({
+        name: String(c.name || ""),
+        phone: String(c.phone || ""),
+        fulfillment: String(c.fulfillment || ""),
+        municipalityId: String(c.municipalityId || ""),
+        municipalityText: String(c.municipalityText || ""),
+        address: String(c.address || ""),
+      });
+    }
   }, []);
 
   const save = useCallback((order, who) => {
     write(STORAGE.orders, true);
     setHasOrders(true);
     if (who) {
-      const c = { name: who.name, phone: who.phone };
+      const prev = read(STORAGE.customer, {}) || {};
+      const c = {
+        ...prev,
+        ...who,
+        name: who.name,
+        phone: who.phone,
+      };
       write(STORAGE.customer, c);
       setCustomer(c);
     }

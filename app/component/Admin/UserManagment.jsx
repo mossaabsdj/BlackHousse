@@ -21,6 +21,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -474,36 +484,36 @@ export default function UserManagement() {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DialogContent className="bg-white border-gray-200">
-            <DialogHeader>
-              <DialogTitle className="text-black">Delete User</DialogTitle>
-              <DialogDescription className="text-gray-600">
+        {/* Delete Confirmation Alert Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent className="bg-white border-gray-200">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-black font-bold">Delete User</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-600">
                 Are you sure you want to delete{" "}
                 <span className="font-semibold text-black">
                   {userToDelete?.fullName}
                 </span>
                 ? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteDialogOpen(false)}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex gap-2 justify-end">
+              <AlertDialogCancel
+                disabled={loading}
                 className="border-gray-300 hover:bg-gray-100"
               >
                 Cancel
-              </Button>
-              <Button
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={loading}
                 onClick={handleDeleteConfirm}
-                className="bg-red-600 text-white hover:bg-red-700"
+                className="bg-red-600 text-white hover:bg-red-700 font-bold"
               >
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                {loading ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

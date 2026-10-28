@@ -5,6 +5,16 @@ import { api, formatPrice, useList } from "./adminApi";
 import { Badge, ErrorBox, Field, Modal, Toggle, btnDanger, btnGhost, btnPrimary, card, inputClass } from "./Ui";
 import CloudinaryImagePicker from "./CloudinaryImagePicker";
 import { useRealtimeProducts } from "@/lib/Firebase";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const BLANK = { name: "", description: "", price: "", imageUrl: "", categoryId: "", available: true, isActive: true, sortOrder: "0", groupIds: [] };
 
@@ -23,6 +33,8 @@ export default function ProductsPanel() {
   const [formError, setFormError] = useState({ message: "", fields: {} });
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -81,15 +93,19 @@ export default function ProductsPanel() {
     }
   };
 
-  const remove = async (p) => {
-    if (!window.confirm(`Supprimer « ${p.name} » ? Les anciennes commandes gardent leur copie. (Vous pouvez aussi simplement le masquer.)`)) return;
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
+    setDeleting(true);
     setActionError("");
     try {
-      await api.del(`/api/admin/products/${p.id}`);
+      await api.del(`/api/admin/products/${productToDelete.id}`);
+      setProductToDelete(null);
       products.reload(true);
       categories.reload(true);
     } catch (err) {
       setActionError(err.message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -158,7 +174,7 @@ export default function ProductsPanel() {
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-2">
                     <button type="button" onClick={() => open(p)} aria-label={`Modifier ${p.name}`} className={btnGhost}><Pencil className="w-4 h-4" /></button>
-                    <button type="button" onClick={() => remove(p)} aria-label={`Supprimer ${p.name}`} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => setProductToDelete(p)} aria-label={`Supprimer ${p.name}`} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </td>
               </tr>
@@ -224,6 +240,31 @@ export default function ProductsPanel() {
           </form>
         </Modal>
       )}
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog open={Boolean(productToDelete)} onOpenChange={(open) => !open && setProductToDelete(null)}>
+        <AlertDialogContent className="bg-white border border-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 font-bold text-lg">
+              Supprimer le produit
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-sm">
+              Supprimer « <span className="font-semibold text-gray-900">{productToDelete?.name}</span> » ? Les anciennes commandes gardent leur copie. (Vous pouvez aussi simplement le masquer.)
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2 justify-end">
+            <AlertDialogCancel disabled={deleting} className="border-gray-300 text-gray-700 hover:bg-gray-100">
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={handleConfirmDelete}
+              className="bg-red-600 text-white hover:bg-red-700 font-bold"
+            >
+              {deleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

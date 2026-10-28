@@ -19,6 +19,16 @@ import {
 import { api, formatPrice, formatDate } from "./adminApi";
 import { card, inputClass, btnPrimary, btnGhost, btnDanger, Modal, Field, ErrorBox } from "./Ui";
 import { EXPENSE_CATEGORIES } from "@/lib/admin/finance";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const PERIOD_PRESETS = [
   { id: "this_month", label: "Ce mois-ci" },
@@ -73,6 +83,7 @@ export default function ExpensesPanel() {
 
   const [deletingExpense, setDeletingExpense] = useState(null);
   const [deletingLoading, setDeletingLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   // Form inputs
   const [formAmount, setFormAmount] = useState("");
@@ -218,12 +229,13 @@ export default function ExpensesPanel() {
   const handleDeleteExpense = async () => {
     if (!deletingExpense) return;
     setDeletingLoading(true);
+    setDeleteError("");
     try {
       await api.delete(`/api/admin/expenses/${deletingExpense.id}`);
       setDeletingExpense(null);
       await loadExpenses(true);
     } catch (err) {
-      alert(`Erreur de suppression : ${err.message}`);
+      setDeleteError(err.message || "Erreur lors de la suppression de la dépense.");
     } finally {
       setDeletingLoading(false);
     }
@@ -433,7 +445,10 @@ export default function ExpensesPanel() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setDeletingExpense(exp)}
+                          onClick={() => {
+                            setDeletingExpense(exp);
+                            setDeleteError("");
+                          }}
                           title="Supprimer cette dépense"
                           className="p-1.5 rounded-lg border border-gray-200 hover:border-red-400 hover:text-red-600 text-gray-600 transition"
                         >
@@ -563,48 +578,52 @@ export default function ExpensesPanel() {
         </Modal>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deletingExpense && (
-        <Modal
-          title="Confirmer la suppression"
-          onClose={() => setDeletingExpense(null)}
-          footer={
-            <>
-              <button
-                type="button"
-                onClick={() => setDeletingExpense(null)}
-                className={btnGhost}
-                disabled={deletingLoading}
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteExpense}
-                disabled={deletingLoading}
-                className={`${btnDanger} flex items-center gap-2`}
-              >
-                {deletingLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
-                Supprimer définitivement
-              </button>
-            </>
-          }
-        >
-          <div className="space-y-3 py-2">
-            <p className="text-gray-700">
-              Êtes-vous sûr de vouloir supprimer cette dépense ?
-            </p>
-            <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-1">
-              <p className="font-extrabold text-gray-900">{deletingExpense.description}</p>
-              <p className="text-sm font-black text-orange-600">{formatPrice(deletingExpense.amount)}</p>
-              <p className="text-xs text-gray-500">Date : {formatDate(deletingExpense.date)}</p>
-            </div>
-            <p className="text-xs text-gray-500">
-              Cette action est irréversible et mettra à jour les calculs de finances et de bénéfice net.
-            </p>
-          </div>
-        </Modal>
-      )}
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog open={Boolean(deletingExpense)} onOpenChange={(open) => { if (!open) { setDeletingExpense(null); setDeleteError(""); } }}>
+        <AlertDialogContent className="bg-white border border-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 font-bold text-lg">
+              Confirmer la suppression
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-sm space-y-2">
+              <span className="block">
+                Êtes-vous sûr de vouloir supprimer cette dépense ?
+              </span>
+              {deletingExpense && (
+                <span className="block p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1">
+                  <span className="block font-extrabold text-gray-900">{deletingExpense.description}</span>
+                  <span className="block text-sm font-black text-orange-600">{formatPrice(deletingExpense.amount)}</span>
+                  <span className="block text-xs text-gray-500">Date : {formatDate(deletingExpense.date)}</span>
+                </span>
+              )}
+              <span className="block text-xs text-gray-500">
+                Cette action est irréversible et mettra à jour les calculs de finances et de bénéfice net.
+              </span>
+              {deleteError && (
+                <span className="block text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200">
+                  {deleteError}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2 justify-end">
+            <AlertDialogCancel
+              disabled={deletingLoading}
+              className="border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deletingLoading}
+              onClick={handleDeleteExpense}
+              className="bg-red-600 text-white hover:bg-red-700 font-bold flex items-center gap-2"
+            >
+              {deletingLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
+              {deletingLoading ? "Suppression..." : "Supprimer définitivement"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

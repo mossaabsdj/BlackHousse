@@ -2,6 +2,16 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { UploadCloud, Image as ImageIcon, Trash2, X, RefreshCw, Check, Link as LinkIcon, Loader2 } from "lucide-react";
 import { btnPrimary, btnGhost, btnDanger, inputClass } from "./Ui";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function CloudinaryImagePicker({
   value,
@@ -19,6 +29,9 @@ export default function CloudinaryImagePicker({
   const [loadingGallery, setLoadingGallery] = useState(false);
   const [galleryError, setGalleryError] = useState("");
   const [search, setSearch] = useState("");
+  const [imageToDelete, setImageToDelete] = useState(null);
+  const [deletingImage, setDeletingImage] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const fileInputRef = useRef(null);
   const modalFileInputRef = useRef(null);
 
@@ -84,25 +97,34 @@ export default function CloudinaryImagePicker({
     if (file) handleUpload(file);
   };
 
-  // Delete an image from Cloudinary from within the gallery
-  const handleDeleteFromCloudinary = async (img, e) => {
+  const handleDeleteClick = (img, e) => {
     e.stopPropagation();
-    if (!window.confirm(`Supprimer définitivement cette image (${img.public_id}) de Cloudinary ?`)) return;
+    setImageToDelete(img);
+    setDeleteError("");
+  };
+
+  const handleConfirmDeleteImage = async () => {
+    if (!imageToDelete) return;
+    setDeletingImage(true);
+    setDeleteError("");
 
     try {
-      const res = await fetch(`/api/cloudinary?public_id=${encodeURIComponent(img.public_id)}`, {
+      const res = await fetch(`/api/cloudinary?public_id=${encodeURIComponent(imageToDelete.public_id)}`, {
         method: "DELETE",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Erreur de suppression");
 
       // If the currently selected image is deleted, clear it
-      if (value === img.secure_url || value === img.url) {
+      if (value === imageToDelete.secure_url || value === imageToDelete.url) {
         onChange("");
       }
+      setImageToDelete(null);
       loadGallery();
     } catch (err) {
-      alert(`Erreur: ${err.message}`);
+      setDeleteError(err.message);
+    } finally {
+      setDeletingImage(false);
     }
   };
 
@@ -370,7 +392,7 @@ export default function CloudinaryImagePicker({
                           <button
                             type="button"
                             title="Supprimer de Cloudinary"
-                            onClick={(e) => handleDeleteFromCloudinary(img, e)}
+                            onClick={(e) => handleDeleteClick(img, e)}
                             className="absolute top-2 left-2 p-1.5 rounded-lg bg-black/60 text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -408,6 +430,42 @@ export default function CloudinaryImagePicker({
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog open={Boolean(imageToDelete)} onOpenChange={(open) => !open && setImageToDelete(null)}>
+        <AlertDialogContent className="bg-white border border-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 font-bold text-lg">
+              Supprimer l'image
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-sm space-y-2">
+              <span className="block">
+                Supprimer définitivement cette image (<code className="font-semibold text-gray-900 text-xs bg-gray-100 px-1 py-0.5 rounded">{imageToDelete?.public_id}</code>) de Cloudinary ?
+              </span>
+              <span className="block text-red-600 text-xs font-semibold">
+                ⚠️ Cette action est irréversible. L'image ne sera plus accessible si elle est utilisée ailleurs.
+              </span>
+              {deleteError && (
+                <span className="block text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200">
+                  {deleteError}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2 justify-end">
+            <AlertDialogCancel disabled={deletingImage} className="border-gray-300 text-gray-700 hover:bg-gray-100">
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deletingImage}
+              onClick={handleConfirmDeleteImage}
+              className="bg-red-600 text-white hover:bg-red-700 font-bold"
+            >
+              {deletingImage ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

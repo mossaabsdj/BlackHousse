@@ -3,6 +3,16 @@ import { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { api, useList } from "./adminApi";
 import { Field, Modal, Toggle, ErrorBox, btnDanger, btnGhost, btnPrimary, card, inputClass } from "./Ui";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /**
  * Generic CRUD table (used for categories and municipalities).
@@ -15,6 +25,8 @@ export default function SimplePanel({ title, url, columns, fields, blank, addLab
   const [formError, setFormError] = useState({ message: "", fields: {} });
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const open = (item) => {
     setFormError({ message: "", fields: {} });
@@ -61,14 +73,18 @@ export default function SimplePanel({ title, url, columns, fields, blank, addLab
     }
   };
 
-  const remove = async (item) => {
-    if (!window.confirm(describeDelete(item))) return;
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    setDeleting(true);
     setActionError("");
     try {
-      await api.del(`${url}/${item.id}`);
+      await api.del(`${url}/${itemToDelete.id}`);
+      setItemToDelete(null);
       reload(true);
     } catch (err) {
       setActionError(err.message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -111,7 +127,7 @@ export default function SimplePanel({ title, url, columns, fields, blank, addLab
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-2">
                     <button type="button" onClick={() => open(item)} aria-label={`Modifier ${item.name}`} className={btnGhost}><Pencil className="w-4 h-4" /></button>
-                    <button type="button" onClick={() => remove(item)} aria-label={`Supprimer ${item.name}`} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => setItemToDelete(item)} aria-label={`Supprimer ${item.name}`} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </td>
               </tr>
@@ -154,6 +170,32 @@ export default function SimplePanel({ title, url, columns, fields, blank, addLab
           </form>
         </Modal>
       )}
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog open={Boolean(itemToDelete)} onOpenChange={(open) => !open && setItemToDelete(null)}>
+        <AlertDialogContent className="bg-white border border-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 font-bold text-lg">
+              Confirmer la suppression
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-sm">
+              {itemToDelete && describeDelete ? describeDelete(itemToDelete) : "Voulez-vous vraiment supprimer cet élément ?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2 justify-end">
+            <AlertDialogCancel disabled={deleting} className="border-gray-300 text-gray-700 hover:bg-gray-100">
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={handleConfirmDelete}
+              className="bg-red-600 text-white hover:bg-red-700 font-bold"
+            >
+              {deleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

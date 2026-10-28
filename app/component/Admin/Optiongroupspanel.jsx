@@ -3,6 +3,16 @@ import { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { api, formatPrice, useList } from "./adminApi";
 import { Badge, ErrorBox, Field, Modal, Toggle, btnDanger, btnGhost, btnPrimary, card, inputClass } from "./Ui";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const BLANK_OPTION = { name: "", price: "0", available: true, isActive: true };
 
@@ -12,6 +22,8 @@ export default function OptionGroupsPanel() {
   const [formError, setFormError] = useState({ message: "", fields: {} });
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [groupToDelete, setGroupToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const open = (g) => {
     setFormError({ message: "", fields: {} });
@@ -61,15 +73,18 @@ export default function OptionGroupsPanel() {
     }
   };
 
-  const remove = async (g) => {
-    const used = g.productCount ? ` Il est utilisé par ${g.productCount} produit(s) : il sera retiré de ces produits.` : "";
-    if (!window.confirm(`Supprimer le groupe « ${g.name} » et ses options ?${used}`)) return;
+  const handleConfirmDelete = async () => {
+    if (!groupToDelete) return;
+    setDeleting(true);
     setActionError("");
     try {
-      await api.del(`/api/admin/option-groups/${g.id}`);
+      await api.del(`/api/admin/option-groups/${groupToDelete.id}`);
+      setGroupToDelete(null);
       reload(true);
     } catch (err) {
       setActionError(err.message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -105,7 +120,7 @@ export default function OptionGroupsPanel() {
               </div>
               <div className="flex gap-2">
                 <button type="button" onClick={() => open(g)} aria-label={`Modifier ${g.name}`} className={btnGhost}><Pencil className="w-4 h-4" /></button>
-                <button type="button" onClick={() => remove(g)} aria-label={`Supprimer ${g.name}`} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                <button type="button" onClick={() => setGroupToDelete(g)} aria-label={`Supprimer ${g.name}`} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
               </div>
             </div>
             <ul className="divide-y divide-gray-100">
@@ -174,6 +189,37 @@ export default function OptionGroupsPanel() {
           </form>
         </Modal>
       )}
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog open={Boolean(groupToDelete)} onOpenChange={(open) => !open && setGroupToDelete(null)}>
+        <AlertDialogContent className="bg-white border border-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 font-bold text-lg">
+              Supprimer le groupe d'options
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-sm">
+              Supprimer le groupe « <span className="font-semibold text-gray-900">{groupToDelete?.name}</span> » et ses options ?
+              {groupToDelete?.productCount > 0 && (
+                <span className="block mt-2 text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-xs font-semibold">
+                  ⚠️ Ce groupe est utilisé par {groupToDelete.productCount} produit(s). Il sera retiré de ces produits.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2 justify-end">
+            <AlertDialogCancel disabled={deleting} className="border-gray-300 text-gray-700 hover:bg-gray-100">
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={handleConfirmDelete}
+              className="bg-red-600 text-white hover:bg-red-700 font-bold"
+            >
+              {deleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

@@ -30,6 +30,16 @@ import { useI18n } from "@/lib/i18n/I18nContext";
 import QuickOrderModal from "./QuickOrderModal";
 import AvailabilityModal from "./AvailabilityModal";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   printOrderTicket,
   claimPrint,
   releasePrint,
@@ -570,6 +580,7 @@ export default function OrdersPanel() {
   const autoConfirmInFlight = useRef(new Set());
   const inFlight = useRef(new Set());
   const [dismissedCancelled, setDismissedCancelled] = useState(() => loadDismissedCancelled());
+  const [orderToCancel, setOrderToCancel] = useState(null);
 
   const dismissCancelledOrder = useCallback((reference) => {
     if (!reference) return;
@@ -938,7 +949,13 @@ export default function OrdersPanel() {
   const cancelOrder = (order) => {
     // L'annulation n'est possible que dans la colonne « Confirmée » et si pas déjà annulée
     if (columnOf(order) !== "confirmed" || inFlight.current.has(order.reference) || norm(order.status) === "CANCELLED") return;
-    if (!window.confirm(t("Admin.orders.cancelOrderConfirm", { ref: order.reference }, `Annuler la commande ${order.reference} ?`))) return;
+    setOrderToCancel(order);
+  };
+
+  const handleConfirmCancelOrder = () => {
+    if (!orderToCancel) return;
+    const order = orderToCancel;
+    setOrderToCancel(null);
     applyStatus(order, pickStatus("cancelled", allStatuses) ?? "CANCELLED");
   };
 
@@ -1289,6 +1306,31 @@ export default function OrdersPanel() {
           </button>
         </div>
       )}
+
+      {/* Cancellation Confirmation Alert Dialog */}
+      <AlertDialog open={Boolean(orderToCancel)} onOpenChange={(open) => !open && setOrderToCancel(null)}>
+        <AlertDialogContent className="bg-white border border-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 font-bold text-lg">
+              {t("Admin.orders.cancelModalTitle", {}, "Annuler la commande")}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-sm">
+              {orderToCancel && t("Admin.orders.cancelOrderConfirm", { ref: orderToCancel.reference }, `Annuler la commande ${orderToCancel.reference} ?`)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2 justify-end">
+            <AlertDialogCancel className="border-gray-300 text-gray-700 hover:bg-gray-100">
+              {t("Admin.orders.keepOrder", {}, "Conserver")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmCancelOrder}
+              className="bg-red-600 text-white hover:bg-red-700 font-bold"
+            >
+              {t("Admin.orders.confirmCancel", {}, "Annuler la commande")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

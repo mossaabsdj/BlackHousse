@@ -1,9 +1,19 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Check, Loader2, Store, Truck, Ban, XCircle } from "lucide-react";
 import Overlay from "./Overlay";
 import { inputClass, primaryBtn } from "./UI";
-import { buildOrderPayload, formatPrice, fmt, isValidPhone, makeKey, normalizePhone } from "./Logic";
+import {
+  STORAGE,
+  read,
+  write,
+  buildOrderPayload,
+  formatPrice,
+  fmt,
+  isValidPhone,
+  makeKey,
+  normalizePhone,
+} from "./Logic";
 import { cancelCustomerOrder } from "./api";
 import { useRealtimeOrder } from "@/lib/Firebase";
 import CustomerNotificationButton from "./CustomerNotificationButton";
@@ -61,13 +71,104 @@ export default function CheckoutModal({
 }) {
   const { content, locale } = useI18n();
   const c = t.checkout;
-  const [name, setName] = useState(initialCustomer?.name || "");
-  const [phone, setPhone] = useState(initialCustomer?.phone || "");
-  const [fulfillment, setFulfillment] = useState("");
-  const [municipalityId, setMunicipalityId] = useState("");
-  const [municipalityText, setMunicipalityText] = useState("");
-  const [address, setAddress] = useState("");
-  const [notes, setNotes] = useState("");
+  // Restore saved checkout information from localStorage
+  const [name, setName] = useState(() => {
+    if (typeof window === "undefined") return initialCustomer?.name || "";
+    const draft = read(STORAGE.checkoutDraft, null);
+    const cust = read(STORAGE.customer, null);
+    return draft?.name ?? cust?.name ?? initialCustomer?.name ?? "";
+  });
+  const [phone, setPhone] = useState(() => {
+    if (typeof window === "undefined") return initialCustomer?.phone || "";
+    const draft = read(STORAGE.checkoutDraft, null);
+    const cust = read(STORAGE.customer, null);
+    return draft?.phone ?? cust?.phone ?? initialCustomer?.phone ?? "";
+  });
+  const [fulfillment, setFulfillment] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const draft = read(STORAGE.checkoutDraft, null);
+    const cust = read(STORAGE.customer, null);
+    return draft?.fulfillment ?? cust?.fulfillment ?? initialCustomer?.fulfillment ?? "";
+  });
+  const [municipalityId, setMunicipalityId] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const draft = read(STORAGE.checkoutDraft, null);
+    const cust = read(STORAGE.customer, null);
+    return draft?.municipalityId ?? cust?.municipalityId ?? initialCustomer?.municipalityId ?? "";
+  });
+  const [municipalityText, setMunicipalityText] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const draft = read(STORAGE.checkoutDraft, null);
+    const cust = read(STORAGE.customer, null);
+    return draft?.municipalityText ?? cust?.municipalityText ?? initialCustomer?.municipalityText ?? "";
+  });
+  const [address, setAddress] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const draft = read(STORAGE.checkoutDraft, null);
+    const cust = read(STORAGE.customer, null);
+    return draft?.address ?? cust?.address ?? initialCustomer?.address ?? "";
+  });
+  const [notes, setNotes] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const draft = read(STORAGE.checkoutDraft, null);
+    return draft?.notes ?? "";
+  });
+
+  const isHydratedRef = useRef(false);
+
+  // Hydration sync: ensure values from localStorage are accurately loaded on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const draft = read(STORAGE.checkoutDraft, null);
+    const cust = read(STORAGE.customer, null);
+
+    const savedName = draft?.name ?? cust?.name ?? initialCustomer?.name ?? "";
+    const savedPhone = draft?.phone ?? cust?.phone ?? initialCustomer?.phone ?? "";
+    const savedFulfillment = draft?.fulfillment ?? cust?.fulfillment ?? initialCustomer?.fulfillment ?? "";
+    const savedMunId = draft?.municipalityId ?? cust?.municipalityId ?? initialCustomer?.municipalityId ?? "";
+    const savedMunText = draft?.municipalityText ?? cust?.municipalityText ?? initialCustomer?.municipalityText ?? "";
+    const savedAddress = draft?.address ?? cust?.address ?? initialCustomer?.address ?? "";
+    const savedNotes = draft?.notes ?? "";
+
+    if (savedName && !name) setName(savedName);
+    if (savedPhone && !phone) setPhone(savedPhone);
+    if (savedFulfillment && !fulfillment) setFulfillment(savedFulfillment);
+    if (savedMunId && !municipalityId) setMunicipalityId(savedMunId);
+    if (savedMunText && !municipalityText) setMunicipalityText(savedMunText);
+    if (savedAddress && !address) setAddress(savedAddress);
+    if (savedNotes && !notes) setNotes(savedNotes);
+
+    isHydratedRef.current = true;
+  }, []);
+
+  // Save to localStorage as the customer types
+  useEffect(() => {
+    if (!isHydratedRef.current) return;
+
+    // 1. Persistent customer details across multiple orders
+    const prevCust = read(STORAGE.customer, {}) || {};
+    const updatedCustomer = {
+      ...prevCust,
+      name,
+      phone,
+      ...(fulfillment ? { fulfillment } : {}),
+      ...(municipalityId ? { municipalityId } : {}),
+      ...(municipalityText ? { municipalityText } : {}),
+      ...(address ? { address } : {}),
+    };
+    write(STORAGE.customer, updatedCustomer);
+
+    // 2. In-progress checkout draft (including temporary notes)
+    write(STORAGE.checkoutDraft, {
+      name,
+      phone,
+      fulfillment,
+      municipalityId,
+      municipalityText,
+      address,
+      notes,
+    });
+  }, [name, phone, fulfillment, municipalityId, municipalityText, address, notes]);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -185,12 +286,36 @@ export default function CheckoutModal({
       }
 
       idem.current = { hash: null, key: null };
+
+      // Clear temporary order notes after successful placement, but keep persistent customer details
+      setNotes("");
+      write(STORAGE.checkoutDraft, {
+        name: name.trim(),
+        phone: normalizePhone(phone),
+        fulfillment,
+        municipalityId,
+        municipalityText: municipalityText.trim(),
+        address: address.trim(),
+        notes: "",
+      });
+
+      // Keep customer details saved across multiple orders
+      const finalCustomer = {
+        name: name.trim(),
+        phone: normalizePhone(phone),
+        fulfillment,
+        municipalityId,
+        municipalityText: municipalityText.trim(),
+        address: address.trim(),
+      };
+      write(STORAGE.customer, finalCustomer);
+
       setPlaced({
         order,
         name: name.trim(),
         snapshot: { items: summaryItems, subtotal: totals.subtotal, deliveryFee, total },
       });
-      onPlaced(order, { name: name.trim(), phone: normalizePhone(phone) });
+      onPlaced(order, finalCustomer);
     } catch (err) {
       // The cart is intentionally kept: it is only cleared after a successful order.
       if (err?.fields) {

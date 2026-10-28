@@ -20,6 +20,16 @@ import {
 import { api, formatDate } from "./adminApi";
 import { card, inputClass, btnPrimary, btnGhost, btnDanger, Modal } from "./Ui";
 import { useRealtimeFeedback } from "@/lib/Firebase";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function Burgers({ value, className = "" }) {
   return (
@@ -50,6 +60,7 @@ export default function FeedbackPanel() {
 
   const [deletingId, setDeletingId] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   // Fetch feedback data from admin API
   const loadData = useCallback(async () => {
@@ -108,12 +119,13 @@ export default function FeedbackPanel() {
   const handleDelete = async () => {
     if (!deletingId) return;
     setDeleteLoading(true);
+    setDeleteError("");
     try {
       await api.delete(`/api/admin/feedback/${deletingId}`);
       setDeletingId(null);
       loadData();
     } catch (err) {
-      alert(err?.message || "Erreur lors de la suppression de l'avis.");
+      setDeleteError(err?.message || "Erreur lors de la suppression de l'avis.");
     } finally {
       setDeleteLoading(false);
     }
@@ -471,7 +483,10 @@ export default function FeedbackPanel() {
                   {/* Delete button */}
                   <button
                     type="button"
-                    onClick={() => setDeletingId(r.id)}
+                    onClick={() => {
+                      setDeletingId(r.id);
+                      setDeleteError("");
+                    }}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
                     title="Supprimer définitivement cet avis"
                   >
@@ -512,38 +527,41 @@ export default function FeedbackPanel() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deletingId && (
-        <Modal
-          title="Confirmer la suppression"
-          onClose={() => setDeletingId(null)}
-          footer={
-            <>
-              <button
-                type="button"
-                onClick={() => setDeletingId(null)}
-                className={btnGhost}
-                disabled={deleteLoading}
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className={btnDanger}
-                disabled={deleteLoading}
-              >
-                {deleteLoading ? "Suppression..." : "Supprimer"}
-              </button>
-            </>
-          }
-        >
-          <p className="text-sm text-gray-600">
-            Êtes-vous sûr de vouloir supprimer définitivement cet avis ? Cette action est
-            irréversible.
-          </p>
-        </Modal>
-      )}
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog open={Boolean(deletingId)} onOpenChange={(open) => { if (!open) { setDeletingId(null); setDeleteError(""); } }}>
+        <AlertDialogContent className="bg-white border border-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 font-bold text-lg">
+              Confirmer la suppression
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-sm space-y-2">
+              <span className="block">
+                Êtes-vous sûr de vouloir supprimer définitivement cet avis client ? Cette action est irréversible.
+              </span>
+              {deleteError && (
+                <span className="block text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200">
+                  {deleteError}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2 justify-end">
+            <AlertDialogCancel
+              disabled={deleteLoading}
+              className="border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleteLoading}
+              onClick={handleDelete}
+              className="bg-red-600 text-white hover:bg-red-700 font-bold"
+            >
+              {deleteLoading ? "Suppression..." : "Supprimer définitivement"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
