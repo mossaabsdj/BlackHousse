@@ -1,6 +1,6 @@
 
 import crypto from "node:crypto";
-import { NextResponse } from "next/server";
+import { NextResponse ,after } from "next/server";
 import { Prisma, PrismaClient } from "@prisma/client";
 
 import {
@@ -496,18 +496,20 @@ export async function POST(request) {
         };
 
         // Synchronize the newly created order with Firebase and notify admins.
-        void Promise.resolve()
-          .then(async () => {
-            await syncOrderCreated(responseOrder);
-            await notifyAdminsNewOrder(responseOrder);
-          })
-          .catch((error) => {
-            console.warn(
-              "[orders] Firebase/Push sync error:",
-              error?.message ?? error
-            );
-          });
+      // Runs AFTER the response is sent, but the platform keeps the function alive until it finishes.
+after(async () => {
+  try {
+    await syncOrderCreated(responseOrder);
+  } catch (error) {
+    console.warn("[orders] Firebase sync error:", error?.message ?? error);
+  }
 
+  try {
+    await notifyAdminsNewOrder(responseOrder);
+  } catch (error) {
+    console.warn("[orders] Admin push error:", error?.message ?? error);
+  }
+});
         if (body.fcmToken && typeof body.fcmToken === "string" && body.fcmToken.trim().length > 10) {
           try {
             await prisma.pushSubscription.upsert({
