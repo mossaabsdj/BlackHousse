@@ -231,7 +231,7 @@ export default function ExpensesPanel() {
     setDeletingLoading(true);
     setDeleteError("");
     try {
-      await api.delete(`/api/admin/expenses/${deletingExpense.id}`);
+      await api.del(`/api/admin/expenses/${deletingExpense.id}`);
       setDeletingExpense(null);
       await loadExpenses(true);
     } catch (err) {

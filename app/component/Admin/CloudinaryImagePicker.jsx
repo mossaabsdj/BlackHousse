@@ -459,9 +459,10 @@ export default function CloudinaryImagePicker({
             <AlertDialogAction
               disabled={deletingImage}
               onClick={handleConfirmDeleteImage}
-              className="bg-red-600 text-white hover:bg-red-700 font-bold"
+              className="bg-red-600 text-white hover:bg-red-700 font-bold flex items-center gap-2"
             >
-              {deletingImage ? "Suppression..." : "Supprimer"}
+              {deletingImage && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{deletingImage ? "Suppression..." : "Supprimer"}</span>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

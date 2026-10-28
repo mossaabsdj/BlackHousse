@@ -66,9 +66,15 @@ export function Toggle({ checked, onChange, label, disabled = false }) {
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition disabled:opacity-50 ${checked ? "bg-orange-500" : "bg-gray-300"}`}
+      className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors duration-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed ${
+        checked ? "bg-orange-500" : "bg-gray-300"
+      }`}
     >
-      <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`} />
+      <span
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all duration-200 ${
+          checked ? "start-[22px]" : "start-0.5"
+        }`}
+      />
     </button>
   );
 }

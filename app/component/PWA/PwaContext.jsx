@@ -6,17 +6,23 @@ const PwaContext = createContext({
   isStandalone: false,
   canInstall: false,
   isInstalled: false,
+  hasNativePrompt: false,
   platform: "other",
   isIos: false,
   isSafari: false,
   showModal: false,
   openInstallModal: () => {},
   closeInstallModal: () => {},
-  triggerInstall: () => {},
+  triggerInstall: async () => ({ triggered: false }),
 });
 
 export function PwaProvider({ children }) {
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [deferredPrompt, setDeferredPrompt] = useState(() => {
+    if (typeof window !== "undefined" && window.__deferredPrompt) {
+      return window.__deferredPrompt;
+    }
+    return null;
+  });
   const [isStandalone, setIsStandalone] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [platform, setPlatform] = useState("other");
@@ -91,10 +97,16 @@ export function PwaProvider({ children }) {
       });
     }
 
+    // Check early-captured beforeinstallprompt event if available
+    if (typeof window !== "undefined" && window.__deferredPrompt) {
+      setDeferredPrompt(window.__deferredPrompt);
+    }
+
     // Listen for Chromium beforeinstallprompt event
     const handleBeforeInstallPrompt = (e) => {
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
+      window.__deferredPrompt = e;
       setDeferredPrompt(e);
       console.log("[PWA] beforeinstallprompt event captured");
     };
@@ -104,6 +116,9 @@ export function PwaProvider({ children }) {
       console.log("[PWA] App successfully installed!");
       setIsInstalled(true);
       setDeferredPrompt(null);
+      if (typeof window !== "undefined") {
+        window.__deferredPrompt = null;
+      }
       setShowModal(false);
     };
 
@@ -121,29 +136,37 @@ export function PwaProvider({ children }) {
   const closeInstallModal = useCallback(() => setShowModal(false), []);
 
   const triggerInstall = useCallback(async () => {
-    if (deferredPrompt) {
+    const promptEvent = deferredPrompt || (typeof window !== "undefined" ? window.__deferredPrompt : null);
+    if (promptEvent) {
       // Native prompt available (Android Chrome, Windows Chrome/Edge, macOS Chrome)
       try {
-        await deferredPrompt.prompt();
-        const choice = await deferredPrompt.userChoice;
-        console.log("[PWA] User choice:", choice.outcome);
-        if (choice.outcome === "accepted") {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        console.log("[PWA] User choice:", choice?.outcome);
+        if (choice?.outcome === "accepted") {
           setIsInstalled(true);
+          setShowModal(false);
         }
         setDeferredPrompt(null);
+        if (typeof window !== "undefined") {
+          window.__deferredPrompt = null;
+        }
+        return { triggered: true, outcome: choice?.outcome };
       } catch (err) {
         console.warn("[PWA] Prompt error:", err);
-        setShowModal(true);
+        return { triggered: false, error: err };
       }
     } else {
-      // Automatic prompt unavailable (iOS Safari, macOS Safari, or blocked prompt)
+      // Automatic prompt unavailable (iOS Safari, macOS Safari, or blocked/consumed prompt)
       // Open step-by-step platform instructions
       setShowModal(true);
+      return { triggered: false, manual: true };
     }
   }, [deferredPrompt]);
 
   // Can install if not already running in standalone mode and not yet marked installed
   const canInstall = !isStandalone && !isInstalled;
+  const hasNativePrompt = Boolean(deferredPrompt || (typeof window !== "undefined" && window.__deferredPrompt));
 
   return (
     <PwaContext.Provider
@@ -151,6 +174,7 @@ export function PwaProvider({ children }) {
         isStandalone,
         canInstall,
         isInstalled,
+        hasNativePrompt,
         platform,
         isIos,
         isSafari,

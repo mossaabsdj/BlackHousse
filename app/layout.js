@@ -58,6 +58,11 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="BlackHousse" />
         <meta name="mobile-web-app-capable" content="yes" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__deferredPrompt=e;});}catch(err){}})();`,
+          }}
+        />
       </head>
       <body className="antialiased bg-[#070709] text-foreground">
         <Providers>

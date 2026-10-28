@@ -134,7 +134,7 @@ export default function AdminNotificationToggle({ compact = false }) {
           />
 
           {/* Popover panel */}
-          <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white text-gray-900 shadow-2xl border border-gray-200 p-5 z-50 animate-in fade-in zoom-in-95 duration-150">
+          <div className="absolute end-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white text-gray-900 shadow-2xl border border-gray-200 p-5 z-50 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-start justify-between pb-3 border-b border-gray-100">
               <div className="flex items-center gap-2.5">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${

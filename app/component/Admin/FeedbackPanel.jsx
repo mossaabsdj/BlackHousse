@@ -8,6 +8,7 @@ import {
   Clock,
   Trash2,
   RefreshCw,
+  Loader2,
   Search,
   Star,
   Filter,
@@ -121,7 +122,7 @@ export default function FeedbackPanel() {
     setDeleteLoading(true);
     setDeleteError("");
     try {
-      await api.delete(`/api/admin/feedback/${deletingId}`);
+      await api.del(`/api/admin/feedback/${deletingId}`);
       setDeletingId(null);
       loadData();
     } catch (err) {
@@ -555,9 +556,10 @@ export default function FeedbackPanel() {
             <AlertDialogAction
               disabled={deleteLoading}
               onClick={handleDelete}
-              className="bg-red-600 text-white hover:bg-red-700 font-bold"
+              className="bg-red-600 text-white hover:bg-red-700 font-bold flex items-center gap-2"
             >
-              {deleteLoading ? "Suppression..." : "Supprimer définitivement"}
+              {deleteLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{deleteLoading ? "Suppression..." : "Supprimer définitivement"}</span>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

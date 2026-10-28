@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Pencil, Plus, Search, Trash2, Loader2 } from "lucide-react";
 import { api, formatPrice, useList } from "./adminApi";
 import { Badge, ErrorBox, Field, Modal, Toggle, btnDanger, btnGhost, btnPrimary, card, inputClass } from "./Ui";
 import CloudinaryImagePicker from "./CloudinaryImagePicker";
@@ -258,9 +258,10 @@ export default function ProductsPanel() {
             <AlertDialogAction
               disabled={deleting}
               onClick={handleConfirmDelete}
-              className="bg-red-600 text-white hover:bg-red-700 font-bold"
+              className="bg-red-600 text-white hover:bg-red-700 font-bold flex items-center gap-2"
             >
-              {deleting ? "Suppression..." : "Supprimer"}
+              {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{deleting ? "Suppression..." : "Supprimer"}</span>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

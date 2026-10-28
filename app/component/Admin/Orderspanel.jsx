@@ -581,6 +581,7 @@ export default function OrdersPanel() {
   const inFlight = useRef(new Set());
   const [dismissedCancelled, setDismissedCancelled] = useState(() => loadDismissedCancelled());
   const [orderToCancel, setOrderToCancel] = useState(null);
+  const [cancellingOrder, setCancellingOrder] = useState(false);
 
   const dismissCancelledOrder = useCallback((reference) => {
     if (!reference) return;
@@ -952,11 +953,16 @@ export default function OrdersPanel() {
     setOrderToCancel(order);
   };
 
-  const handleConfirmCancelOrder = () => {
-    if (!orderToCancel) return;
+  const handleConfirmCancelOrder = async () => {
+    if (!orderToCancel || cancellingOrder) return;
     const order = orderToCancel;
-    setOrderToCancel(null);
-    applyStatus(order, pickStatus("cancelled", allStatuses) ?? "CANCELLED");
+    setCancellingOrder(true);
+    try {
+      await applyStatus(order, pickStatus("cancelled", allStatuses) ?? "CANCELLED");
+      setOrderToCancel(null);
+    } finally {
+      setCancellingOrder(false);
+    }
   };
 
   return (
@@ -1138,13 +1144,13 @@ export default function OrdersPanel() {
           <Printer className="w-4 h-4" />
           {t("Admin.orders.autoPrint", {}, "Impression auto")}
           <span
-            className={`relative inline-flex h-5 w-9 flex-none rounded-full transition-colors ${
+            className={`relative inline-flex h-5 w-9 flex-none rounded-full transition-colors duration-200 ${
               autoPrint ? "bg-emerald-500" : "bg-gray-300"
             }`}
           >
             <span
-              className={`absolute top-0.5 start-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                autoPrint ? (isRTL ? "-translate-x-4" : "translate-x-4") : ""
+              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${
+                autoPrint ? "start-[18px]" : "start-0.5"
               }`}
             />
           </span>
@@ -1166,13 +1172,13 @@ export default function OrdersPanel() {
           <CheckCircle2 className="w-4 h-4" />
           {t("Admin.orders.autoConfirm", {}, "Confirmation auto")}
           <span
-            className={`relative inline-flex h-5 w-9 flex-none rounded-full transition-colors ${
+            className={`relative inline-flex h-5 w-9 flex-none rounded-full transition-colors duration-200 ${
               autoConfirm ? "bg-emerald-500" : "bg-gray-300"
             }`}
           >
             <span
-              className={`absolute top-0.5 start-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                autoConfirm ? (isRTL ? "-translate-x-4" : "translate-x-4") : ""
+              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${
+                autoConfirm ? "start-[18px]" : "start-0.5"
               }`}
             />
           </span>
@@ -1319,14 +1325,16 @@ export default function OrdersPanel() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex gap-2 justify-end">
-            <AlertDialogCancel className="border-gray-300 text-gray-700 hover:bg-gray-100">
+            <AlertDialogCancel disabled={cancellingOrder} className="border-gray-300 text-gray-700 hover:bg-gray-100">
               {t("Admin.orders.keepOrder", {}, "Conserver")}
             </AlertDialogCancel>
             <AlertDialogAction
+              disabled={cancellingOrder}
               onClick={handleConfirmCancelOrder}
-              className="bg-red-600 text-white hover:bg-red-700 font-bold"
+              className="bg-red-600 text-white hover:bg-red-700 font-bold flex items-center gap-2"
             >
-              {t("Admin.orders.confirmCancel", {}, "Annuler la commande")}
+              {cancellingOrder && <RefreshCw className="w-4 h-4 animate-spin" />}
+              <span>{cancellingOrder ? "Annulation..." : t("Admin.orders.confirmCancel", {}, "Annuler la commande")}</span>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

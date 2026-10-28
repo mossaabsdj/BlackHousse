@@ -8,6 +8,7 @@ import {
   Trash2,
   MoreVertical,
   UserPlus,
+  Loader2,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
@@ -507,9 +508,10 @@ export default function UserManagement() {
               <AlertDialogAction
                 disabled={loading}
                 onClick={handleDeleteConfirm}
-                className="bg-red-600 text-white hover:bg-red-700 font-bold"
+                className="bg-red-600 text-white hover:bg-red-700 font-bold flex items-center gap-2"
               >
-                {loading ? "Deleting..." : "Delete"}
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{loading ? "Deleting..." : "Delete"}</span>
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

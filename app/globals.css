@@ -188,4 +188,12 @@ html[dir="ltr"] .text-start-rtl {
   text-align: left;
 }
 
+/* RTL Toggle switch support fallback */
+html[dir="rtl"] [role="switch"] .translate-x-5 {
+  transform: translateX(-20px) !important;
+}
+html[dir="rtl"] [role="switch"] .translate-x-0\.5 {
+  transform: translateX(-2px) !important;
+}
+
 

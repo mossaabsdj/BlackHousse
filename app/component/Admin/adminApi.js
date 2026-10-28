@@ -35,6 +35,7 @@ export const api = {
   put: (url, body) => call("PUT", url, body),
   patch: (url, body) => call("PATCH", url, body),
   del: (url) => call("DELETE", url),
+  delete: (url) => call("DELETE", url),
 };
 
 /** Loads a list endpoint ({ items, ...extra }). reload(true) refreshes silently (no spinner). */
