@@ -443,7 +443,10 @@ export default function AppNavbar({}) {
     className="flex items-center gap-1.5 sm:gap-2"
   />
             <LanguageSwitcher variant="navbar" />
-
+ <PwaInstallButton
+                    variant="icon"
+                    label={t("Pwa.installDrawer", null, "Installer l'application BlackHousse")}
+                  />
            
           </div>
 

@@ -352,7 +352,7 @@ useEffect(() => {
         ? { rotate: [0, -14, 10, -5, 0] }
         : { rotate: 0 }
     }
-    transition={{ duration: 0.7, delay: 0.1 }}
+    transition={{ duration: 0.9, delay: 0.3 }}
   >
     <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
   </motion.span>
@@ -365,7 +365,7 @@ useEffect(() => {
       <motion.span
         key="badge"
         initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
+        animate={{ scale: 1.2 }}
         exit={{ scale: 0 }}
         transition={{ type: "spring", stiffness: 500, damping: 18 }}
         className="absolute -top-1.5 -right-1.5 min-w-4 sm:min-w-5 h-4 sm:h-5 px-1 rounded-full bg-black text-white text-[9px] sm:text-[10px] leading-none flex items-center justify-center"
