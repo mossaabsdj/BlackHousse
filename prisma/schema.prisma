@@ -263,3 +263,9 @@ model PushSubscription {
   @@index([adminEmail])
 }
 
+model SentEvent {
+  id        String   @id
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
