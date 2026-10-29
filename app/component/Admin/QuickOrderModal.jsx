@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import {
   X, Plus, Minus, Trash2, Search, ShoppingBag, Truck, Store, Check,
   AlertCircle, RefreshCw, ImageOff, User, Phone, MapPin, StickyNote,
@@ -87,7 +88,15 @@ function QtyStepper({ value, onMinus, onPlus, size = "md" }) {
       >
         <Minus className={icon} />
       </button>
-      <span className={`text-center font-extrabold text-sm ${size === "sm" ? "w-5" : "w-6"}`}>{value}</span>
+      <motion.span
+        key={value}
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 500, damping: 18 }}
+        className={`text-center font-extrabold text-sm ${size === "sm" ? "w-5" : "w-6"}`}
+      >
+        {value}
+      </motion.span>
       <button
         type="button"
         onClick={onPlus}
@@ -117,7 +126,7 @@ function Sheet({ title, onClose, children, footer }) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full sm:max-w-3xl max-h-[94vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+        className="w-full sm:max-w-xl max-h-[94vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
       >
         <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-white">
           <h3 className="font-extrabold text-gray-900 text-lg leading-tight truncate">{title}</h3>
@@ -256,7 +265,7 @@ function OptionsModal({ product, onClose, onAdd }) {
 /* ------------------------------------------------------------------ */
 
 export default function QuickOrderModal({ onClose, onOrderCreated }) {
-  const { t } = useI18n();
+  const { t, isRTL } = useI18n();
 
   // Catalog
   const [products, setProducts] = useState([]);
@@ -286,7 +295,18 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
 
   // UI
   const [optionsProduct, setOptionsProduct] = useState(null);
-  const [tab, setTab] = useState("menu"); // mobile only: "menu" | "order"
+  const [tab, setTab] = useState("menu"); // mobile only: "menu" | "client"
+
+  // Auto-scroll the selected-items strip when a new line is added
+  const itemsRef = useRef(null);
+  const prevLenRef = useRef(0);
+
+  useEffect(() => {
+    if (items.length > prevLenRef.current && itemsRef.current) {
+      itemsRef.current.scrollTo({ top: itemsRef.current.scrollHeight, behavior: "smooth" });
+    }
+    prevLenRef.current = items.length;
+  }, [items.length]);
 
   // Escape closes the main modal (unless the options popup is open: it handles its own)
   useEffect(() => {
@@ -440,7 +460,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
   /* --------------------------------- render -------------------------------- */
 
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       <div
         className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-3"
         onMouseDown={(e) => e.target === e.currentTarget && onClose()}
@@ -448,6 +468,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
         <div
           role="dialog"
           aria-modal="true"
+          dir={isRTL ? "rtl" : "ltr"}
           aria-label={t("Admin.orders.addOrder", {}, "Nouvelle commande")}
           className="w-full h-full sm:h-[96vh] sm:max-w-[1500px] flex flex-col bg-white sm:rounded-3xl shadow-2xl overflow-hidden"
         >
@@ -462,21 +483,21 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
               <button
                 type="button"
                 onClick={() => setTab("menu")}
-                className={`px-3 py-1.5 rounded-full transition ${tab === "menu" ? "bg-orange-500 text-white shadow" : "text-gray-600"}`}
+                className={`px-3 py-1.5 rounded-full transition flex items-center gap-1.5 ${tab === "menu" ? "bg-orange-500 text-white shadow" : "text-gray-600"}`}
               >
                 {t("Admin.nav.products", {}, "Menu")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setTab("order")}
-                className={`px-3 py-1.5 rounded-full transition flex items-center gap-1.5 ${tab === "order" ? "bg-orange-500 text-white shadow" : "text-gray-600"}`}
-              >
-                {t("Admin.history.items", {}, "Commande")}
                 {itemCount > 0 && (
-                  <span className={`min-w-5 h-5 px-1 rounded-full text-[10px] flex items-center justify-center ${tab === "order" ? "bg-white text-orange-600" : "bg-orange-500 text-white"}`}>
+                  <span className={`min-w-5 h-5 px-1 rounded-full text-[10px] flex items-center justify-center ${tab === "menu" ? "bg-white text-orange-600" : "bg-orange-500 text-white"}`}>
                     {itemCount}
                   </span>
                 )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("client")}
+                className={`px-3 py-1.5 rounded-full transition ${tab === "client" ? "bg-orange-500 text-white shadow" : "text-gray-600"}`}
+              >
+                {t("Admin.history.client", {}, "Client")}
               </button>
             </div>
 
@@ -490,119 +511,15 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
             </button>
           </div>
 
-          {/* ---------- Body ---------- */}
-          <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
-            {/* ===== LEFT: products (takes the remaining width) ===== */}
-            <section
-              className={`${tab === "menu" ? "flex" : "hidden"} lg:flex flex-1 basis-0 min-w-0 min-h-0 flex-col`}
-            >
-              <div className="flex-none p-4 pb-2 space-y-3">
-                <div className="relative">
-                  <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    placeholder={t("OrderingPage.catalog.searchPlaceholder", {}, "Rechercher un plat, boisson...")}
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className={`${inputClass} ps-10`}
-                  />
-                </div>
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-                  <Chip active={selectedCategory === ""} onClick={() => setSelectedCategory("")}>
-                    {t("OrderingPage.catalog.allCategories", {}, "Tout")}
-                  </Chip>
-                  {categories.map((c) => (
-                    <Chip key={c.id} active={selectedCategory === c.id} onClick={() => setSelectedCategory(c.id)}>
-                      {c.name}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] px-4 pb-4">
-                {catalogLoading ? (
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2.5">
-                    {Array.from({ length: 12 }).map((_, i) => (
-                      <div key={i} className="aspect-square rounded-2xl bg-gray-100 animate-pulse" />
-                    ))}
-                  </div>
-                ) : catalogError ? (
-                  <div role="alert" className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-600 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 flex-none" />
-                    {catalogError}
-                  </div>
-                ) : filteredProducts.length === 0 ? (
-                  <div className="text-center py-10 text-gray-400 text-sm">
-                    {t("OrderingPage.cart.empty", {}, "Aucun produit disponible.")}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2.5">
-                    {filteredProducts.map((p) => {
-                      const count = qtyByProduct[p.id] || 0;
-                      const hasOptions = (p.optionGroups || []).length > 0;
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => handleSelectProduct(p)}
-                          className={`relative aspect-square overflow-hidden rounded-2xl border bg-gray-100 text-start transition active:scale-[0.97] hover:shadow-md ${
-                            count
-                              ? "border-orange-400 ring-2 ring-orange-400/40"
-                              : "border-gray-200 hover:border-orange-300"
-                          }`}
-                        >
-                          <ProductImage src={p.image} name={p.name} className="absolute inset-0 w-full h-full" />
-
-                          {/* Name + price over the image */}
-                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-2 pb-2 pt-8">
-                            <p className="text-[12px] font-extrabold leading-tight text-white line-clamp-2">{p.name}</p>
-                            <p className="text-xs font-black text-orange-300 mt-0.5">{formatPrice(p.price)}</p>
-                          </div>
-
-                          {/* Has options */}
-                          {hasOptions && (
-                            <span className="absolute top-1.5 start-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-gray-700 shadow">
-                              {t("Admin.nav.options", {}, "Options")}
-                            </span>
-                          )}
-
-                          {/* Quantity in cart */}
-                          {count > 0 && (
-                            <span className="absolute top-1.5 end-1.5 min-w-6 h-6 px-1.5 rounded-full bg-orange-600 text-white text-xs font-black flex items-center justify-center shadow">
-                              {count}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile bottom bar */}
-              <div className="lg:hidden flex-none border-t border-gray-200 bg-white p-3 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
-                    {t("OrderingPage.cart.subtotal", {}, "Sous-total")} · {itemCount}
-                  </p>
-                  <p className="text-lg font-black text-gray-900">{formatPrice(subtotal)}</p>
-                </div>
-                <button
-                  type="button"
-                  disabled={items.length === 0}
-                  onClick={() => setTab("order")}
-                  className={`${btnPrimary} flex items-center gap-2 px-6 disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  {t("OrderingPage.bar.view", {}, "Continuer")}
-                </button>
-              </div>
-            </section>
-
-            {/* ===== RIGHT: cart + client + delivery (fixed width) ===== */}
+          {/* ---------- Body ----------
+              DOM order: client panel first, products second, with flex-row-reverse.
+              LTR  -> products on the left,  client on the right.
+              RTL  -> products on the right, client on the left. */}
+          <div className="flex-1 min-h-0 flex flex-col lg:flex-row-reverse">
+            {/* ===== CLIENT PANEL: info + confirmation (fixed width) ===== */}
             <form
               onSubmit={handleSubmit}
-              className={`${tab === "order" ? "flex" : "hidden"} lg:flex min-h-0 min-w-0 flex-1 lg:flex-none lg:shrink-0 lg:grow-0 lg:w-[440px] xl:w-[500px] flex-col bg-gray-50 border-t lg:border-t-0 lg:border-s border-gray-200`}
+              className={`${tab === "client" ? "flex" : "hidden"} lg:flex min-h-0 min-w-0 flex-1 lg:flex-none lg:shrink-0 lg:grow-0 lg:w-[400px] xl:w-[440px] flex-col bg-gray-50 border-t lg:border-t-0 lg:border-s border-gray-200`}
             >
               <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] p-4 space-y-5">
                 {formError && (
@@ -612,75 +529,10 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                   </div>
                 )}
 
-                {/* Cart */}
-                <div>
-                  <SectionLabel
-                    right={
-                      items.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setItems([])}
-                          className="text-[11px] text-red-500 hover:text-red-700 font-semibold"
-                        >
-                          {t("OrderingPage.cart.remove", {}, "Vider")}
-                        </button>
-                      )
-                    }
-                  >
-                    {t("Admin.history.items", {}, "Articles")} ({itemCount})
-                  </SectionLabel>
-
-                  {items.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-gray-300 bg-white py-6 text-center text-xs font-semibold text-gray-400">
-                      {t("OrderingPage.cart.empty", {}, "Aucun article")}
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-[34vh] overflow-y-auto pe-1">
-                      {items.map((it, idx) => (
-                        <div key={it.key} className="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-gray-200">
-                          <ProductImage src={it.image} name={it.name} className="w-12 h-12 rounded-lg flex-none" />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-gray-900 text-xs truncate">{it.name}</p>
-                            {it.options.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-0.5">
-                                {it.options.map((o) => (
-                                  <span
-                                    key={o.id}
-                                    className="text-[10px] font-semibold text-orange-700 bg-orange-50 border border-orange-100 rounded-full px-1.5"
-                                  >
-                                    {o.name}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                            <p className="text-gray-500 font-mono text-[11px] mt-0.5">{formatPrice(it.unitPrice)}</p>
-                          </div>
-                          <div className="flex flex-col items-end gap-1 flex-none">
-                            <QtyStepper
-                              size="sm"
-                              value={it.quantity}
-                              onMinus={() => handleUpdateQty(idx, -1)}
-                              onPlus={() => handleUpdateQty(idx, 1)}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveItem(idx)}
-                              aria-label="Supprimer"
-                              className="text-gray-400 hover:text-red-500"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
                 {/* Client */}
                 <div>
                   <SectionLabel>{t("Admin.history.client", {}, "Client")}</SectionLabel>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     <div className="relative">
                       <User className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       <input
@@ -825,11 +677,13 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                 </div>
               </div>
 
-              {/* Totals + submit (always visible) */}
+              {/* Totals + confirm (always visible) */}
               <div className="flex-none border-t border-gray-200 bg-white p-4 space-y-3">
                 <div className="space-y-1 text-xs text-gray-600">
                   <div className="flex justify-between">
-                    <span>{t("OrderingPage.cart.subtotal", {}, "Sous-total articles")}</span>
+                    <span>
+                      {t("Admin.history.items", {}, "Articles")} ({itemCount})
+                    </span>
                     <span className="font-mono font-bold text-gray-900">{formatPrice(subtotal)}</span>
                   </div>
                   {fulfillment === "delivery" && (
@@ -861,6 +715,206 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                 </div>
               </div>
             </form>
+
+            {/* ===== PRODUCTS: catalog on top, selected items at the bottom ===== */}
+            <section
+              className={`${tab === "menu" ? "flex" : "hidden"} lg:flex flex-1 basis-0 min-w-0 min-h-0 flex-col`}
+            >
+              {/* Search + categories */}
+              <div className="flex-none p-4 pb-2 space-y-3">
+                <div className="relative">
+                  <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder={t("OrderingPage.catalog.searchPlaceholder", {}, "Rechercher un plat, boisson...")}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className={`${inputClass} ps-10`}
+                  />
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+                  <Chip active={selectedCategory === ""} onClick={() => setSelectedCategory("")}>
+                    {t("OrderingPage.catalog.allCategories", {}, "Tout")}
+                  </Chip>
+                  {categories.map((c) => (
+                    <Chip key={c.id} active={selectedCategory === c.id} onClick={() => setSelectedCategory(c.id)}>
+                      {c.name}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              {/* Product grid */}
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] px-4 pb-4">
+                {catalogLoading ? (
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2.5">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <div key={i} className="aspect-square rounded-2xl bg-gray-100 animate-pulse" />
+                    ))}
+                  </div>
+                ) : catalogError ? (
+                  <div role="alert" className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-600 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 flex-none" />
+                    {catalogError}
+                  </div>
+                ) : filteredProducts.length === 0 ? (
+                  <div className="text-center py-10 text-gray-400 text-sm">
+                    {t("OrderingPage.cart.empty", {}, "Aucun produit disponible.")}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2.5">
+                    {filteredProducts.map((p) => {
+                      const count = qtyByProduct[p.id] || 0;
+                      const hasOptions = (p.optionGroups || []).length > 0;
+                      return (
+                        <motion.button
+                          key={p.id}
+                          type="button"
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleSelectProduct(p)}
+                          className={`relative aspect-square overflow-hidden rounded-2xl border bg-gray-100 text-start transition hover:shadow-md ${
+                            count
+                              ? "border-orange-400 ring-2 ring-orange-400/40"
+                              : "border-gray-200 hover:border-orange-300"
+                          }`}
+                        >
+                          <ProductImage src={p.image} name={p.name} className="absolute inset-0 w-full h-full" />
+
+                          {/* Name + price over the image */}
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-2 pb-2 pt-8">
+                            <p className="text-[12px] font-extrabold leading-tight text-white line-clamp-2">{p.name}</p>
+                            <p className="text-xs font-black text-orange-300 mt-0.5">{formatPrice(p.price)}</p>
+                          </div>
+
+                          {/* Has options */}
+                          {hasOptions && (
+                            <span className="absolute top-1.5 start-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-extrabold text-gray-700 shadow">
+                              {t("Admin.nav.options", {}, "Options")}
+                            </span>
+                          )}
+
+                          {/* Quantity in cart */}
+                          {count > 0 && (
+                            <>
+                              {/* orange pulse on every add */}
+                              <motion.span
+                                key={`f-${count}`}
+                                initial={{ boxShadow: "inset 0 0 0 3px rgba(249,115,22,.9)" }}
+                                animate={{ boxShadow: "inset 0 0 0 3px rgba(249,115,22,0)" }}
+                                transition={{ duration: 0.5 }}
+                                className="absolute inset-0 rounded-2xl pointer-events-none"
+                              />
+                              <motion.span
+                                key={count}
+                                initial={{ scale: 0.4 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 600, damping: 15 }}
+                                className="absolute top-1.5 end-1.5 min-w-6 h-6 px-1.5 rounded-full bg-orange-600 text-white text-xs font-black flex items-center justify-center shadow"
+                              >
+                                {count}
+                              </motion.span>
+                            </>
+                          )}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* ---------- Selected items (bottom of the products side) ---------- */}
+              <div className="flex-none border-t border-gray-200 bg-gray-50 px-4 pt-3 pb-3">
+                <SectionLabel
+                  right={
+                    items.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setItems([])}
+                        className="text-[11px] text-red-500 hover:text-red-700 font-semibold"
+                      >
+                        {t("OrderingPage.cart.remove", {}, "Vider")}
+                      </button>
+                    )
+                  }
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <ShoppingBag className="w-3.5 h-3.5 text-orange-500" />
+                    {t("Admin.history.items", {}, "Articles")} ({itemCount})
+                  </span>
+                </SectionLabel>
+
+                {items.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-gray-300 bg-white py-3 text-center text-xs font-semibold text-gray-400">
+                    {t("OrderingPage.cart.empty", {}, "Aucun article")}
+                  </div>
+                ) : (
+                  <div
+                    ref={itemsRef}
+                    className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 max-h-[26vh] lg:max-h-[24vh] overflow-y-auto overflow-x-hidden pe-1"
+                  >
+                    <AnimatePresence initial={false} mode="popLayout">
+                      {items.map((it, idx) => (
+                        <motion.div
+                          key={it.key}
+                          layout
+                          initial={{ opacity: 0, y: 16, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.85 }}
+                          transition={{ type: "spring", stiffness: 420, damping: 30 }}
+                          className="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-gray-200 min-w-0"
+                        >
+                          <ProductImage src={it.image} name={it.name} className="w-11 h-11 rounded-lg flex-none" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-gray-900 text-xs truncate">{it.name}</p>
+                            {it.options.length > 0 && (
+                              <p className="text-[10px] font-semibold text-orange-700 truncate">
+                                {it.options.map((o) => o.name).join(", ")}
+                              </p>
+                            )}
+                            <p className="text-gray-500 font-mono text-[11px]">{formatPrice(it.unitPrice)}</p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 flex-none">
+                            <QtyStepper
+                              size="sm"
+                              value={it.quantity}
+                              onMinus={() => handleUpdateQty(idx, -1)}
+                              onPlus={() => handleUpdateQty(idx, 1)}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(idx)}
+                              aria-label="Supprimer"
+                              className="text-gray-400 hover:text-red-500"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile bottom bar */}
+              <div className="lg:hidden flex-none border-t border-gray-200 bg-white p-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                    {t("OrderingPage.cart.subtotal", {}, "Sous-total")} · {itemCount}
+                  </p>
+                  <p className="text-lg font-black text-gray-900">{formatPrice(subtotal)}</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={items.length === 0}
+                  onClick={() => setTab("client")}
+                  className={`${btnPrimary} flex items-center gap-2 px-6 disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  {t("OrderingPage.bar.view", {}, "Continuer")}
+                </button>
+              </div>
+            </section>
           </div>
         </div>
       </div>
@@ -877,6 +931,6 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
           }}
         />
       )}
-    </>
+    </MotionConfig>
   );
 }
