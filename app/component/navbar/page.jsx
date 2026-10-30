@@ -20,18 +20,13 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   LogOut,
-  Menu,
-  X,
   House,
   UtensilsCrossed,
   ShoppingBasket,
   Star,
   MapPin,
-  ShoppingBag,
-  User,
 } from "lucide-react";
 import { useNavigationLoading } from "@/app/component/NavigationLoading/NavigationLoadingContext";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -42,6 +37,13 @@ import { useSession, signOut } from "next-auth/react";
 import PwaInstallButton from "@/app/component/PWA/PwaInstallButton";
 import { useI18n } from "@/lib/i18n/I18nContext";
 import LanguageSwitcher from "@/app/component/LanguageSwitcher";
+
+const HOME_PATH = "/Home";
+const ORDER_PATH = "/Commande";
+
+// true  -> in Arabic the nav is mirrored (Home on the right ... Contact on the left)
+// false -> same left-to-right order as French / English
+const MIRROR_NAV_IN_RTL = true;
 
 const NAV_DEFINITIONS = [
   { id: "home", labelKey: "nav.home", shortKey: "nav.home", icon: House },
@@ -58,7 +60,7 @@ const SECTION_IDS = {
   Footer: "contact",
 };
 
-const NavTab = ({ item, active, onClick, Icon, label }) => (
+const NavTab = ({ active, onClick, Icon, label }) => (
   <button
     onClick={onClick}
     aria-label={label}
@@ -84,11 +86,11 @@ const NavTab = ({ item, active, onClick, Icon, label }) => (
   </button>
 );
 
-export default function AppNavbar({}) {
+export default function AppNavbar() {
   const { t, isRTL } = useI18n();
-  const [open, setOpen] = React.useState(false);
   const { data: session, status } = useSession();
-  const [SelectedItem, setselecteditem] = React.useState("home");
+  // Active section while scrolling the Home page (scroll-spy)
+  const [sectionItem, setSectionItem] = React.useState("home");
   const { startLoading } = useNavigationLoading();
   const route = useRouter();
   const pathname = usePathname();
@@ -96,6 +98,25 @@ export default function AppNavbar({}) {
   const [headerHidden, setHeaderHidden] = useState(false);
   const lockRef = React.useRef(null);
   const lastScrollRef = React.useRef(0);
+
+  // Case-insensitive route checks
+  const pathLower = (pathname || "").toLowerCase();
+  const isHome = pathLower === HOME_PATH.toLowerCase();
+  const isOrderPage = pathLower.startsWith(ORDER_PATH.toLowerCase());
+  const isAdminPage = pathLower.startsWith("/admin");
+
+  // The active tab comes straight from the URL, so it can never be stale.
+  // Only the Home page uses the scroll-spy section.
+  const activeId = isOrderPage
+    ? "order"
+    : isAdminPage
+    ? "admin"
+    : isHome
+    ? sectionItem
+    : null;
+
+  // Direction used by the nav bars (mirrors the item order in Arabic)
+  const navDir = isRTL && MIRROR_NAV_IN_RTL ? "rtl" : "ltr";
 
   useEffect(() => setMounted(true), []);
 
@@ -118,16 +139,16 @@ export default function AppNavbar({}) {
   };
 
   const ScroleInteView = (id) => {
-    if (pathname !== "/") {
-      startLoading("/");
+    if (!isHome) {
+      startLoading(HOME_PATH);
       sessionStorage.setItem("scrollTarget", id);
-      route.push("/");
+      route.push(HOME_PATH);
       return;
     }
 
     // verrouille l'item cliqué pendant le scroll fluide
     lockRef.current = SECTION_IDS[id];
-    setselecteditem(SECTION_IDS[id]);
+    setSectionItem(SECTION_IDS[id]);
     setHeaderHidden(false);
     setTimeout(() => {
       if (Date.now() - lastScrollRef.current > 150) lockRef.current = null;
@@ -139,17 +160,9 @@ export default function AppNavbar({}) {
     });
   };
 
-  // Suivi de la page et de la section visible
+  // Scroll-spy: only runs on the Home page
   useEffect(() => {
-    if (pathname?.startsWith("/Commande")) {
-      setselecteditem("order");
-      return;
-    }
-    if (pathname?.startsWith("/Admin")) {
-      setselecteditem("admin");
-      return;
-    }
-    if (pathname !== "/") return;
+    if (!isHome) return;
 
     let ticking = false;
     let timer;
@@ -179,7 +192,7 @@ export default function AppNavbar({}) {
     const update = () => {
       ticking = false;
       if (lockRef.current) return;
-      setselecteditem(getActive());
+      setSectionItem(getActive());
     };
 
     const onScroll = () => {
@@ -208,7 +221,7 @@ export default function AppNavbar({}) {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [pathname]);
+  }, [isHome]);
 
   // Header desktop : masqué en descendant, affiché en remontant
   useEffect(() => {
@@ -263,27 +276,29 @@ export default function AppNavbar({}) {
   const handleNavClick = (id) => {
     if (id === "menu") ScroleInteView("NotreMenu");
     else if (id === "home") {
-      if (pathname !== "/") {
-        startLoading("/");
-        route.push("/");
+      if (!isHome) {
+        startLoading(HOME_PATH);
+        route.push(HOME_PATH);
       } else {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } else if (id === "feedback") ScroleInteView("FeedBack");
     else if (id === "contact") ScroleInteView("Footer");
     else if (id === "order") {
-      if (pathname !== "/Commande") {
-        startLoading("/Commande");
-        route.push("/Commande");
+      if (!isOrderPage) {
+        startLoading(ORDER_PATH);
+        route.push(ORDER_PATH);
       } else {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     }
   };
 
+  // Logical order: Home, Menu, [ORDER], Feedback, Contact.
+  // The direction (navDir) decides which side each one ends up on.
   const sideDefs = NAV_DEFINITIONS.filter((i) => i.id !== "order");
-  const leftItems = sideDefs.slice(0, 2);
-  const rightItems = sideDefs.slice(2);
+  const startItems = sideDefs.slice(0, 2);
+  const endItems = sideDefs.slice(2);
   const orderDef = NAV_DEFINITIONS.find((i) => i.id === "order");
   const OrderIcon = orderDef?.icon ?? ShoppingBasket;
 
@@ -307,7 +322,6 @@ export default function AppNavbar({}) {
             href="/"
             className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0"
             onClick={(e) => {
-              setselecteditem("Home");
               if (pathname !== "/") {
                 startLoading("/");
               } else {
@@ -321,37 +335,35 @@ export default function AppNavbar({}) {
               alt="Logo"
               width={50}
               height={45}
-              className="rounded-lg w-11  h-10 sm:w-11 sm:h-10 object-contain"
+              className="rounded-lg w-11 h-10 sm:w-11 sm:h-10 object-contain"
             />
             <span className="text-sm sm:text-lg md:text-xl font-bold truncate">
               {t("brandName", null, "BlackHousse")}
             </span>
           </Link>
 
-          {/* Desktop Nav */}
-          <NavigationMenu className="hidden lg:flex">
-            <NavigationMenuList className="flex gap-4 xl:gap-6">
+          {/* Desktop Nav (order follows navDir) */}
+          <NavigationMenu dir={navDir} className="hidden lg:flex">
+            <NavigationMenuList className="flex gap-4 xl:gap-6 space-x-0">
               {NAV_DEFINITIONS.map((def) => {
                 const Icon = def.icon;
                 const label = t(def.labelKey);
+                const active = activeId === def.id;
                 return (
                   <NavigationMenuItem key={def.id}>
                     <motion.button
                       onClick={() => handleNavClick(def.id)}
                       whileTap={{ scale: 0.95 }}
-                      animate={
-                        SelectedItem === def.id ? { scale: 1.08 } : { scale: 1 }
-                      }
+                      animate={{ scale: active ? 1.08 : 1 }}
+                      aria-current={active ? "page" : undefined}
                       className={`text-sm font-medium transition ${
-                        SelectedItem === def.id && SelectedItem !== "order"
+                        active
                           ? "text-white bg-black font-bold rounded-2xl px-3 py-1.5"
                           : "text-black hover:text-gray-600"
                       }`}
                     >
                       <span className="inline-flex items-center gap-2">
-                        {Icon && (
-                          <Icon className={`w-4 h-4 ${isRTL ? "rtl-flip" : ""}`} />
-                        )}
+                        {Icon && <Icon className="w-4 h-4" />}
                         {label}
                       </span>
                     </motion.button>
@@ -389,8 +401,7 @@ export default function AppNavbar({}) {
                     <Link
                       href="/Admin"
                       onClick={() => {
-                        setselecteditem("admin");
-                        if (pathname !== "/Admin") {
+                        if (!isAdminPage) {
                           startLoading("/Admin");
                         }
                       }}
@@ -430,127 +441,36 @@ export default function AppNavbar({}) {
             )}
           </div>
 
-          {/* Emplacement mobile (à droite du header) :
+          {/* Emplacement mobile (fin du header) :
               la page Commande y affiche ses boutons « Confirmer » et « Suivre » */}
-        <div
-  className={`lg:hidden flex items-center gap-1.5 sm:gap-2 flex-shrink-0 ${
-    isRTL ? "mr-auto" : "ml-auto"
-  }`}
->
-  <div
-    id="header-mobile-slot"
-    dir={isRTL ? "rtl" : "ltr"}
-    className="flex items-center gap-1.5 sm:gap-2"
-  />
+          <div className="lg:hidden flex items-center gap-1.5 sm:gap-2 flex-shrink-0 ms-auto">
+            <div
+              id="header-mobile-slot"
+              dir={isRTL ? "rtl" : "ltr"}
+              className="flex items-center gap-1.5 sm:gap-2"
+            />
             <LanguageSwitcher variant="navbar" />
- <PwaInstallButton
-                    variant="icon"
-                    label={t("Pwa.installDrawer", null, "Installer l'application BlackHousse")}
-                  />
-           
+            <PwaInstallButton
+              variant="icon"
+              label={t("Pwa.installDrawer", null, "Installer l'application BlackHousse")}
+            />
           </div>
 
-          {/* Mobile Bottom Navigation
-          account  <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <motion.button
-                  type="button"
-                  aria-label={t("nav.account")}
-                  whileTap={{ scale: 0.92 }}
-                  className={`flex flex-col items-center justify-center gap-0.5 w-14 sm:w-16 h-11 sm:h-12 rounded-xl border text-[9px] sm:text-[10px] font-bold transition ${
-                    open
-                      ? "bg-black border-black text-white shadow-md"
-                      : "bg-white border-gray-300 text-gray-900 hover:border-orange-400 hover:text-orange-600"
-                  }`}
-                >
-                  <User className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>{t("nav.account")}</span>
-                </motion.button>
-              </SheetTrigger>
-
-              <SheetContent
-                side="bottom"
-                className="rounded-t-3xl bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
-              >
-                <div className="mx-auto mb-4 h-1.5 w-10 border-2 border-amber-300 rounded-full bg-gray-200" />
-                <div className="mb-4">
-                  <LanguageSwitcher variant="drawer" />
-                </div>
-                <div className="mb-3">
-                  <PwaInstallButton
-                    variant="drawer"
-                    label={t("Pwa.installDrawer", null, "Installer l'application BlackHousse")}
-                  />
-                </div>
-                <div className="space-y-2">
-                  {status === "loading" ? (
-                    <div className="w-full h-10 bg-gray-200 rounded animate-pulse" />
-                  ) : session ? (
-                    <>
-                      <Button
-                        asChild
-                        className="w-full bg-black text-white hover:bg-gray-700"
-                      >
-                        <Link
-                          href="/Admin"
-                          onClick={() => {
-                            setselecteditem("admin");
-                            setOpen(false);
-                            if (pathname !== "/Admin") {
-                              startLoading("/Admin");
-                            }
-                          }}
-                        >
-                          {t("nav.dashboard")}
-                        </Link>
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          handleLogout();
-                          setOpen(false);
-                        }}
-                        className="w-full bg-red-600 text-white hover:bg-red-700"
-                      >
-                        {t("nav.logout")}
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      asChild
-                      className="w-full bg-black hover:bg-gray-700"
-                      onClick={() => setOpen(false)}
-                    >
-                      <Link
-                        onClick={() => {
-                          if (pathname !== "/Login") {
-                            startLoading("/Login");
-                          }
-                        }}
-                        href="/Login"
-                      >
-                        {t("nav.login")}
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
-          
-          (portal -> toujours fixe et visible) */}
+          {/* Mobile Bottom Navigation (portal -> toujours fixe et visible) */}
           {mounted &&
             createPortal(
               <nav
-                className="lg:hidden fixed bottom-0 inset-x-0 z-50 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+                dir={navDir}
+                className="lg:hidden fixed bottom-0 inset-x-0 z-50 ps-[max(0.75rem,env(safe-area-inset-left))] pe-[max(0.75rem,env(safe-area-inset-right))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
                 aria-label={t("nav.home")}
               >
                 <div className="mx-auto max-w-md flex items-end rounded-3xl border border-black/5 bg-white/90 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.18)] px-1 py-1.5">
-                  {leftItems.map((def) => (
+                  {startItems.map((def) => (
                     <NavTab
                       key={def.id}
-                      item={def.id}
                       label={t(def.shortKey)}
                       Icon={def.icon}
-                      active={SelectedItem === def.id}
+                      active={activeId === def.id}
                       onClick={() => handleNavClick(def.id)}
                     />
                   ))}
@@ -558,15 +478,15 @@ export default function AppNavbar({}) {
                   {/* Bouton central Commander */}
                   <div className="flex-1 flex justify-center">
                     <motion.button
-                      animate={{ scale: SelectedItem === "order" ? 1.1 : 1 }}
+                      animate={{ scale: activeId === "order" ? 1.1 : 1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => handleNavClick("order")}
                       aria-label={t("nav.order")}
-                      aria-current={SelectedItem === "order" ? "page" : undefined}
-                      className={`-mt-8 h-14 w-16 rounded-2xl flex flex-col items-center justify-center transition-colors duration-200 ${
-                        SelectedItem === "order"
-                          ? "bg-black text-white"
-                          : "bg-white text-black"
+                      aria-current={activeId === "order" ? "page" : undefined}
+                      className={`-mt-8 h-14 w-16 rounded-2xl flex flex-col items-center justify-center transition-colors duration-200 shadow-[0_6px_16px_rgba(0,0,0,0.22)] ${
+                        activeId === "order"
+                          ? "bg-black text-white ring-4 ring-white"
+                          : "bg-white text-black border border-black/10"
                       }`}
                     >
                       <OrderIcon className="w-6 h-6" />
@@ -574,13 +494,12 @@ export default function AppNavbar({}) {
                     </motion.button>
                   </div>
 
-                  {rightItems.map((def) => (
+                  {endItems.map((def) => (
                     <NavTab
                       key={def.id}
-                      item={def.id}
                       label={t(def.shortKey)}
                       Icon={def.icon}
-                      active={SelectedItem === def.id}
+                      active={activeId === def.id}
                       onClick={() => handleNavClick(def.id)}
                     />
                   ))}

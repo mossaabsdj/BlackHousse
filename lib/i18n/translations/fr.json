@@ -45,42 +45,49 @@
     "description": "Faites défiler pour découvrir nos burgers, tacos, pizzas et desserts, préparés minute avec des produits frais.",
     "button": "Commander maintenant",
     "slides": [
-      {
-        "src": "/images/menu/pizza.JPG",
-        "alt": "Burgers BlackHousse",
-        "tag": "Burgers",
-        "title": "Burgers grillés au feu",
-        "subtitle": "Bœuf 100% frais, pain moelleux et sauces maison."
-      },
-      {
-        "src": "/images/menu/tacos.JPG",
-        "alt": "Tacos BlackHousse",
-        "tag": "Tacos",
-        "title": "Tacos généreux",
-        "subtitle": "Poulet ou viande hachée, frites et sauce fromagère."
-      },
-      {
-        "src": "/images/menu/poutine.JPG",
-        "alt": "Pizzas BlackHousse",
-        "tag": "Pizzas",
-        "title": "Pizzas croustillantes",
-        "subtitle": "Pâte fine, mozzarella fondante et garnitures fraîches."
-      },
-      {
-        "src": "/images/menu/pizza.JPG",
-        "alt": "Sandwichs BlackHousse",
-        "tag": "Sandwichs",
-        "title": "Sandwichs toastés",
-        "subtitle": "Paninis et clubs garnis, chauds et croustillants."
-      },
-      {
-        "src": "/images/menu/crispy.JPG",
-        "alt": "Crispy BlackHousse",
-        "tag": "Crispy",
-        "title": "Crispy grillés au feu",
-        "subtitle": "Bœuf 100% frais, pain moelleux et sauces maison."
-      }
-    ]
+    {
+      "src": "/images/menu/pizza.JPG",
+      "alt": "Pizza Black Housse",
+      "tag": "Pizza",
+      "title": "Une pizza croustillante et gourmande",
+      "subtitle": "Une fine pâte italienne garnie de mozzarella fondante et de légumes frais."
+    },
+    {
+      "src": "/images/menu/Group.jpg",
+      "alt": "Plats Black Housse",
+      "tag": "Notre Menu",
+      "title": "Découvrez les saveurs de Black Housse",
+      "subtitle": "De la pizza et des tacos au soufflé, calzone et poutine, savourez des plats généreux préparés avec des ingrédients frais."
+    },
+    {
+      "src": "/images/menu/tacos.JPG",
+      "alt": "Tacos Black Housse",
+      "tag": "Tacos",
+      "title": "Un tacos généreux et savoureux",
+      "subtitle": "Poulet ou viande hachée, accompagnés de frites et de notre sauce fromagère spéciale."
+    },
+    {
+      "src": "/images/menu/pizzaL.jpg",
+      "alt": "Pizza Black Housse",
+      "tag": "Pizza",
+      "title": "Une pizza croustillante et gourmande",
+      "subtitle": "Une fine pâte italienne garnie de mozzarella fondante et de légumes frais."
+    },
+    {
+      "src": "/images/menu/Calzon2.jpg",
+      "alt": "Soufflé Black Housse",
+      "tag": "Soufflé",
+      "title": "Un soufflé doré et irrésistible",
+      "subtitle": "Une pâte légère et dorée, généreusement garnie d'ingrédients frais et de saveurs gourmandes."
+    },
+    {
+      "src": "/images/menu/crispy.JPG",
+      "alt": "Crispy Black Housse",
+      "tag": "Crispy",
+      "title": "Un crispy croustillant et délicieux",
+      "subtitle": "Du poulet crispy savoureux accompagné de cheddar fondant."
+    }
+  ]
   },
   "FeedbackPage": {
     "badge": "BlackHousse",

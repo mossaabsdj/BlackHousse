@@ -2,27 +2,59 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Pizza } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nContext";
 import { useRealtimeFeedback } from "@/lib/Firebase";
+
+/* One pizza icon: outlined in orange with a soft fill when active, gray outline when empty */
+function PizzaIcon({ active, className = "" }) {
+  return (
+    <Pizza
+      className={`transition-colors ${active ? "text-orange-500" : "text-gray-300"} ${className}`}
+      fill={active ? "currentColor" : "none"}
+      fillOpacity={active ? 0.22 : 0}
+      strokeWidth={1.8}
+    />
+  );
+}
+
+/* Static pizza rating (does not depend on i18n, never flips with RTL) */
+export function PizzaRating({ value = 0, onChange, size = 24, readOnly = false }) {
+  return (
+    // dir="ltr": the pizzas never flip with the page language
+    <div
+      dir="ltr"
+      className="inline-flex items-center gap-1"
+      role={readOnly ? "img" : "radiogroup"}
+      aria-label={`${value}/5`}
+    >
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          disabled={readOnly}
+          onClick={() => onChange?.(n)}
+          aria-label={`${n}`}
+          className={readOnly ? "cursor-default" : "transition active:scale-90 hover:scale-110"}
+        >
+          <PizzaIcon active={n <= value} className="" />
+          {/* size is applied through the wrapper below */}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 const PAGE_SIZE = 6;
 
 const inputClass =
   "w-full px-4 py-3 bg-white border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-400 outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20";
 
-/* Static burger rating (read-only) */
-function Burgers({ value, className = "" }) {
-  const { content } = useI18n();
-  const fb = content.FeedbackPage;
-  const ratingIcon = fb?.ratingIcon || "🍔";
+/* Read-only rating display */
+function Burgers({ value, size = 18, className = "" }) {
   return (
-    <span className={`inline-flex gap-0.5 ${className}`} aria-label={`${value} / 5`}>
-      {[1, 2, 3, 4, 5].map((v) => (
-        <span key={v} className={v <= Math.round(value) ? "" : "opacity-30 grayscale"}>
-          {ratingIcon}
-        </span>
-      ))}
+    <span className={className}>
+      <PizzaRating value={Math.round(value)} readOnly size={size} />
     </span>
   );
 }
@@ -69,7 +101,7 @@ function Modal({ onClose, labelledBy, children }) {
           type="button"
           onClick={onClose}
           aria-label={fb.close}
-          className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white border border-gray-300 text-gray-600 hover:border-orange-400 hover:text-orange-600 transition"
+          className="absolute top-4 end-4 w-9 h-9 flex items-center justify-center rounded-full bg-white border border-gray-300 text-gray-600 hover:border-orange-400 hover:text-orange-600 transition"
         >
           <X className="w-4 h-4" />
         </button>
@@ -153,7 +185,7 @@ function FeedbackForm({ onSubmit, onClose }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-      <div className="pr-10 space-y-1">
+      <div className="pe-10 space-y-1">
         <h2 id="fb-modal-title" className="text-2xl sm:text-3xl font-extrabold text-gray-900">
           {fb.modalTitle}
         </h2>
@@ -182,6 +214,7 @@ function FeedbackForm({ onSubmit, onClose }) {
         <div
           role="radiogroup"
           aria-labelledby="fb-rating-label"
+          dir="ltr"
           className="flex items-center gap-2"
           onMouseLeave={() => setHover(0)}
         >
@@ -199,13 +232,11 @@ function FeedbackForm({ onSubmit, onClose }) {
                 setRating(v);
                 setError("");
               }}
-              whileHover={{ scale: 1.15 }}
+              whileHover={{ scale: 1.15, rotate: -6 }}
               whileTap={{ scale: 0.9 }}
-              className={`text-4xl sm:text-5xl transition rounded-xl outline-none focus-visible:ring-4 focus-visible:ring-orange-500/30 ${
-                v <= shown ? "opacity-100" : "opacity-30 grayscale"
-              }`}
+              className="rounded-xl outline-none focus-visible:ring-4 focus-visible:ring-orange-500/30"
             >
-              {fb.ratingIcon}
+              <PizzaIcon active={v <= shown} className="w-9 h-9 sm:w-11 sm:h-11" />
             </motion.button>
           ))}
         </div>
@@ -252,7 +283,7 @@ function FeedbackForm({ onSubmit, onClose }) {
           maxLength={400}
           className={`${inputClass} resize-none`}
         />
-        <p className="text-xs text-gray-400 text-right">{comment.length} / 400</p>
+        <p className="text-xs text-gray-400 text-end">{comment.length} / 400</p>
       </div>
 
       {/* Loading progression bar */}
@@ -294,7 +325,7 @@ function FeedbackForm({ onSubmit, onClose }) {
 }
 
 export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
-  const { content, isRTL } = useI18n();
+  const { content } = useI18n();
   const fb = content.FeedbackPage;
   const reduceMotion = useReducedMotion();
   const titleLines = (fb?.title || "").split("\n");
@@ -435,11 +466,11 @@ export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
             viewport={{ once: false, amount: 0.3 }}
           >
             <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-              <div className="text-center sm:pr-6 sm:border-r border-gray-200">
+              <div className="text-center sm:pe-6 sm:border-e border-gray-200">
                 <div className="text-6xl font-extrabold text-gray-900">
                   {stats.avg.toFixed(1).replace(".", ",")}
                 </div>
-                <Burgers value={stats.avg} className="text-2xl mt-2" />
+                <Burgers value={stats.avg} size={28} className="mt-2 inline-block" />
                 <p className="text-sm text-gray-600 mt-2">
                   {stats.total} {fb.reviewsCount}
                 </p>
@@ -448,7 +479,10 @@ export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
               <div className="flex-1 space-y-2">
                 {stats.dist.map((d) => (
                   <div key={d.stars} className="flex items-center gap-3 text-sm text-gray-600">
-                    <span className="w-8 font-semibold">{d.stars}{fb.ratingIcon}</span>
+                    <span dir="ltr" className="w-10 font-semibold inline-flex items-center gap-0.5">
+                      {d.stars}
+                      <PizzaIcon active className="w-4 h-4" />
+                    </span>
                     <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
                       <motion.div
                         className="h-full rounded-full bg-orange-500"
@@ -457,7 +491,7 @@ export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
                         transition={{ duration: 0.8, ease: "easeOut" }}
                       />
                     </div>
-                    <span className="w-6 text-right">{d.count}</span>
+                    <span className="w-6 text-end">{d.count}</span>
                   </div>
                 ))}
               </div>
@@ -486,14 +520,14 @@ export default function BlackHousseFeedbackPage({ reviews, onSubmit }) {
                 viewport={{ once: true, amount: 0.2 }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-orange-500 text-white font-bold flex items-center justify-center">
+                  <div className="w-11 h-11 rounded-full bg-orange-500 text-white font-bold flex items-center justify-center flex-none">
                     {(r.name || "?").trim().charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-gray-900 truncate">{r.name}</p>
                     <p className="text-xs text-gray-500">{r.date}</p>
                   </div>
-                  <Burgers value={r.rating} className="ml-auto text-lg" />
+                  <Burgers value={r.rating} size={16} className="ms-auto flex-none" />
                 </div>
 
                 {r.comment && <p className="text-sm text-gray-600 flex-1">{r.comment}</p>}
