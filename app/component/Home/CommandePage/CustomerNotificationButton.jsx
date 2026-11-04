@@ -86,7 +86,7 @@ export default function CustomerNotificationButton({
         aria-label={label}
         onClick={handleToggle}
         disabled={loading || (alwaysActive && on)}
-        className={`inline-flex h-9 items-center gap-2 rounded-full border ps-3 pe-2 text-xs font-bold whitespace-nowrap transition active:scale-95 disabled:cursor-default ${
+        className={`inline-flex h-9 items-center gap-2 rounded-full border ps-3 pe-2 px-2 text-xs font-bold whitespace-nowrap transition active:scale-95 disabled:cursor-default ${
           on
             ? "border-emerald-300 bg-emerald-50 text-emerald-700"
             : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"

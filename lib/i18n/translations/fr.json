@@ -253,6 +253,8 @@
         "unavailable": "Un produit de votre commande n'est plus disponible. Le menu a été mis à jour.",
         "priceChanged": "Les prix ont changé. Vérifiez le nouveau total avant de confirmer.",
         "tooMany": "Trop de tentatives. Patientez un instant avant de réessayer.",
+        "rateLimited": "Trop de tentatives. Veuillez patienter {seconds} seconde(s) avant de réessayer.",
+        "rateLimitWait": "Patientez",
         "generic": "Votre commande n'a pas pu être enregistrée. Votre panier est conservé, veuillez réessayer."
       },
       "success": {

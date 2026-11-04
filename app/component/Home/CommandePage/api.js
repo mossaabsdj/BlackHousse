@@ -13,12 +13,13 @@ export const ENDPOINTS = {
 };
 
 export class ApiError extends Error {
-  constructor(message, { status = 0, code = null, fields = null } = {}) {
+  constructor(message, { status = 0, code = null, fields = null, retryAfter = null } = {}) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
     this.fields = fields;
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -47,10 +48,19 @@ async function request(url, { method = "GET", body, headers = {}, signal } = {})
     /* empty or non-JSON body */
   }
   if (!res.ok) {
+    const retryHeader = res.headers?.get?.("retry-after");
+    const retryAfter =
+      typeof data?.retryAfter === "number"
+        ? data.retryAfter
+        : retryHeader
+        ? parseInt(retryHeader, 10)
+        : null;
+
     throw new ApiError(data?.message || data?.error || `HTTP_${res.status}`, {
       status: res.status,
-      code: data?.code || null,
+      code: data?.code || (res.status === 429 ? "RATE_LIMITED" : null),
       fields: data?.fields || null,
+      retryAfter: Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : null,
     });
   }
   return data;

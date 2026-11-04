@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Check, Loader2, Store, Truck, Ban, XCircle } from "lucide-react";
 import Overlay from "./Overlay";
 import { inputClass, primaryBtn } from "./UI";
@@ -171,6 +171,7 @@ export default function CheckoutModal({
   }, [name, phone, fulfillment, municipalityId, municipalityText, address, notes]);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
+  const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [placed, setPlaced] = useState(null); // { order, snapshot, name }
   const [cancelling, setCancelling] = useState(false);
@@ -208,13 +209,52 @@ export default function CheckoutModal({
     return e;
   };
 
+  // Live countdown timer for rate limiting
+  useEffect(() => {
+    if (rateLimitSeconds <= 0) return;
+    const timer = setInterval(() => {
+      setRateLimitSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setServerError("");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [rateLimitSeconds]);
+
+  const formatRateLimitError = (seconds) => {
+    const s = Math.max(1, Math.round(seconds || 1));
+    const template =
+      c?.errors?.rateLimited ||
+      (locale === "ar"
+        ? "تم تجاوز الحد المسموح من الطلبات. يرجى الانتظار {seconds} ثانية قبل إعادة المحاولة."
+        : locale === "en"
+        ? "Too many requests. Please wait {seconds} second(s) before trying again."
+        : "Trop de tentatives. Veuillez patienter {seconds} seconde(s) avant de réessayer.");
+
+    return template.replace(/\{seconds\}/g, String(s));
+  };
+
   const describeError = (err) => {
     if (err?.code === "NETWORK") return c.errors.network;
     if (err?.code === "PRODUCT_UNAVAILABLE") return c.errors.unavailable;
     if (err?.code === "PRICE_CHANGED") return c.errors.priceChanged;
-    if (err?.status === 429) return c.errors.tooMany;
+    if (err?.status === 429 || err?.code === "RATE_LIMITED") {
+      if (err?.retryAfter) return formatRateLimitError(err.retryAfter);
+      return c.errors.rateLimited || c.errors.tooMany;
+    }
     return c.errors.generic;
   };
+
+  const displayedServerError = useMemo(() => {
+    if (rateLimitSeconds > 0) {
+      return formatRateLimitError(rateLimitSeconds);
+    }
+    return serverError;
+  }, [rateLimitSeconds, serverError, c.errors, locale]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -324,7 +364,14 @@ export default function CheckoutModal({
         setErrors(fe);
       }
       if (err?.code === "PRODUCT_UNAVAILABLE" || err?.code === "PRICE_CHANGED") onCatalogStale();
-      setServerError(describeError(err));
+      if (err?.status === 429 || err?.code === "RATE_LIMITED") {
+        const retrySec = Number(err?.retryAfter) > 0 ? Number(err.retryAfter) : 60;
+        setRateLimitSeconds(retrySec);
+        setServerError(formatRateLimitError(retrySec));
+      } else {
+        setRateLimitSeconds(0);
+        setServerError(describeError(err));
+      }
     } finally {
       submittingRef.current = false;
       setSubmitting(false);
@@ -528,9 +575,18 @@ export default function CheckoutModal({
           >
             {c.back}
           </button>
-          <button type="submit" form="checkout-form" disabled={submitting || blocked} className={`flex-1 flex items-center justify-center gap-2 ${primaryBtn}`}>
+          <button
+            type="submit"
+            form="checkout-form"
+            disabled={submitting || blocked || rateLimitSeconds > 0}
+            className={`flex-1 flex items-center justify-center gap-2 ${primaryBtn}`}
+          >
             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-            {submitting ? c.submitting : `${c.submit} · ${formatPrice(total, t.currency)}`}
+            {submitting
+              ? c.submitting
+              : rateLimitSeconds > 0
+              ? `${c.rateLimitWait || (locale === "ar" ? "يرجى الانتظار" : locale === "en" ? "Please wait" : "Patientez")} (${rateLimitSeconds}s)`
+              : `${c.submit} · ${formatPrice(total, t.currency)}`}
           </button>
         </div>
       }
@@ -629,10 +685,24 @@ export default function CheckoutModal({
           </div>
         </section>
 
-        {serverError && (
-          <p role="alert" className="flex items-start gap-2 text-sm font-semibold text-red-600">
-            <AlertTriangle className="w-4 h-4 mt-0.5 flex-none" /> {serverError}
-          </p>
+        {displayedServerError && (
+          <div
+            role="alert"
+            className={`p-3.5 rounded-2xl border text-sm font-semibold flex items-start gap-2.5 animate-in fade-in duration-200 ${
+              rateLimitSeconds > 0
+                ? "bg-amber-50 border-amber-200 text-amber-900"
+                : "bg-red-50 border-red-200 text-red-600"
+            }`}
+          >
+            <AlertTriangle
+              className={`w-4 h-4 mt-0.5 flex-none ${
+                rateLimitSeconds > 0 ? "text-amber-600" : "text-red-600"
+              }`}
+            />
+            <div className="flex-1 leading-relaxed">
+              <span>{displayedServerError}</span>
+            </div>
+          </div>
         )}
       </form>
     </Overlay>

@@ -253,6 +253,8 @@
         "unavailable": "An item in your order is no longer available. The menu has been updated.",
         "priceChanged": "Prices have changed. Please check the new total before confirming.",
         "tooMany": "Too many requests. Please wait a moment and try again.",
+        "rateLimited": "Too many requests. Please wait {seconds} second(s) before trying again.",
+        "rateLimitWait": "Please wait",
         "generic": "Could not register your order. Your cart is preserved, please retry."
       },
       "success": {
