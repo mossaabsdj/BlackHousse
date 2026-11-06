@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { X } from "lucide-react";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 export const inputClass =
   "w-full px-3 py-2 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20";
@@ -11,6 +12,7 @@ export const btnDanger = `${btn} bg-white border border-gray-300 text-red-600 ho
 export const card = "rounded-3xl bg-white border border-gray-200 shadow-xl shadow-gray-300/60";
 
 export function Modal({ title, onClose, footer, wide = false, children }) {
+  const { t } = useI18n();
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -35,7 +37,7 @@ export function Modal({ title, onClose, footer, wide = false, children }) {
       >
         <div className="flex items-center justify-between gap-4 px-6 pt-5 pb-4 border-b border-gray-100">
           <h2 className="text-xl font-extrabold text-gray-900">{title}</h2>
-          <button type="button" onClick={onClose} aria-label="Fermer" className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:border-orange-400 hover:text-orange-600">
+          <button type="button" onClick={onClose} aria-label={t("common.close", {}, "Fermer")} className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:border-orange-400 hover:text-orange-600">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -47,12 +49,13 @@ export function Modal({ title, onClose, footer, wide = false, children }) {
 }
 
 export function Field({ label, error, hint, children }) {
+  const { t } = useI18n();
   return (
     <label className="block space-y-1.5">
       <span className="text-sm font-semibold text-gray-900">{label}</span>
       {children}
       {hint && !error && <span className="block text-xs text-gray-500">{hint}</span>}
-      {error && <span role="alert" className="block text-xs font-semibold text-red-600">{typeof error === "string" ? "Valeur invalide ou manquante." : "Valeur invalide."}</span>}
+      {error && <span role="alert" className="block text-xs font-semibold text-red-600">{typeof error === "string" ? error : t("common.invalidValue", {}, "Valeur invalide ou manquante.")}</span>}
     </label>
   );
 }
@@ -83,9 +86,12 @@ export const Badge = ({ children, tone = "gray" }) => (
   <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${tone === "orange" ? "bg-orange-50 border-orange-200 text-orange-700" : "bg-white border-gray-300 text-gray-600"}`}>{children}</span>
 );
 
-export const ErrorBox = ({ message, onRetry }) => (
-  <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 flex items-center justify-between gap-3">
-    <span>{message}</span>
-    {onRetry && <button type="button" onClick={onRetry} className="underline">Réessayer</button>}
-  </div>
-);
+export const ErrorBox = ({ message, onRetry }) => {
+  const { t } = useI18n();
+  return (
+    <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 flex items-center justify-between gap-3">
+      <span>{message}</span>
+      {onRetry && <button type="button" onClick={onRetry} className="underline">{t("common.retry", {}, "Réessayer")}</button>}
+    </div>
+  );
+};

@@ -92,16 +92,16 @@ function Categories() {
       ]}
       fields={[
         { key: "name", label: t("Admin.simple.name", {}, "Nom"), type: "text" },
-        { key: "sortOrder", label: t("Admin.simple.sortOrder", {}, "Ordre d'affichage"), type: "int", hint: "Plus petit = affiché en premier" },
+        { key: "sortOrder", label: t("Admin.simple.sortOrder", {}, "Ordre d'affichage"), type: "int", hint: t("Admin.simple.sortOrderHint", {}, "Plus petit = affiché en premier") },
         { key: "isActive", label: t("Admin.simple.active", {}, "Visible sur le menu"), type: "switch" },
       ]}
-      describeDelete={(c) => `Supprimer la catégorie « ${c.name} » ?`}
+      describeDelete={(c) => t("Admin.simple.deleteCategoryDesc", { name: c.name }, `Supprimer la catégorie « ${c.name} » ?`)}
     />
   );
 }
 
 function Municipalities() {
-  const { t } = useI18n();
+  const { t, formatPrice } = useI18n();
   return (
     <SimplePanel
       title={t("Admin.simple.municipalitiesTitle", {}, "Municipalités de livraison")}
@@ -115,9 +115,9 @@ function Municipalities() {
           label: t("Admin.simple.deliveryFee", {}, "Frais de livraison"),
           render: (m) =>
             m.deliveryFee == null ? (
-              <span className="text-gray-400">non défini</span>
+              <span className="text-gray-400">{t("Admin.simple.undefinedFee", {}, "non défini")}</span>
             ) : m.deliveryFee === 0 ? (
-              "Gratuit"
+              t("common.free", {}, "Gratuit")
             ) : (
               formatPrice(m.deliveryFee)
             ),
@@ -131,12 +131,12 @@ function Municipalities() {
           label: t("Admin.simple.deliveryFee", {}, "Frais de livraison (DA)"),
           type: "int",
           nullable: true,
-          hint: "Vide = aucun frais configuré · 0 = livraison gratuite",
+          hint: t("Admin.simple.deliveryFeeHint", {}, "Vide = aucun frais configuré · 0 = livraison gratuite"),
         },
         { key: "sortOrder", label: t("Admin.simple.sortOrder", {}, "Ordre d'affichage"), type: "int" },
         { key: "isActive", label: t("Admin.simple.active", {}, "Livraison active"), type: "switch" },
       ]}
-      describeDelete={(m) => `Supprimer « ${m.name} » ? Les anciennes commandes gardent leur copie du nom.`}
+      describeDelete={(m) => t("Admin.simple.deleteMunicipalityDesc", { name: m.name }, `Supprimer « ${m.name} » ? Les anciennes commandes gardent leur copie du nom.`)}
     />
   );
 }
@@ -183,10 +183,10 @@ export default function AdminDashboard() {
 
   if (gate.status !== "ok") {
     const text = {
-      loading: "Vérification de l'accès...",
-      login: "Vous devez être connecté pour accéder à l'administration.",
-      forbidden: "Accès réservé aux administrateurs.",
-      error: gate.message || "Impossible de vérifier l'accès.",
+      loading: t("Admin.gateLoading", {}, "Vérification de l'accès..."),
+      login: t("Admin.gateLogin", {}, "Vous devez être connecté pour accéder à l'administration."),
+      forbidden: t("Admin.gateForbidden", {}, "Accès réservé aux administrateurs."),
+      error: gate.message || t("Admin.gateError", {}, "Impossible de vérifier l'accès."),
     }[gate.status];
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
@@ -237,8 +237,8 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => setSidebarExpanded(false)}
-                title="Réduire le menu"
-                aria-label="Réduire le menu"
+                title={t("Admin.collapseSidebar", {}, "Réduire le menu")}
+                aria-label={t("Admin.collapseSidebar", {}, "Réduire le menu")}
                 className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition flex-none"
               >
                 <PanelLeftClose className="w-5 h-5 rtl-flip" />
@@ -248,8 +248,8 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={() => setSidebarExpanded(true)}
-              title="Agrandir le menu"
-              aria-label="Agrandir le menu"
+              title={t("Admin.expandSidebar", {}, "Agrandir le menu")}
+              aria-label={t("Admin.expandSidebar", {}, "Agrandir le menu")}
               className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all group"
             >
               <Image src="/images/logo.png" width={30} height={30} alt="BlackHousse" className="object-contain" />
@@ -402,7 +402,7 @@ export default function AdminDashboard() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
-            aria-label="Ouvrir le menu"
+            aria-label={t("Admin.openMenu", {}, "Ouvrir le menu")}
             className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white focus:outline-none"
           >
             <Menu className="w-5 h-5" />
@@ -453,6 +453,7 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
+                aria-label={t("common.close", {}, "Fermer")}
                 className="p-1.5 rounded-xl bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800"
               >
                 <X className="w-4 h-4" />
@@ -556,8 +557,8 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={() => setSidebarExpanded((prev) => !prev)}
-              aria-label={sidebarExpanded ? "Réduire la barre latérale" : "Agrandir la barre latérale"}
-              title={sidebarExpanded ? "Réduire la barre latérale" : "Agrandir la barre latérale"}
+              aria-label={sidebarExpanded ? t("Admin.collapseSidebar", {}, "Réduire la barre latérale") : t("Admin.expandSidebar", {}, "Agrandir la barre latérale")}
+              title={sidebarExpanded ? t("Admin.collapseSidebar", {}, "Réduire la barre latérale") : t("Admin.expandSidebar", {}, "Agrandir la barre latérale")}
               className="p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200 transition focus:outline-none"
             >
               {sidebarExpanded ? (

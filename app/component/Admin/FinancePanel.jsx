@@ -5,9 +5,7 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
-  ShoppingBag,
   Calendar,
-  RefreshCw,
   Truck,
   Store,
   ArrowUpRight,
@@ -16,13 +14,13 @@ import {
   Percent,
   ArrowRight,
 } from "lucide-react";
-import { api, formatPrice } from "./adminApi";
-import { card, inputClass, btnPrimary, btnGhost, ErrorBox } from "./Ui";
+import { api } from "./adminApi";
+import { card, inputClass, btnPrimary, ErrorBox } from "./Ui";
 import { EXPENSE_CATEGORIES } from "@/lib/admin/finance";
 import { useI18n } from "@/lib/i18n/I18nContext";
 
 export default function FinancePanel({ onNavigateToExpenses }) {
-  const { t } = useI18n();
+  const { t, formatPrice } = useI18n();
 
   const periodOptions = useMemo(
     () => [
@@ -61,15 +59,14 @@ export default function FinancePanel({ onNavigateToExpenses }) {
           url += `&from=${customFrom}&to=${customTo}`;
         }
         const data = await api.get(url);
-        console.log("Finance stats loaded:", data);
         setStats(data);
       } catch (err) {
-        setStatsError(err.message || "Erreur lors du chargement des statistiques financières");
+        setStatsError(err.message || t("common.error", {}, "Erreur lors du chargement des statistiques financières"));
       } finally {
         setStatsLoading(false);
       }
     },
-    [period, customFrom, customTo]
+    [period, customFrom, customTo, t]
   );
 
   useEffect(() => {
@@ -80,20 +77,17 @@ export default function FinancePanel({ onNavigateToExpenses }) {
   const chartMax = useMemo(() => {
     if (!stats?.timeline || stats.timeline.length === 0) return 1000;
     const maxVal = Math.max(
-      ...stats?.timeline?.map((t) => Math.max(t?.revenue || 0, t?.expenses || 0, Math.abs(t?.profit || 0)))
+      ...stats?.timeline?.map((pt) => Math.max(pt?.revenue || 0, pt?.expenses || 0, Math.abs(pt?.profit || 0)))
     );
     return Math.max(1000, maxVal * 1.15);
   }, [stats?.timeline]);
 
   return (
     <section className="space-y-6">
-      {/* ----------------- Top Header & Period Selector ----------------- */}
-    
-
       {/* Period Filter Tabs */}
       <div className={`${card} p-4 space-y-3`}>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5 mr-1">
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5 me-1">
             <Calendar className="w-3.5 h-3.5 text-orange-500" /> {t("Admin.history.periodsLabel", {}, "Période :")}
           </span>
           {periodOptions.map((opt) => (
@@ -151,12 +145,15 @@ export default function FinancePanel({ onNavigateToExpenses }) {
 
       {statsError && <ErrorBox message={statsError} onRetry={() => loadStats()} />}
 
-      {/* ----------------- Key Performance Indicators (Cards) ----------------- */}
+      {/* Key Performance Indicators (Cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Revenue Card */}
         <div className={`${card} p-5 space-y-3 bg-gradient-to-br from-white to-orange-50/30 border-orange-100`}>
           <div className="flex items-center justify-between">
-<span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Recettes</span>            <div className="w-10 h-10 rounded-2xl bg-orange-500/10 text-orange-600 flex items-center justify-center">
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              {t("Admin.finance.collectedRevenue", {}, "Recettes")}
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-orange-500/10 text-orange-600 flex items-center justify-center">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
@@ -168,27 +165,32 @@ export default function FinancePanel({ onNavigateToExpenses }) {
               <div className="flex items-center gap-1.5 mt-1">
                 {stats?.comparisons?.revenueChangePct >= 0 ? (
                   <span className="inline-flex items-center text-xs font-bold text-emerald-600">
-                    <ArrowUpRight className="w-3.5 h-3.5" />+{stats?.comparisons?.revenueChangePct}%
+                    <ArrowUpRight className="w-3.5 h-3.5 rtl-flip" />+{stats?.comparisons?.revenueChangePct}%
                   </span>
                 ) : (
                   <span className="inline-flex items-center text-xs font-bold text-red-500">
-                    <ArrowDownRight className="w-3.5 h-3.5" />
+                    <ArrowDownRight className="w-3.5 h-3.5 rtl-flip" />
                     {stats?.comparisons?.revenueChangePct}%
                   </span>
                 )}
-                <span className="text-[11px] text-gray-400">vs période préc.</span>
+                <span className="text-[11px] text-gray-400">{t("Admin.finance.vsPrevious", {}, "vs période préc.")}</span>
               </div>
             )}
           </div>
           <div className="pt-2 border-t border-gray-100 text-xs text-gray-500 flex justify-end">
-            <span>Commandes : <strong className="text-gray-900">{stats?.summary?.completedCount ?? 0}</strong></span>
+            <span>
+              {t("Admin.finance.ordersLabel", {}, "Commandes :")}{" "}
+              <strong className="text-gray-900">{stats?.summary?.completedCount ?? 0}</strong>
+            </span>
           </div>
         </div>
 
         {/* Expenses Card */}
         <div className={`${card} p-5 space-y-3 bg-gradient-to-br from-white to-red-50/30 border-red-100`}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total des Dépenses</span>
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              {t("Admin.finance.expenses", {}, "Total des Dépenses")}
+            </span>
             <div className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-600 flex items-center justify-center">
               <TrendingDown className="w-5 h-5" />
             </div>
@@ -201,20 +203,23 @@ export default function FinancePanel({ onNavigateToExpenses }) {
               <div className="flex items-center gap-1.5 mt-1">
                 {stats?.comparisons?.expensesChangePct <= 0 ? (
                   <span className="inline-flex items-center text-xs font-bold text-emerald-600">
-                    <ArrowDownRight className="w-3.5 h-3.5" />
+                    <ArrowDownRight className="w-3.5 h-3.5 rtl-flip" />
                     {stats?.comparisons?.expensesChangePct}%
                   </span>
                 ) : (
                   <span className="inline-flex items-center text-xs font-bold text-red-500">
-                    <ArrowUpRight className="w-3.5 h-3.5" />+{stats?.comparisons?.expensesChangePct}%
+                    <ArrowUpRight className="w-3.5 h-3.5 rtl-flip" />+{stats?.comparisons?.expensesChangePct}%
                   </span>
                 )}
-                <span className="text-[11px] text-gray-400">vs période préc.</span>
+                <span className="text-[11px] text-gray-400">{t("Admin.finance.vsPrevious", {}, "vs période préc.")}</span>
               </div>
             )}
           </div>
           <div className="pt-2 border-t border-gray-100 text-xs text-gray-500 flex justify-end">
-            <span>Depenses : <strong className="text-gray-900">{stats?.summary?.expenseCount ?? 0}</strong></span>
+            <span>
+              {t("Admin.finance.expensesLabel", {}, "Dépenses :")}{" "}
+              <strong className="text-gray-900">{stats?.summary?.expenseCount ?? 0}</strong>
+            </span>
           </div>
         </div>
 
@@ -227,7 +232,9 @@ export default function FinancePanel({ onNavigateToExpenses }) {
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Bénéfice Net</span>
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              {t("Admin.finance.netProfit", {}, "Bénéfice Net")}
+            </span>
             <div
               className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
                 (stats?.summary?.netProfit ?? 0) >= 0
@@ -258,15 +265,22 @@ export default function FinancePanel({ onNavigateToExpenses }) {
                     : "bg-red-100 text-red-800"
                 }`}
               >
-                {(stats?.summary?.netProfit ?? 0) >= 0 ? "Bénéficiaire" : "Déficitaire"}
+                {(stats?.summary?.netProfit ?? 0) >= 0
+                  ? t("Admin.finance.profitable", {}, "Bénéficiaire")
+                  : t("Admin.finance.lossMaking", {}, "Déficitaire")}
               </span>
-              <span className="text-[11px] text-gray-400">Recettes - Dépenses</span>
+              <span className="text-[11px] text-gray-400">
+                {t("Admin.finance.revenueMinusExpenses", {}, "Recettes - Dépenses")}
+              </span>
             </div>
           </div>
           <div className="pt-2 border-t border-gray-100 text-xs text-gray-500 flex justify-end">
-            <span>Période préc. : <strong className="text-gray-900">{formatPrice(stats?.comparisons?.previousNetProfit ?? 0)}</strong></span>
+            <span>
+              {t("Admin.finance.previousPeriod", {}, "Période préc. :")}{" "}
+              <strong className="text-gray-900">{formatPrice(stats?.comparisons?.previousNetProfit ?? 0)}</strong>
+            </span>
             {typeof stats?.comparisons?.netProfitChangePct === "number" && (
-              <span className={stats?.comparisons?.netProfitChangePct >= 0 ? "text-emerald-600 font-bold" : "text-red-500 font-bold"}>
+              <span className={`ms-1.5 font-bold ${stats?.comparisons?.netProfitChangePct >= 0 ? "text-emerald-600" : "text-red-500"}`}>
                 {stats?.comparisons?.netProfitChangePct >= 0 ? "+" : ""}{stats?.comparisons?.netProfitChangePct}%
               </span>
             )}
@@ -276,7 +290,9 @@ export default function FinancePanel({ onNavigateToExpenses }) {
         {/* Profit Margin Card */}
         <div className={`${card} p-5 space-y-3 bg-gradient-to-br from-white to-blue-50/30 border-blue-100`}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Marge Nette</span>
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              {t("Admin.finance.netMargin", {}, "Marge Nette")}
+            </span>
             <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
               <Percent className="w-5 h-5" />
             </div>
@@ -286,37 +302,53 @@ export default function FinancePanel({ onNavigateToExpenses }) {
               {stats?.summary?.profitMarginPct ?? 0}%
             </p>
             <div className="flex items-center gap-1.5 mt-1 text-[11px] text-gray-500">
-              <span>{stats?.summary?.profitMarginPct >= 20 ? "Excellente marge" : stats?.summary?.profitMarginPct >= 0 ? "Marge correcte" : "Marge négative"}</span>
+              <span>
+                {stats?.summary?.profitMarginPct >= 20
+                  ? t("Admin.finance.excellentMargin", {}, "Excellente marge")
+                  : stats?.summary?.profitMarginPct >= 0
+                  ? t("Admin.finance.goodMargin", {}, "Marge correcte")
+                  : t("Admin.finance.negativeMargin", {}, "Marge négative")}
+              </span>
             </div>
           </div>
           <div className="pt-2 border-t border-gray-100 text-xs text-gray-500 flex justify-between">
-            <span>Servies : <strong className="text-emerald-600">{stats?.summary?.completedCount ?? 0}</strong></span>
-            <span>Annulées : <strong className="text-red-500">{stats?.summary?.cancelledCount ?? 0}</strong></span>
+            <span>
+              {t("Admin.finance.completedOrdersCount", {}, "Servies :")}{" "}
+              <strong className="text-emerald-600">{stats?.summary?.completedCount ?? 0}</strong>
+            </span>
+            <span>
+              {t("Admin.finance.cancelledOrdersCount", {}, "Annulées :")}{" "}
+              <strong className="text-red-500">{stats?.summary?.cancelledCount ?? 0}</strong>
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ----------------- Charts & Distribution Breakdowns ----------------- */}
+      {/* Charts & Distribution Breakdowns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Timeline Chart (2 cols) */}
         <div className={`${card} p-5 lg:col-span-2 space-y-4`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-lg font-extrabold text-gray-900">Évolution Quotidienne</h3>
-              <p className="text-xs text-gray-500">Comparaison Recettes, Dépenses et Bénéfice par jour</p>
+              <h3 className="text-lg font-extrabold text-gray-900">
+                {t("Admin.finance.dailyEvolution", {}, "Évolution Quotidienne")}
+              </h3>
+              <p className="text-xs text-gray-500">
+                {t("Admin.finance.dailyEvolutionSub", {}, "Comparaison Recettes, Dépenses et Bénéfice par jour")}
+              </p>
             </div>
             <div className="flex items-center gap-4 text-xs">
               <span className="flex items-center gap-1.5 text-gray-700 font-semibold">
                 <span className="w-3 h-3 rounded-full bg-orange-500 inline-block" />
-                Recettes
+                {t("Admin.finance.collectedRevenue", {}, "Recettes")}
               </span>
               <span className="flex items-center gap-1.5 text-gray-700 font-semibold">
                 <span className="w-3 h-3 rounded-full bg-red-400 inline-block" />
-                Dépenses
+                {t("Admin.finance.expenses", {}, "Dépenses")}
               </span>
               <span className="flex items-center gap-1.5 text-gray-700 font-semibold">
                 <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />
-                Bénéfice
+                {t("Admin.finance.netProfit", {}, "Bénéfice")}
               </span>
             </div>
           </div>
@@ -337,10 +369,10 @@ export default function FinancePanel({ onNavigateToExpenses }) {
                         {/* Hover Tooltip */}
                         <div className="absolute -top-16 opacity-0 group-hover:opacity-100 transition pointer-events-none z-20 bg-gray-900 text-white rounded-xl p-2 text-[11px] shadow-xl whitespace-nowrap">
                           <p className="font-bold text-orange-400">{point.label}</p>
-                          <p>Recettes : {formatPrice(point.revenue)}</p>
-                          <p>Dépenses : {formatPrice(point.expenses)}</p>
+                          <p>{t("Admin.finance.collectedRevenue", {}, "Recettes")} : {formatPrice(point.revenue)}</p>
+                          <p>{t("Admin.finance.expenses", {}, "Dépenses")} : {formatPrice(point.expenses)}</p>
                           <p className={point.profit >= 0 ? "text-emerald-400" : "text-red-400"}>
-                            Bénéfice : {formatPrice(point.profit)}
+                            {t("Admin.finance.netProfit", {}, "Bénéfice")} : {formatPrice(point.profit)}
                           </p>
                         </div>
 
@@ -373,7 +405,9 @@ export default function FinancePanel({ onNavigateToExpenses }) {
                 </div>
               </div>
             ) : (
-              <p className="text-gray-400 text-center py-16 text-sm">Aucune donnée sur cette période.</p>
+              <p className="text-gray-400 text-center py-16 text-sm">
+                {t("Admin.finance.noDataForPeriod", {}, "Aucune donnée sur cette période.")}
+              </p>
             )}
           </div>
         </div>
@@ -381,8 +415,10 @@ export default function FinancePanel({ onNavigateToExpenses }) {
         {/* Expense Categories Distribution (1 col) */}
         <div className={`${card} p-5 space-y-4`}>
           <div>
-            <h3 className="text-lg font-extrabold text-gray-900">Répartition des Dépenses</h3>
-            <p className="text-xs text-gray-500">Par catégorie de charge</p>
+            <h3 className="text-lg font-extrabold text-gray-900">
+              {t("Admin.finance.expensesBreakdownTitle", {}, "Répartition des Dépenses")}
+            </h3>
+            <p className="text-xs text-gray-500">{t("Admin.finance.byCategorySub", {}, "Par catégorie de charge")}</p>
           </div>
 
           <div className="space-y-3 pt-1">
@@ -410,36 +446,40 @@ export default function FinancePanel({ onNavigateToExpenses }) {
             ) : (
               <div className="text-center py-10 space-y-2">
                 <Receipt className="w-8 h-8 text-gray-300 mx-auto" />
-                <p className="text-xs text-gray-400">Aucune dépense enregistrée sur cette période.</p>
+                <p className="text-xs text-gray-400">
+                  {t("Admin.expenses.noExpensesDesc", {}, "Aucune dépense enregistrée sur cette période.")}
+                </p>
               </div>
             )}
           </div>
 
           {/* Sales Channels Breakdown */}
           <div className="pt-4 border-t border-gray-100 space-y-2">
-            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Canaux de Vente</h4>
+            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+              {t("Admin.finance.salesChannelsTitle", {}, "Canaux de Vente")}
+            </h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
                 <div className="flex items-center gap-1.5 text-gray-600 font-semibold">
-                  <Truck className="w-3.5 h-3.5 text-orange-500" /> Livraison
+                  <Truck className="w-3.5 h-3.5 text-orange-500" /> {t("Admin.orders.delivery", {}, "Livraison")}
                 </div>
                 <p className="font-black text-sm text-gray-900">
                   {formatPrice(stats?.fulfillment?.delivery?.total || 0)}
                 </p>
                 <span className="text-[11px] text-gray-500">
-                  {stats?.fulfillment?.delivery?.count || 0} commandes
+                  {stats?.fulfillment?.delivery?.count || 0} {t("Admin.finance.ordersCountUnit", {}, "commandes")}
                 </span>
               </div>
 
               <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
                 <div className="flex items-center gap-1.5 text-gray-600 font-semibold">
-                  <Store className="w-3.5 h-3.5 text-blue-500" /> À emporter
+                  <Store className="w-3.5 h-3.5 text-blue-500" /> {t("Admin.orders.pickup", {}, "À emporter")}
                 </div>
                 <p className="font-black text-sm text-gray-900">
                   {formatPrice(stats?.fulfillment?.pickup?.total || 0)}
                 </p>
                 <span className="text-[11px] text-gray-500">
-                  {stats?.fulfillment?.pickup?.count || 0} commandes
+                  {stats?.fulfillment?.pickup?.count || 0} {t("Admin.finance.ordersCountUnit", {}, "commandes")}
                 </span>
               </div>
             </div>
@@ -447,10 +487,12 @@ export default function FinancePanel({ onNavigateToExpenses }) {
         </div>
       </div>
 
-      {/* ----------------- Top 5 Selling Products ----------------- */}
+      {/* Top 5 Selling Products */}
       {stats?.topProducts && stats.topProducts.length > 0 && (
         <div className={`${card} p-5 space-y-3`}>
-          <h3 className="text-lg font-extrabold text-gray-900">Top 5 des Produits les Plus Vendus</h3>
+          <h3 className="text-lg font-extrabold text-gray-900">
+            {t("Admin.finance.topProductsTitle", {}, "Top 5 des Produits les Plus Vendus")}
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {stats?.topProducts?.map((p, idx) => (
               <div
@@ -464,7 +506,7 @@ export default function FinancePanel({ onNavigateToExpenses }) {
                   <p className="font-bold text-gray-900 text-sm mt-1 truncate">{p.name}</p>
                 </div>
                 <div className="flex justify-between items-end text-xs">
-                  <span className="text-gray-500">{p.quantity} vendus</span>
+                  <span className="text-gray-500">{p.quantity} {t("Admin.finance.soldUnits", {}, "vendus")}</span>
                   <span className="font-extrabold text-orange-600">{formatPrice(p.revenue)}</span>
                 </div>
               </div>
@@ -473,15 +515,17 @@ export default function FinancePanel({ onNavigateToExpenses }) {
         </div>
       )}
 
-      {/* ----------------- Standalone Expenses Link Banner ----------------- */}
+      {/* Standalone Expenses Link Banner */}
       <div className={`${card} p-6 bg-gradient-to-br from-white via-orange-50/20 to-white border-orange-100 flex flex-col sm:flex-row items-center justify-between gap-4`}>
-        <div className="space-y-1 text-center sm:text-left">
+        <div className="space-y-1 text-center sm:text-start">
           <div className="flex items-center gap-2 justify-center sm:justify-start">
             <Receipt className="w-5 h-5 text-orange-600" />
-            <h3 className="text-lg font-extrabold text-gray-900">Registre et Suivi des Dépenses</h3>
+            <h3 className="text-lg font-extrabold text-gray-900">
+              {t("Admin.finance.expensesBannerTitle", {}, "Registre et Suivi des Dépenses")}
+            </h3>
           </div>
           <p className="text-xs sm:text-sm text-gray-500 max-w-xl">
-            Toutes les dépenses (ingrédients, salaires, loyer, équipements, factures) sont gérées de manière autonome dans l'onglet dédié « Dépenses ».
+            {t("Admin.finance.expensesBannerDesc", {}, "Toutes les dépenses (ingrédients, salaires, loyer, équipements, factures) sont gérées de manière autonome dans l'onglet dédié « Dépenses ».")}
           </p>
         </div>
         {onNavigateToExpenses && (
@@ -490,7 +534,8 @@ export default function FinancePanel({ onNavigateToExpenses }) {
             onClick={onNavigateToExpenses}
             className={`${btnPrimary} flex items-center gap-2 text-sm whitespace-nowrap shadow-md shadow-orange-500/20`}
           >
-            Accéder à l'onglet Dépenses <ArrowRight className="w-4 h-4" />
+            <span>{t("Admin.finance.goToExpensesBtn", {}, "Accéder à l'onglet Dépenses")}</span>
+            <ArrowRight className="w-4 h-4 rtl-flip" />
           </button>
         )}
       </div>

@@ -273,8 +273,15 @@ const waitMinutes = (createdAt, now) => {
   if (Number.isNaN(t)) return 0;
   return Math.max(0, Math.floor((now - t) / 60000));
 };
-const formatWait = (m, t) =>
-  m < 1 ? (t ? t("Admin.orders.justNow", {}, "À l'instant") : "À l'instant") : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
+const formatWait = (m, t) => {
+  const minUnit = t ? t("common.minutesShort", {}, "min") : "min";
+  const hrUnit = t ? t("common.hoursShort", {}, "h") : "h";
+  return m < 1
+    ? (t ? t("Admin.orders.justNow", {}, "À l'instant") : "À l'instant")
+    : m < 60
+    ? `${m} ${minUnit}`
+    : `${Math.floor(m / 60)} ${hrUnit} ${String(m % 60).padStart(2, "0")}`;
+};
 const waitTone = (m) =>
   m >= 30
     ? "bg-red-50 text-red-700 border-red-200"
@@ -510,7 +517,7 @@ function OrderCard({
             type="button"
             onClick={() => onAdvance(order)}
             disabled={busy || !action.next}
-            title={!action.next ? "Statut indisponible" : undefined}
+            title={!action.next ? t("Admin.orders.statusUnavailable", {}, "Statut indisponible") : undefined}
             className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white shadow-md transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed ${accent}`}
           >
             {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ActionIcon className="w-4 h-4" />}
@@ -931,7 +938,7 @@ export default function OrdersPanel() {
     });
   }, [items, autoConfirm]);
 
-  const advance = (order) => applyStatus(order, getAction(order, allStatuses).next);
+  const advance = (order) => applyStatus(order, getAction(order, allStatuses, t).next);
 
   /** Bouton « Retour » d'une carte : revient à l'étape précédente */
   const undo = (order) => applyStatus(order, getPrev(order, allStatuses));
@@ -1066,7 +1073,7 @@ export default function OrdersPanel() {
           <button
             type="button"
             onClick={() => setLastAction(null)}
-            aria-label="Fermer"
+            aria-label={t("common.close", {}, "Fermer")}
             className="p-1 rounded-lg hover:bg-white/15 transition"
           >
             <X className="w-4 h-4" />
@@ -1106,14 +1113,14 @@ export default function OrdersPanel() {
         {connected ? (
           <span
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap"
-            title="Synchronisation temps réel Firebase active"
+            title={t("Admin.orders.firebaseConnected", {}, "Synchronisation temps réel Firebase active")}
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </span>
         ) : (
           <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap">
             <Radio className="w-3 h-3 text-gray-400" />
-            Standard
+            {t("Admin.orders.firebaseStandard", {}, "Standard")}
           </span>
         )}
 
@@ -1306,7 +1313,9 @@ export default function OrdersPanel() {
           <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className={btnGhost}>
             {t("common.prev", {}, "Précédent")}
           </button>
-          <span className="text-sm text-gray-600">Page {page} / {pages}</span>
+          <span className="text-sm text-gray-600">
+            {t("common.page", {}, "Page")} {page} {t("common.of", {}, "/")} {pages}
+          </span>
           <button type="button" disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className={btnGhost}>
             {t("common.next", {}, "Suivant")}
           </button>

@@ -76,6 +76,7 @@ function SectionLabel({ children, right }) {
 }
 
 function QtyStepper({ value, onMinus, onPlus, size = "md" }) {
+  const { t } = useI18n();
   const box = size === "sm" ? "w-6 h-6" : "w-8 h-8";
   const icon = size === "sm" ? "w-3 h-3" : "w-3.5 h-3.5";
   return (
@@ -83,7 +84,7 @@ function QtyStepper({ value, onMinus, onPlus, size = "md" }) {
       <button
         type="button"
         onClick={onMinus}
-        aria-label="Moins"
+        aria-label={t("common.decrease", {}, "Moins")}
         className={`${box} rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center`}
       >
         <Minus className={icon} />
@@ -100,7 +101,7 @@ function QtyStepper({ value, onMinus, onPlus, size = "md" }) {
       <button
         type="button"
         onClick={onPlus}
-        aria-label="Plus"
+        aria-label={t("common.increase", {}, "Plus")}
         className={`${box} rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center`}
       >
         <Plus className={icon} />
@@ -111,6 +112,7 @@ function QtyStepper({ value, onMinus, onPlus, size = "md" }) {
 
 /** Overlay used only for the product options popup */
 function Sheet({ title, onClose, children, footer }) {
+  const { t } = useI18n();
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -133,7 +135,7 @@ function Sheet({ title, onClose, children, footer }) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={t("common.close", {}, "Fermer")}
             className="w-9 h-9 rounded-full bg-white border border-gray-200 hover:bg-gray-100 flex items-center justify-center flex-none"
           >
             <X className="w-4 h-4" />
@@ -200,7 +202,7 @@ function OptionsModal({ product, onClose, onAdd }) {
           {!valid && (
             <p className="text-xs font-semibold text-red-600 flex items-center gap-1.5">
               <AlertCircle className="w-3.5 h-3.5" />
-              Choisissez : {missing.map((g) => g.name).join(", ")}
+              {t("OrderingPage.product.chooseMissing", {}, "Choisissez :")} {missing.map((g) => g.name).join(", ")}
             </p>
           )}
           <div className="flex items-center gap-3">
@@ -226,14 +228,18 @@ function OptionsModal({ product, onClose, onAdd }) {
         {groups.map((g) => {
           const cur = selected[g.id] || [];
           const hint =
-            g.type === "single" ? "1 choix" : g.max ? `Max ${g.max}` : "Plusieurs";
+            g.type === "single"
+              ? t("Admin.options.singleChoice", {}, "1 choix")
+              : g.max
+              ? `${t("Admin.options.max", {}, "Max")} ${g.max}`
+              : t("Admin.options.multipleChoices", {}, "Plusieurs");
 
           return (
             <fieldset key={g.id}>
               <div className="flex items-center justify-between gap-2 mb-2">
                 <legend className="font-extrabold text-gray-900 text-sm">{g.name}</legend>
                 <span className="text-[11px] font-bold text-gray-500">
-                  {g.required ? "Obligatoire" : "Optionnel"} · {hint}
+                  {g.required ? t("common.required", {}, "Obligatoire") : t("common.optional", {}, "Optionnel")} · {hint}
                 </span>
               </div>
 
@@ -333,7 +339,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
         }
       })
       .catch((err) => {
-        if (alive) setCatalogError(err.message || "Impossible de charger le catalogue.");
+        if (alive) setCatalogError(err.message || t("Admin.products.catalogLoadError", {}, "Impossible de charger le catalogue."));
       })
       .finally(() => {
         if (alive) setCatalogLoading(false);
@@ -421,16 +427,17 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (items.length === 0) return setFormError("Veuillez sélectionner au moins un article.");
+    if (items.length === 0)
+      return setFormError(t("Admin.orders.emptyError", {}, "Veuillez sélectionner au moins un article."));
     if (fulfillment === "delivery" && !address.trim())
-      return setFormError("Veuillez renseigner l'adresse de livraison.");
+      return setFormError(t("Admin.orders.addressRequired", {}, "Veuillez renseigner l'adresse de livraison."));
 
     setSubmitting(true);
     setFormError("");
 
     try {
       const payload = {
-        customerName: customerName.trim() || "Client Comptoir",
+        customerName: customerName.trim() || t("Admin.orders.counterCustomer", {}, "Client Comptoir"),
         customerPhone: customerPhone.trim() || "0550000000",
         fulfillment: fulfillment === "delivery" ? "DELIVERY" : "PICKUP",
         municipalityName: fulfillment === "delivery" ? municipalityName : null,
@@ -451,7 +458,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
       onOrderCreated?.(res.order || res);
       onClose();
     } catch (err) {
-      setFormError(err.message || "Erreur lors de la création de la commande.");
+      setFormError(err.message || t("Admin.orders.createError", {}, "Erreur lors de la création de la commande."));
     } finally {
       setSubmitting(false);
     }
@@ -504,7 +511,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
             <button
               type="button"
               onClick={onClose}
-              aria-label="Fermer"
+              aria-label={t("common.close", {}, "Fermer")}
               className="w-9 h-9 rounded-full bg-white border border-gray-200 hover:bg-gray-100 flex items-center justify-center flex-none"
             >
               <X className="w-4 h-4" />
@@ -537,7 +544,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                       <User className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                       <input
                         type="text"
-                        aria-label="Nom du client"
+                        aria-label={t("OrderingPage.checkout.name", {}, "Nom du client")}
                         placeholder={t("OrderingPage.checkout.namePlaceholder", {}, "Client Comptoir")}
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
@@ -549,7 +556,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                       <input
                         type="tel"
                         inputMode="tel"
-                        aria-label="Téléphone"
+                        aria-label={t("OrderingPage.checkout.phone", {}, "Téléphone")}
                         placeholder="05..."
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
@@ -602,7 +609,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                         right={
                           municipalityName && (
                             <span className="text-[11px] font-bold text-orange-600">
-                              {t("Admin.orders.deliveryFee", { fee: deliveryFee ? formatPrice(deliveryFee) : "Gratuit" })}
+                              {t("Admin.orders.deliveryFee", { fee: deliveryFee ? formatPrice(deliveryFee) : t("common.free", {}, "Gratuit") })}
                             </span>
                           )
                         }
@@ -627,7 +634,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                                 <div className="flex items-center justify-between w-full gap-4">
                                   <span className="font-semibold text-gray-900">{m.name}</span>
                                   <span className="text-xs font-bold text-orange-600">
-                                    {m.deliveryFee ? `${formatPrice(m.deliveryFee)}` : "Gratuit"}
+                                    {m.deliveryFee ? `${formatPrice(m.deliveryFee)}` : t("common.free", {}, "Gratuit")}
                                   </span>
                                 </div>
                               </SelectItem>
@@ -883,7 +890,7 @@ export default function QuickOrderModal({ onClose, onOrderCreated }) {
                             <button
                               type="button"
                               onClick={() => handleRemoveItem(idx)}
-                              aria-label="Supprimer"
+                              aria-label={t("common.delete", {}, "Supprimer")}
                               className="text-gray-400 hover:text-red-500"
                             >
                               <Trash2 className="w-3.5 h-3.5" />

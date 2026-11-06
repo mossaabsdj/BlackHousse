@@ -10,15 +10,15 @@ import {
   DollarSign,
   TrendingDown,
   AlertCircle,
-  Filter,
   Calendar,
   Search,
   Tag,
   ChevronDown,
 } from "lucide-react";
-import { api, formatPrice, formatDate } from "./adminApi";
-import { card, inputClass, btnPrimary, btnGhost, btnDanger, Modal, Field, ErrorBox } from "./Ui";
+import { api } from "./adminApi";
+import { card, inputClass, btnPrimary, btnGhost, Modal, Field, ErrorBox } from "./Ui";
 import { EXPENSE_CATEGORIES } from "@/lib/admin/finance";
+import { useI18n } from "@/lib/i18n/I18nContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,33 +30,54 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const PERIOD_PRESETS = [
-  { id: "this_month", label: "Ce mois-ci" },
-  { id: "today", label: "Aujourd'hui" },
-  { id: "yesterday", label: "Hier" },
-  { id: "this_week", label: "Cette semaine" },
-  { id: "last_month", label: "Mois dernier" },
-  { id: "all", label: "Tout l'historique" },
-  { id: "custom", label: "Personnalisé" },
-];
-
-// Au niveau du module : évite de recréer le select à chaque rendu
 const SelectField = ({ icon: Icon, label, value, onChange, className = "", children }) => (
   <div className={`relative ${className}`}>
-    <Icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500" />
+    <Icon className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500" />
     <select
       aria-label={label}
       value={value}
       onChange={onChange}
-      className={`${inputClass} appearance-none cursor-pointer pl-9 pr-9 font-semibold truncate`}
+      className={`${inputClass} appearance-none cursor-pointer ps-9 pe-9 font-semibold truncate`}
     >
       {children}
     </select>
-    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+    <ChevronDown className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
   </div>
 );
 
 export default function ExpensesPanel() {
+  const { t, formatPrice, formatDate, isRTL } = useI18n();
+
+  const periodPresets = useMemo(
+    () => [
+      { id: "this_month", label: t("Admin.expenses.periods.this_month", {}, "Ce mois-ci") },
+      { id: "today", label: t("Admin.expenses.periods.today", {}, "Aujourd'hui") },
+      { id: "yesterday", label: t("Admin.expenses.periods.yesterday", {}, "Hier") },
+      { id: "this_week", label: t("Admin.expenses.periods.this_week", {}, "Cette semaine") },
+      { id: "last_month", label: t("Admin.expenses.periods.last_month", {}, "Mois dernier") },
+      { id: "all", label: t("Admin.expenses.periods.all", {}, "Tout l'historique") },
+      { id: "custom", label: t("Admin.expenses.periods.custom", {}, "Personnalisé") },
+    ],
+    [t]
+  );
+
+  const getCategoryLabel = useCallback(
+    (catValue, fallback) => {
+      const map = {
+        INGREDIENTS: "ingredients",
+        SALAIRES: "salaries",
+        LOYER_CHARGES: "rent",
+        EQUIPEMENT: "maintenance",
+        LIVRAISON: "delivery",
+        MARKETING: "marketing",
+        AUTRE: "other",
+      };
+      const key = map[catValue] || catValue?.toLowerCase();
+      return t(`Admin.expenses.categories.${key}`, {}, fallback || catValue);
+    },
+    [t]
+  );
+
   const [period, setPeriod] = useState("this_month");
   const [customFrom, setCustomFrom] = useState(() => {
     const d = new Date();
@@ -104,14 +125,14 @@ export default function ExpensesPanel() {
   const dateParams = useMemo(() => {
     const now = new Date();
     if (period === "today") {
-      const t = now.toISOString().slice(0, 10);
-      return { from: t, to: t };
+      const tStr = now.toISOString().slice(0, 10);
+      return { from: tStr, to: tStr };
     }
     if (period === "yesterday") {
       const y = new Date();
       y.setUTCDate(y.getUTCDate() - 1);
-      const t = y.toISOString().slice(0, 10);
-      return { from: t, to: t };
+      const tStr = y.toISOString().slice(0, 10);
+      return { from: tStr, to: tStr };
     }
     if (period === "this_week") {
       const d = new Date();
@@ -154,12 +175,12 @@ export default function ExpensesPanel() {
         setTotalCount(data.total || 0);
         setTotalAmount(data.totalAmount || 0);
       } catch (err) {
-        setError(err.message || "Erreur lors du chargement des dépenses");
+        setError(err.message || t("common.error", {}, "Erreur lors du chargement des dépenses"));
       } finally {
         setLoading(false);
       }
     },
-    [page, searchDebounced, category, dateParams]
+    [page, searchDebounced, category, dateParams, t]
   );
 
   useEffect(() => {
@@ -193,11 +214,11 @@ export default function ExpensesPanel() {
 
     const parsedAmount = parseInt(formAmount, 10);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      setFormError("Veuillez saisir un montant valide supérieur à 0.");
+      setFormError(t("common.invalidValue", {}, "Veuillez saisir un montant valide supérieur à 0."));
       return;
     }
     if (!formDescription.trim()) {
-      setFormError("La description est obligatoire.");
+      setFormError(t("common.required", {}, "La description est obligatoire."));
       return;
     }
 
@@ -219,7 +240,7 @@ export default function ExpensesPanel() {
       setModalState(null);
       await loadExpenses(true);
     } catch (err) {
-      setFormError(err.message || "Erreur lors de l'enregistrement de la dépense.");
+      setFormError(err.message || t("common.error", {}, "Erreur lors de l'enregistrement de la dépense."));
     } finally {
       setSaving(false);
     }
@@ -235,7 +256,7 @@ export default function ExpensesPanel() {
       setDeletingExpense(null);
       await loadExpenses(true);
     } catch (err) {
-      setDeleteError(err.message || "Erreur lors de la suppression de la dépense.");
+      setDeleteError(err.message || t("common.error", {}, "Erreur lors de la suppression de la dépense."));
     } finally {
       setDeletingLoading(false);
     }
@@ -253,7 +274,9 @@ export default function ExpensesPanel() {
             <TrendingDown className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Dépensé</p>
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+              {t("Admin.finance.expenses", {}, "Total des Dépenses")}
+            </p>
             <p className="text-xl font-black text-gray-900">{formatPrice(totalAmount)}</p>
           </div>
         </div>
@@ -263,7 +286,9 @@ export default function ExpensesPanel() {
             <Receipt className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Nombre de Dépenses</p>
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+              {t("Admin.finance.expensesLabel", {}, "Nombre de Dépenses")}
+            </p>
             <p className="text-xl font-black text-gray-900">{totalCount}</p>
           </div>
         </div>
@@ -273,32 +298,34 @@ export default function ExpensesPanel() {
             <DollarSign className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Dépense Moyenne</p>
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+              {t("Admin.finance.averageTicket", {}, "Dépense Moyenne")}
+            </p>
             <p className="text-xl font-black text-gray-900">{formatPrice(averageAmount)}</p>
           </div>
         </div>
       </div>
 
-      {/* Recherche + filtres + actions (une seule ligne sur PC) */}
+      {/* Recherche + filtres + actions */}
       <div className={`${card} p-2.5 sm:p-3`}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 lg:flex lg:flex-wrap lg:items-center">
           {/* Recherche */}
           <div className="relative sm:col-span-2 lg:col-span-1 lg:flex-1 lg:min-w-[200px]">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              aria-label="Rechercher une dépense"
-              placeholder="Rechercher par description..."
+              aria-label={t("Admin.expenses.searchPlaceholder", {}, "Rechercher par description...")}
+              placeholder={t("Admin.expenses.searchPlaceholder", {}, "Rechercher par description...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className={`${inputClass} pl-9`}
+              className={`${inputClass} ps-9 pe-3`}
             />
           </div>
 
           {/* Période */}
           <SelectField
             icon={Calendar}
-            label="Filtrer par période"
+            label={t("Admin.history.periodsLabel", {}, "Filtrer par période")}
             value={period}
             onChange={(e) => {
               setPeriod(e.target.value);
@@ -306,7 +333,7 @@ export default function ExpensesPanel() {
             }}
             className="w-full lg:w-48"
           >
-            {PERIOD_PRESETS.map((p) => (
+            {periodPresets.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.label}
               </option>
@@ -316,7 +343,7 @@ export default function ExpensesPanel() {
           {/* Catégorie */}
           <SelectField
             icon={Tag}
-            label="Filtrer par catégorie"
+            label={t("Admin.expenses.category", {}, "Filtrer par catégorie")}
             value={category}
             onChange={(e) => {
               setCategory(e.target.value);
@@ -324,10 +351,10 @@ export default function ExpensesPanel() {
             }}
             className="w-full lg:w-52"
           >
-            <option value="">Toutes les catégories</option>
+            <option value="">{t("Admin.expenses.allCategories", {}, "Toutes les catégories")}</option>
             {EXPENSE_CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
-                {c.label}
+                {getCategoryLabel(c.value, c.label)}
               </option>
             ))}
           </SelectField>
@@ -337,7 +364,7 @@ export default function ExpensesPanel() {
             <div className="sm:col-span-2 lg:col-span-1 flex items-center gap-2 w-full lg:w-auto rounded-xl bg-orange-50/60 border border-orange-100 px-2 py-1.5">
               <input
                 type="date"
-                aria-label="Date de début"
+                aria-label={t("Admin.history.from", {}, "Date de début")}
                 value={customFrom}
                 onChange={(e) => {
                   setCustomFrom(e.target.value);
@@ -348,7 +375,7 @@ export default function ExpensesPanel() {
               <span className="text-gray-400 text-xs font-bold">→</span>
               <input
                 type="date"
-                aria-label="Date de fin"
+                aria-label={t("Admin.history.to", {}, "Date de fin")}
                 value={customTo}
                 onChange={(e) => {
                   setCustomTo(e.target.value);
@@ -360,24 +387,24 @@ export default function ExpensesPanel() {
           )}
 
           {/* Actions */}
-          <div className="sm:col-span-2 lg:col-span-1 flex items-center gap-2 lg:ml-auto">
+          <div className="sm:col-span-2 lg:col-span-1 flex items-center gap-2 lg:ms-auto">
             <button
               type="button"
               onClick={handleOpenCreate}
               className={`${btnPrimary} flex flex-1 lg:flex-none items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap shadow-md shadow-orange-500/25`}
             >
               <Plus className="w-4 h-4" />
-              Nouvelle dépense
+              {t("Admin.expenses.addExpense", {}, "Nouvelle dépense")}
             </button>
             <button
               type="button"
               onClick={() => loadExpenses()}
-              title="Actualiser"
-              aria-label="Actualiser"
+              title={t("Admin.orders.refresh", {}, "Actualiser")}
+              aria-label={t("Admin.orders.refresh", {}, "Actualiser")}
               className={`${btnGhost} flex flex-1 lg:flex-none items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap`}
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-              <span className="lg:hidden xl:inline">Actualiser</span>
+              <span className="lg:hidden xl:inline">{t("Admin.orders.refresh", {}, "Actualiser")}</span>
             </button>
           </div>
         </div>
@@ -388,37 +415,37 @@ export default function ExpensesPanel() {
       {/* Expenses Table */}
       <div className={`${card} overflow-hidden shadow-sm`}>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-start text-sm">
             <thead className="bg-gray-50/80 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
               <tr>
-                <th className="px-4 py-2.5">Date</th>
-                <th className="px-4 py-2.5">Description</th>
-                <th className="px-4 py-2.5">Catégorie</th>
-                <th className="px-4 py-2.5 text-right">Montant</th>
-                <th className="px-4 py-2.5 text-center">Actions</th>
+                <th className="px-4 py-2.5 text-start">{t("Admin.expenses.date", {}, "Date")}</th>
+                <th className="px-4 py-2.5 text-start">{t("Admin.expenses.description", {}, "Description")}</th>
+                <th className="px-4 py-2.5 text-start">{t("Admin.expenses.category", {}, "Catégorie")}</th>
+                <th className="px-4 py-2.5 text-end">{t("Admin.expenses.amount", {}, "Montant")}</th>
+                <th className="px-4 py-2.5 text-center">{t("common.actions", {}, "Actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading && expenses.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center py-10 text-gray-400">
-                    Chargement des dépenses...
+                    {t("common.loading", {}, "Chargement des dépenses...")}
                   </td>
                 </tr>
               ) : expenses.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center py-10 text-gray-400">
-                    Aucune dépense enregistrée sur cette sélection.
+                    {t("Admin.expenses.noExpensesFound", {}, "Aucune dépense enregistrée sur cette sélection.")}
                   </td>
                 </tr>
               ) : (
                 expenses.map((exp) => (
                   <tr key={exp.id} className="hover:bg-gray-50/70 transition">
-                    <td className="px-4 py-2.5 text-gray-600 font-mono text-xs whitespace-nowrap">
+                    <td className="px-4 py-2.5 text-gray-600 font-mono text-xs whitespace-nowrap text-start">
                       {formatDate(exp.date)}
                     </td>
-                    <td className="px-4 py-2.5 font-bold text-gray-900">{exp.description}</td>
-                    <td className="px-4 py-2.5 whitespace-nowrap">
+                    <td className="px-4 py-2.5 font-bold text-gray-900 text-start">{exp.description}</td>
+                    <td className="px-4 py-2.5 whitespace-nowrap text-start">
                       <span
                         style={{
                           color: exp.categoryColor,
@@ -427,10 +454,10 @@ export default function ExpensesPanel() {
                         }}
                         className="px-2.5 py-1 rounded-full text-xs font-bold border inline-block"
                       >
-                        {exp.categoryLabel}
+                        {getCategoryLabel(exp.category, exp.categoryLabel)}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-right font-black text-gray-900 whitespace-nowrap text-base">
+                    <td className="px-4 py-2.5 text-end font-black text-gray-900 whitespace-nowrap text-base">
                       {formatPrice(exp.amount)}
                     </td>
                     <td className="px-4 py-2.5 text-center whitespace-nowrap">
@@ -438,7 +465,8 @@ export default function ExpensesPanel() {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(exp)}
-                          title="Modifier cette dépense"
+                          title={t("Admin.expenses.editExpense", {}, "Modifier cette dépense")}
+                          aria-label={t("Admin.expenses.editExpense", {}, "Modifier cette dépense")}
                           className="p-1.5 rounded-lg border border-gray-200 hover:border-orange-400 hover:text-orange-600 text-gray-600 transition"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -449,7 +477,8 @@ export default function ExpensesPanel() {
                             setDeletingExpense(exp);
                             setDeleteError("");
                           }}
-                          title="Supprimer cette dépense"
+                          title={t("common.delete", {}, "Supprimer cette dépense")}
+                          aria-label={t("common.delete", {}, "Supprimer cette dépense")}
                           className="p-1.5 rounded-lg border border-gray-200 hover:border-red-400 hover:text-red-600 text-gray-600 transition"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -467,7 +496,7 @@ export default function ExpensesPanel() {
         {pages > 1 && (
           <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-100 bg-gray-50/50">
             <span className="text-xs text-gray-500">
-              Page {page} sur {pages} ({totalCount} dépense{totalCount > 1 ? "s" : ""})
+              {t("common.page", {}, "Page")} {page} {t("common.of", {}, "sur")} {pages} ({t("Admin.expenses.totalCount", { count: totalCount }, `${totalCount} dépenses`)})
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -476,7 +505,7 @@ export default function ExpensesPanel() {
                 onClick={() => setPage((p) => p - 1)}
                 className={`${btnGhost} text-xs py-1 px-3`}
               >
-                Précédent
+                {t("common.prev", {}, "Précédent")}
               </button>
               <button
                 type="button"
@@ -484,7 +513,7 @@ export default function ExpensesPanel() {
                 onClick={() => setPage((p) => p + 1)}
                 className={`${btnGhost} text-xs py-1 px-3`}
               >
-                Suivant
+                {t("common.next", {}, "Suivant")}
               </button>
             </div>
           </div>
@@ -494,7 +523,7 @@ export default function ExpensesPanel() {
       {/* Add / Edit Expense Modal */}
       {modalState && (
         <Modal
-          title={modalState === "create" ? "Ajouter une dépense" : "Modifier la dépense"}
+          title={modalState === "create" ? t("Admin.expenses.addExpense", {}, "Ajouter une dépense") : t("Admin.expenses.editExpense", {}, "Modifier la dépense")}
           onClose={() => setModalState(null)}
           footer={
             <>
@@ -504,7 +533,7 @@ export default function ExpensesPanel() {
                 className={btnGhost}
                 disabled={saving}
               >
-                Annuler
+                {t("common.cancel", {}, "Annuler")}
               </button>
               <button
                 type="submit"
@@ -513,7 +542,7 @@ export default function ExpensesPanel() {
                 className={`${btnPrimary} flex items-center gap-2`}
               >
                 {saving && <RefreshCw className="w-4 h-4 animate-spin" />}
-                {modalState === "create" ? "Enregistrer la dépense" : "Sauvegarder"}
+                {modalState === "create" ? t("Admin.expenses.saveExpense", {}, "Enregistrer la dépense") : t("common.save", {}, "Sauvegarder")}
               </button>
             </>
           }
@@ -526,32 +555,32 @@ export default function ExpensesPanel() {
               </div>
             )}
 
-            <Field label="Montant en Dinars (DA)">
+            <Field label={t("Admin.expenses.amount", {}, "Montant en Dinars (DA)")}>
               <input
                 type="number"
                 min="1"
                 step="1"
                 required
-                placeholder="Ex: 5000"
+                placeholder={t("Admin.expenses.amountPlaceholder", {}, "Ex: 5000")}
                 value={formAmount}
                 onChange={(e) => setFormAmount(e.target.value)}
                 className={`${inputClass} text-lg font-bold font-mono`}
               />
             </Field>
 
-            <Field label="Description">
+            <Field label={t("Admin.expenses.description", {}, "Description")}>
               <input
                 type="text"
                 required
                 maxLength={250}
-                placeholder="Ex: 20kg viande hachée, Facture électricité..."
+                placeholder={t("Admin.expenses.descriptionPlaceholder", {}, "Ex: 20kg viande hachée, Facture électricité...")}
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
                 className={inputClass}
               />
             </Field>
 
-            <Field label="Catégorie de charge">
+            <Field label={t("Admin.expenses.category", {}, "Catégorie de charge")}>
               <select
                 value={formCategory}
                 onChange={(e) => setFormCategory(e.target.value)}
@@ -559,13 +588,13 @@ export default function ExpensesPanel() {
               >
                 {EXPENSE_CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>
-                    {c.label}
+                    {getCategoryLabel(c.value, c.label)}
                   </option>
                 ))}
               </select>
             </Field>
 
-            <Field label="Date de la dépense">
+            <Field label={t("Admin.expenses.date", {}, "Date de la dépense")}>
               <input
                 type="date"
                 required
@@ -583,21 +612,23 @@ export default function ExpensesPanel() {
         <AlertDialogContent className="bg-white border border-gray-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-gray-900 font-bold text-lg">
-              Confirmer la suppression
+              {t("Admin.expenses.deleteModalTitle", {}, "Confirmer la suppression")}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600 text-sm space-y-2">
               <span className="block">
-                Êtes-vous sûr de vouloir supprimer cette dépense ?
+                {t("Admin.expenses.deleteModalDesc", {}, "Êtes-vous sûr de vouloir supprimer cette dépense ?")}
               </span>
               {deletingExpense && (
                 <span className="block p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1">
                   <span className="block font-extrabold text-gray-900">{deletingExpense.description}</span>
                   <span className="block text-sm font-black text-orange-600">{formatPrice(deletingExpense.amount)}</span>
-                  <span className="block text-xs text-gray-500">Date : {formatDate(deletingExpense.date)}</span>
+                  <span className="block text-xs text-gray-500">
+                    {t("Admin.expenses.date", {}, "Date")} : {formatDate(deletingExpense.date)}
+                  </span>
                 </span>
               )}
               <span className="block text-xs text-gray-500">
-                Cette action est irréversible et mettra à jour les calculs de finances et de bénéfice net.
+                {t("Admin.expenses.deleteConfirm", {}, "Cette action est irréversible et mettra à jour les calculs de finances et de bénéfice net.")}
               </span>
               {deleteError && (
                 <span className="block text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200">
@@ -611,7 +642,7 @@ export default function ExpensesPanel() {
               disabled={deletingLoading}
               className="border-gray-300 text-gray-700 hover:bg-gray-100"
             >
-              Annuler
+              {t("common.cancel", {}, "Annuler")}
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={deletingLoading}
@@ -619,7 +650,7 @@ export default function ExpensesPanel() {
               className="bg-red-600 text-white hover:bg-red-700 font-bold flex items-center gap-2"
             >
               {deletingLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
-              {deletingLoading ? "Suppression..." : "Supprimer définitivement"}
+              {deletingLoading ? t("common.deleting", {}, "Suppression...") : t("Admin.expenses.deletePermanent", {}, "Supprimer définitivement")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

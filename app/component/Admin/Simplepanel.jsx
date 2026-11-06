@@ -1,8 +1,10 @@
 "use client";
+
 import { useState } from "react";
 import { Pencil, Plus, Trash2, Loader2 } from "lucide-react";
 import { api, useList } from "./adminApi";
 import { Field, Modal, Toggle, ErrorBox, btnDanger, btnGhost, btnPrimary, card, inputClass } from "./Ui";
+import { useI18n } from "@/lib/i18n/I18nContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +22,7 @@ import {
  * columns: [{ key, label, render?(item) }]
  */
 export default function SimplePanel({ title, url, columns, fields, blank, addLabel, describeDelete }) {
+  const { t } = useI18n();
   const { items, loading, error, reload } = useList(url);
   const [form, setForm] = useState(null); // { id?, values }
   const [formError, setFormError] = useState({ message: "", fields: {} });
@@ -32,7 +35,16 @@ export default function SimplePanel({ title, url, columns, fields, blank, addLab
     setFormError({ message: "", fields: {} });
     setForm({
       id: item?.id,
-      values: Object.fromEntries(fields.map((f) => [f.key, item ? (f.type === "switch" ? item[f.key] : item[f.key] ?? "") : blank[f.key] ?? (f.type === "switch" ? true : "")])),
+      values: Object.fromEntries(
+        fields.map((f) => [
+          f.key,
+          item
+            ? f.type === "switch"
+              ? item[f.key]
+              : item[f.key] ?? ""
+            : blank[f.key] ?? (f.type === "switch" ? true : ""),
+        ])
+      ),
     });
   };
 
@@ -101,33 +113,67 @@ export default function SimplePanel({ title, url, columns, fields, blank, addLab
       {actionError && <ErrorBox message={actionError} />}
 
       <div className={`${card} overflow-x-auto`}>
-        <table className="w-full text-sm">
+        <table className="w-full text-sm text-start">
           <thead>
-            <tr className="text-left text-gray-500 border-b border-gray-100">
+            <tr className="text-start text-gray-500 border-b border-gray-100">
               {columns.map((c) => (
-                <th key={c.key} className="px-4 py-3 font-semibold">{c.label}</th>
+                <th key={c.key} className="px-4 py-3 font-semibold text-start">
+                  {c.label}
+                </th>
               ))}
-              <th className="px-4 py-3 font-semibold">Visible</th>
+              <th className="px-4 py-3 font-semibold text-start">
+                {t("Admin.simple.tableHeaderVisible", {}, "Visible")}
+              </th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {loading && (
-              <tr><td colSpan={columns.length + 2} className="px-4 py-8 text-center text-gray-500">Chargement...</td></tr>
+              <tr>
+                <td colSpan={columns.length + 2} className="px-4 py-8 text-center text-gray-500">
+                  {t("Admin.simple.loading", {}, "Chargement...")}
+                </td>
+              </tr>
             )}
             {!loading && items.length === 0 && !error && (
-              <tr><td colSpan={columns.length + 2} className="px-4 py-8 text-center text-gray-500">Aucun élément pour le moment.</td></tr>
+              <tr>
+                <td colSpan={columns.length + 2} className="px-4 py-8 text-center text-gray-500">
+                  {t("Admin.simple.emptyList", {}, "Aucun élément pour le moment.")}
+                </td>
+              </tr>
             )}
             {items.map((item) => (
               <tr key={item.id} className="border-b border-gray-100 last:border-0">
                 {columns.map((c) => (
-                  <td key={c.key} className="px-4 py-3 text-gray-900">{c.render ? c.render(item) : item[c.key]}</td>
+                  <td key={c.key} className="px-4 py-3 text-gray-900 text-start">
+                    {c.render ? c.render(item) : item[c.key]}
+                  </td>
                 ))}
-                <td className="px-4 py-3"><Toggle checked={item.isActive} onChange={() => toggleActive(item)} label={`Visible : ${item.name}`} /></td>
+                <td className="px-4 py-3 text-start">
+                  <Toggle
+                    checked={item.isActive}
+                    onChange={() => toggleActive(item)}
+                    label={`${t("Admin.simple.tableHeaderVisible", {}, "Visible")} : ${item.name}`}
+                  />
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-2">
-                    <button type="button" onClick={() => open(item)} aria-label={`Modifier ${item.name}`} className={btnGhost}><Pencil className="w-4 h-4" /></button>
-                    <button type="button" onClick={() => setItemToDelete(item)} aria-label={`Supprimer ${item.name}`} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                    <button
+                      type="button"
+                      onClick={() => open(item)}
+                      aria-label={`${t("common.edit", {}, "Modifier")} ${item.name}`}
+                      className={btnGhost}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setItemToDelete(item)}
+                      aria-label={`${t("common.delete", {}, "Supprimer")} ${item.name}`}
+                      className={btnDanger}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -138,12 +184,16 @@ export default function SimplePanel({ title, url, columns, fields, blank, addLab
 
       {form && (
         <Modal
-          title={form.id ? "Modifier" : addLabel}
+          title={form.id ? t("common.edit", {}, "Modifier") : addLabel}
           onClose={() => setForm(null)}
           footer={
             <>
-              <button type="button" onClick={() => setForm(null)} className={btnGhost}>Annuler</button>
-              <button type="submit" form="simple-form" disabled={busy} className={btnPrimary}>{busy ? "Enregistrement..." : "Enregistrer"}</button>
+              <button type="button" onClick={() => setForm(null)} className={btnGhost}>
+                {t("common.cancel", {}, "Annuler")}
+              </button>
+              <button type="submit" form="simple-form" disabled={busy} className={btnPrimary}>
+                {busy ? t("common.saving", {}, "Enregistrement...") : t("common.save", {}, "Enregistrer")}
+              </button>
             </>
           }
         >
@@ -153,7 +203,11 @@ export default function SimplePanel({ title, url, columns, fields, blank, addLab
               f.type === "switch" ? (
                 <div key={f.key} className="flex items-center justify-between gap-3">
                   <span className="text-sm font-semibold text-gray-900">{f.label}</span>
-                  <Toggle checked={!!form.values[f.key]} onChange={(v) => setForm((s) => ({ ...s, values: { ...s.values, [f.key]: v } }))} label={f.label} />
+                  <Toggle
+                    checked={!!form.values[f.key]}
+                    onChange={(v) => setForm((s) => ({ ...s, values: { ...s.values, [f.key]: v } }))}
+                    label={f.label}
+                  />
                 </div>
               ) : (
                 <Field key={f.key} label={f.label} hint={f.hint} error={formError.fields[f.key]}>
@@ -176,15 +230,17 @@ export default function SimplePanel({ title, url, columns, fields, blank, addLab
         <AlertDialogContent className="bg-white border border-gray-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-gray-900 font-bold text-lg">
-              Confirmer la suppression
+              {t("common.confirmDelete", {}, "Confirmer la suppression")}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600 text-sm">
-              {itemToDelete && describeDelete ? describeDelete(itemToDelete) : "Voulez-vous vraiment supprimer cet élément ?"}
+              {itemToDelete && describeDelete
+                ? describeDelete(itemToDelete)
+                : t("Admin.simple.deleteGenericDesc", {}, "Voulez-vous vraiment supprimer cet élément ?")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex gap-2 justify-end">
             <AlertDialogCancel disabled={deleting} className="border-gray-300 text-gray-700 hover:bg-gray-100">
-              Annuler
+              {t("common.cancel", {}, "Annuler")}
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={deleting}
@@ -192,7 +248,7 @@ export default function SimplePanel({ title, url, columns, fields, blank, addLab
               className="bg-red-600 text-white hover:bg-red-700 font-bold flex items-center gap-2"
             >
               {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
-              <span>{deleting ? "Suppression..." : "Supprimer"}</span>
+              <span>{deleting ? t("common.deleting", {}, "Suppression...") : t("common.delete", {}, "Supprimer")}</span>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

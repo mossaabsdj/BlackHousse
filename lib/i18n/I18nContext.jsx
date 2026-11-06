@@ -254,6 +254,7 @@ export function I18nProvider({ children }) {
       Auth: currentDict.Auth || fallbackDict.Auth,
       Pwa: currentDict.Pwa || fallbackDict.Pwa,
       Offline: currentDict.Offline || fallbackDict.Offline,
+      common: currentDict.common || fallbackDict.common,
     };
   }, [currentDict, fallbackDict, meta.name]);
 

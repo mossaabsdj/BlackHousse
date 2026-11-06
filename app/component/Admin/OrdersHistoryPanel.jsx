@@ -217,7 +217,7 @@ export default function OrdersHistoryPanel() {
         {period === "custom" && (
           <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-100">
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-gray-500 font-semibold">Du :</span>
+              <span className="text-gray-500 font-semibold">{t("Admin.history.from", {}, "Du :")}</span>
               <input
                 type="date"
                 value={customFrom}
@@ -229,7 +229,7 @@ export default function OrdersHistoryPanel() {
               />
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-gray-500 font-semibold">Au :</span>
+              <span className="text-gray-500 font-semibold">{t("Admin.history.to", {}, "Au :")}</span>
               <input
                 type="date"
                 value={customTo}
@@ -313,7 +313,7 @@ export default function OrdersHistoryPanel() {
                           ? "bg-red-500 text-white ring-red-200/50"
                           : "bg-emerald-600 text-white ring-emerald-200/50"
                       }`}
-                      title={`Commande #${o.dailyNumber} de la journée du ${formatDate(o.createdAt)}`}
+                      title={t("Admin.orders.orderNumberDay", { num: o.dailyNumber }, `Commande #${o.dailyNumber} de la journée`)}
                     >
                       #{o.dailyNumber}
                     </span>
@@ -323,7 +323,7 @@ export default function OrdersHistoryPanel() {
                       <p className="font-mono font-bold text-gray-900">{o.reference}</p>
                       {o.dailyNumber != null && (
                         <span className="text-xs px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 font-medium">
-                          N° {o.dailyNumber} du jour
+                          {t("Admin.history.dayOrderNum", { num: o.dailyNumber }, `N° ${o.dailyNumber} du jour`)}
                         </span>
                       )}
                     </div>
@@ -333,7 +333,9 @@ export default function OrdersHistoryPanel() {
 
                 <div className="flex items-center gap-3">
                   <Badge tone={o.fulfillment === "delivery" ? "orange" : "blue"}>
-                    {o.fulfillment === "delivery" ? "Livraison" : "Retrait"}
+                    {o.fulfillment === "delivery"
+                      ? t("Admin.orders.delivery", {}, "Livraison")
+                      : t("Admin.orders.pickup", {}, "Retrait")}
                   </Badge>
 
                   {/* Status selector allowing correction back to active status if needed */}
@@ -348,7 +350,7 @@ export default function OrdersHistoryPanel() {
                   >
                     {allStatuses.map((s) => (
                       <option key={s.value} value={s.value}>
-                        {s.label}
+                        {t(`OrderStatus.${s.value}`, {}, s.label)}
                       </option>
                     ))}
                   </select>
@@ -359,7 +361,7 @@ export default function OrdersHistoryPanel() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="font-bold text-gray-900">{o.customerName}</p>
-                  <a href={`tel:${o.customerPhone}`} className="text-orange-600 font-semibold hover:underline">
+                  <a href={`tel:${o.customerPhone}`} dir="ltr" className="text-orange-600 font-semibold hover:underline">
                     {o.customerPhone}
                   </a>
                 </div>
@@ -395,10 +397,12 @@ export default function OrdersHistoryPanel() {
               {/* Totals footer */}
               <div className="flex justify-end gap-6 text-sm border-t border-gray-100 pt-3">
                 {o.deliveryFee > 0 && (
-                  <span className="text-gray-600">Livraison : {formatPrice(o.deliveryFee)}</span>
+                  <span className="text-gray-600">
+                    {t("Admin.orders.deliveryFee", { fee: formatPrice(o.deliveryFee) }, `Livraison : ${formatPrice(o.deliveryFee)}`)}
+                  </span>
                 )}
                 <span className={`font-black text-base ${isCancelled ? "text-gray-400 line-through" : "text-gray-900"}`}>
-                  Total : {formatPrice(o.total)}
+                  {t("Admin.orders.total", { amount: formatPrice(o.total) }, `Total : ${formatPrice(o.total)}`)}
                 </span>
               </div>
             </article>
@@ -415,10 +419,10 @@ export default function OrdersHistoryPanel() {
             onClick={() => setPage((p) => p - 1)}
             className={btnGhost}
           >
-            Précédent
+            {t("common.prev", {}, "Précédent")}
           </button>
           <span className="text-sm text-gray-600">
-            Page {page} / {pages} ({extra.total ?? 0} au total)
+            {t("common.page", {}, "Page")} {page} / {pages} ({extra.total ?? 0} {t("common.total", {}, "au total")})
           </span>
           <button
             type="button"
@@ -426,7 +430,7 @@ export default function OrdersHistoryPanel() {
             onClick={() => setPage((p) => p + 1)}
             className={btnGhost}
           >
-            Suivant
+            {t("common.next", {}, "Suivant")}
           </button>
         </div>
       )}

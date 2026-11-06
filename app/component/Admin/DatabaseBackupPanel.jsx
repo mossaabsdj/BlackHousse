@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  Database,
   Download,
   Upload,
   RefreshCw,
@@ -17,11 +16,14 @@ import {
   Sliders,
   AlertCircle,
   FileCheck,
+  ShieldCheck,
 } from "lucide-react";
-import { api, formatPrice } from "./adminApi";
+import { api } from "./adminApi";
 import { card, btnPrimary, btnGhost, btnDanger, Modal, ErrorBox } from "./Ui";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 export default function DatabaseBackupPanel() {
+  const { t, formatDate } = useI18n();
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState("");
@@ -48,7 +50,7 @@ export default function DatabaseBackupPanel() {
       const data = await api.get("/api/admin/database/stats");
       setStats(data.stats);
     } catch (err) {
-      setStatsError(err.message || "Impossible de charger les statistiques de la base");
+      setStatsError(err.message || t("common.error", {}, "Impossible de charger les statistiques de la base"));
     } finally {
       setStatsLoading(false);
     }
@@ -82,7 +84,7 @@ export default function DatabaseBackupPanel() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
-      alert(`Erreur lors de l'export : ${err.message}`);
+      alert(`Erreur : ${err.message}`);
     } finally {
       setExporting(false);
     }
@@ -100,7 +102,7 @@ export default function DatabaseBackupPanel() {
     }
 
     if (!selected.name.endsWith(".json")) {
-      setImportError("Veuillez sélectionner un fichier au format .json.");
+      setImportError(t("Admin.database.dropzoneHint", {}, "Veuillez sélectionner un fichier au format .json."));
       setFile(null);
       setFilePreview(null);
       return;
@@ -127,7 +129,7 @@ export default function DatabaseBackupPanel() {
         const totalEntries = Object.values(counts).reduce((a, b) => a + b, 0);
 
         if (totalEntries === 0) {
-          setImportError("Le fichier JSON ne contient aucune collection reconnue (produits, catégories, commandes...).");
+          setImportError(t("common.error", {}, "Le fichier JSON ne contient aucune collection reconnue (produits, catégories, commandes...)."));
           setFile(null);
           setFilePreview(null);
           return;
@@ -140,17 +142,17 @@ export default function DatabaseBackupPanel() {
           counts,
           totalEntries,
           parsedPayload: parsed,
-          exportedAt: parsed?.meta?.exportedAt ? new Date(parsed.meta.exportedAt).toLocaleString("fr-FR") : null,
+          exportedAt: parsed?.meta?.exportedAt ? formatDate(parsed.meta.exportedAt) : null,
         });
       } catch (err) {
-        setImportError(`Fichier JSON invalide ou corrompu : ${err.message}`);
+        setImportError(err.message || t("common.error", {}, "Fichier JSON invalide ou corrompu"));
         setFile(null);
         setFilePreview(null);
       }
     };
 
     reader.onerror = () => {
-      setImportError("Erreur lors de la lecture du fichier.");
+      setImportError(t("common.error", {}, "Erreur lors de la lecture du fichier."));
     };
 
     reader.readAsText(selected);
@@ -176,7 +178,7 @@ export default function DatabaseBackupPanel() {
       if (fileInputRef.current) fileInputRef.current.value = "";
       await loadStats(true);
     } catch (err) {
-      setImportError(err.message || "Erreur lors de l'importation de la base de données.");
+      setImportError(err.message || t("common.error", {}, "Erreur lors de l'importation de la base de données."));
     } finally {
       setImporting(false);
       setConfirmReplaceModal(false);
@@ -193,9 +195,6 @@ export default function DatabaseBackupPanel() {
 
   return (
     <section className="space-y-6">
-      {/* Top Header */}
-      
-
       {statsError && <ErrorBox message={statsError} onRetry={() => loadStats()} />}
 
       {/* Database Snapshot Stats */}
@@ -203,43 +202,43 @@ export default function DatabaseBackupPanel() {
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
           <div className={`${card} p-3.5 space-y-1 text-center bg-gray-50/50`}>
             <UtensilsCrossed className="w-4 h-4 text-orange-600 mx-auto" />
-            <p className="text-xs text-gray-500 font-semibold">Produits</p>
+            <p className="text-xs text-gray-500 font-semibold">{t("Admin.database.productsCount", {}, "Produits")}</p>
             <p className="text-lg font-black text-gray-900">{stats.products}</p>
           </div>
           <div className={`${card} p-3.5 space-y-1 text-center bg-gray-50/50`}>
             <Layers className="w-4 h-4 text-amber-600 mx-auto" />
-            <p className="text-xs text-gray-500 font-semibold">Catégories</p>
+            <p className="text-xs text-gray-500 font-semibold">{t("Admin.database.categoriesCount", {}, "Catégories")}</p>
             <p className="text-lg font-black text-gray-900">{stats.categories}</p>
           </div>
           <div className={`${card} p-3.5 space-y-1 text-center bg-gray-50/50`}>
             <Sliders className="w-4 h-4 text-blue-600 mx-auto" />
-            <p className="text-xs text-gray-500 font-semibold">Groupes Opt.</p>
+            <p className="text-xs text-gray-500 font-semibold">{t("Admin.database.optionGroupsCount", {}, "Groupes Opt.")}</p>
             <p className="text-lg font-black text-gray-900">{stats.optionGroups}</p>
           </div>
           <div className={`${card} p-3.5 space-y-1 text-center bg-gray-50/50`}>
             <Sliders className="w-4 h-4 text-indigo-600 mx-auto" />
-            <p className="text-xs text-gray-500 font-semibold">Options</p>
+            <p className="text-xs text-gray-500 font-semibold">{t("Admin.database.optionsCount", {}, "Options")}</p>
             <p className="text-lg font-black text-gray-900">{stats.options}</p>
           </div>
           <div className={`${card} p-3.5 space-y-1 text-center bg-gray-50/50`}>
             <Truck className="w-4 h-4 text-emerald-600 mx-auto" />
-            <p className="text-xs text-gray-500 font-semibold">Communes</p>
+            <p className="text-xs text-gray-500 font-semibold">{t("Admin.database.municipalitiesCount", {}, "Communes")}</p>
             <p className="text-lg font-black text-gray-900">{stats.municipalities}</p>
           </div>
           <div className={`${card} p-3.5 space-y-1 text-center bg-gray-50/50`}>
             <Receipt className="w-4 h-4 text-red-500 mx-auto" />
-            <p className="text-xs text-gray-500 font-semibold">Dépenses</p>
+            <p className="text-xs text-gray-500 font-semibold">{t("Admin.database.expensesCount", {}, "Dépenses")}</p>
             <p className="text-lg font-black text-gray-900">{stats.expenses}</p>
           </div>
           <div className={`${card} p-3.5 space-y-1 text-center bg-gray-50/50`}>
             <ShoppingBag className="w-4 h-4 text-purple-600 mx-auto" />
-            <p className="text-xs text-gray-500 font-semibold">Commandes</p>
+            <p className="text-xs text-gray-500 font-semibold">{t("Admin.database.ordersCount", {}, "Commandes")}</p>
             <p className="text-lg font-black text-gray-900">{stats.orders}</p>
           </div>
           {stats.comptes != null && (
             <div className={`${card} p-3.5 space-y-1 text-center bg-gray-50/50`}>
               <ShieldCheck className="w-4 h-4 text-emerald-600 mx-auto" />
-              <p className="text-xs text-gray-500 font-semibold">Comptes</p>
+              <p className="text-xs text-gray-500 font-semibold">{t("Admin.database.comptesCount", {}, "Comptes")}</p>
               <p className="text-lg font-black text-gray-900">{stats.comptes}</p>
             </div>
           )}
@@ -256,24 +255,27 @@ export default function DatabaseBackupPanel() {
                 <Download className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-extrabold text-gray-900">Exporter la Base de Données</h3>
-                <p className="text-xs text-gray-500">Sauvegarde complète au format JSON</p>
+                <h3 className="text-lg font-extrabold text-gray-900">
+                  {t("Admin.database.exportTitle", {}, "Exporter la Base de Données")}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {t("Admin.database.subtitle", {}, "Sauvegarde complète au format JSON")}
+                </p>
               </div>
             </div>
 
             <p className="text-sm text-gray-600 leading-relaxed">
-              Générez un fichier JSON sécurisé contenant l'intégralité de vos tables :
-              produits, catégories, options et suppléments, communes de livraison, registre des dépenses et historique complet des commandes.
+              {t("Admin.database.exportFullDesc", {}, "Générez un fichier JSON sécurisé contenant l'intégralité de vos tables : produits, catégories, options et suppléments, communes de livraison, registre des dépenses et historique complet des commandes.")}
             </p>
 
             <div className="p-4 rounded-2xl bg-orange-50/60 border border-orange-100 space-y-2 text-xs text-orange-950">
               <p className="font-bold flex items-center gap-1.5 text-orange-800">
-                <FileJson className="w-4 h-4" /> Format de sauvegarde standard :
+                <FileJson className="w-4 h-4" /> {t("Admin.database.formatStandard", {}, "Format de sauvegarde standard :")}
               </p>
-              <ul className="list-disc list-inside space-y-1 text-orange-900/90 pl-1">
-                <li>Compatible avec la fonction d'importation de cette application.</li>
-                <li>Horodaté avec métadonnées d'intégrité et compteurs vérifiés.</li>
-                <li>Préserve tous les identifiants, relations de catalogue et historiques.</li>
+              <ul className="list-disc list-inside space-y-1 text-orange-900/90 ps-1">
+                <li>{t("Admin.database.formatPoints.0", {}, "Compatible avec la fonction d'importation de cette application.")}</li>
+                <li>{t("Admin.database.formatPoints.1", {}, "Horodaté avec métadonnées d'intégrité et compteurs vérifiés.")}</li>
+                <li>{t("Admin.database.formatPoints.2", {}, "Préserve tous les identifiants, relations de catalogue et historiques.")}</li>
               </ul>
             </div>
           </div>
@@ -286,7 +288,9 @@ export default function DatabaseBackupPanel() {
               className={`${btnPrimary} w-full flex items-center justify-center gap-2.5 py-3 shadow-lg shadow-orange-500/25 text-sm`}
             >
               <Download className={`w-4 h-4 ${exporting ? "animate-bounce" : ""}`} />
-              {exporting ? "Génération du fichier..." : "Télécharger la Sauvegarde JSON"}
+              {exporting
+                ? t("Admin.database.generatingFile", {}, "Génération du fichier...")
+                : t("Admin.database.downloadBackup", {}, "Télécharger la Sauvegarde JSON")}
             </button>
           </div>
         </div>
@@ -299,8 +303,12 @@ export default function DatabaseBackupPanel() {
                 <Upload className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-extrabold text-gray-900">Restaurer / Importer un Fichier JSON</h3>
-                <p className="text-xs text-gray-500">Importez des données depuis une sauvegarde</p>
+                <h3 className="text-lg font-extrabold text-gray-900">
+                  {t("Admin.database.restoreTitle", {}, "Restaurer / Importer un Fichier JSON")}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {t("Admin.database.restoreSubtitle", {}, "Importez des données depuis une sauvegarde")}
+                </p>
               </div>
             </div>
 
@@ -312,10 +320,10 @@ export default function DatabaseBackupPanel() {
               >
                 <FileJson className="w-8 h-8 text-gray-400 group-hover:text-orange-500 transition mb-2" />
                 <span className="font-bold text-sm text-gray-700 group-hover:text-orange-600">
-                  {file ? file.name : "Cliquez pour sélectionner un fichier JSON"}
+                  {file ? file.name : t("Admin.database.dropzoneTitle", {}, "Cliquez pour sélectionner un fichier JSON")}
                 </span>
                 <span className="text-xs text-gray-400 mt-1">
-                  Format .json uniquement (ex: blackhousse-database-backup.json)
+                  {t("Admin.database.dropzoneHint", {}, "Format .json uniquement (ex: blackhousse-database-backup.json)")}
                 </span>
                 <input
                   id="db-file-input"
@@ -344,36 +352,40 @@ export default function DatabaseBackupPanel() {
                     {filePreview.name} ({filePreview.sizeKb} Ko)
                   </span>
                   {filePreview.exportedAt && (
-                    <span className="text-blue-700">Sauvegardé le {filePreview.exportedAt}</span>
+                    <span className="text-blue-700">
+                      {t("Admin.database.savedAt", { date: filePreview.exportedAt }, `Sauvegardé le ${filePreview.exportedAt}`)}
+                    </span>
                   )}
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-[11px] pt-1">
                   <div className="p-2 bg-white rounded-lg border border-blue-100 text-center">
-                    <p className="text-gray-500">Produits</p>
+                    <p className="text-gray-500">{t("Admin.database.productsCount", {}, "Produits")}</p>
                     <p className="font-bold text-gray-900">{filePreview.counts.products}</p>
                   </div>
                   <div className="p-2 bg-white rounded-lg border border-blue-100 text-center">
-                    <p className="text-gray-500">Catégories</p>
+                    <p className="text-gray-500">{t("Admin.database.categoriesCount", {}, "Catégories")}</p>
                     <p className="font-bold text-gray-900">{filePreview.counts.categories}</p>
                   </div>
                   <div className="p-2 bg-white rounded-lg border border-blue-100 text-center">
-                    <p className="text-gray-500">Dépenses</p>
+                    <p className="text-gray-500">{t("Admin.database.expensesCount", {}, "Dépenses")}</p>
                     <p className="font-bold text-gray-900">{filePreview.counts.expenses}</p>
                   </div>
                   <div className="p-2 bg-white rounded-lg border border-blue-100 text-center">
-                    <p className="text-gray-500">Commandes</p>
+                    <p className="text-gray-500">{t("Admin.database.ordersCount", {}, "Commandes")}</p>
                     <p className="font-bold text-gray-900">{filePreview.counts.orders}</p>
                   </div>
                   <div className="p-2 bg-white rounded-lg border border-blue-100 text-center">
-                    <p className="text-gray-500">Comptes</p>
+                    <p className="text-gray-500">{t("Admin.database.comptesCount", {}, "Comptes")}</p>
                     <p className="font-bold text-gray-900">{filePreview.counts.comptes ?? 0}</p>
                   </div>
                 </div>
 
                 {/* Import Mode Options */}
                 <div className="pt-2 space-y-2 border-t border-blue-200/60">
-                  <p className="text-xs font-bold text-blue-950">Mode d'importation :</p>
+                  <p className="text-xs font-bold text-blue-950">
+                    {t("Admin.database.importModeTitle", {}, "Mode d'importation :")}
+                  </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     <label
                       className={`p-3 rounded-xl border cursor-pointer transition flex items-start gap-2.5 ${
@@ -391,9 +403,9 @@ export default function DatabaseBackupPanel() {
                         className="mt-0.5 text-orange-600 focus:ring-orange-500"
                       />
                       <div>
-                        <p className="font-bold">Fusionner (Recommandé)</p>
+                        <p className="font-bold">{t("Admin.database.modeMergeTitle", {}, "Fusionner (Recommandé)")}</p>
                         <p className="text-[11px] text-gray-500 font-normal">
-                          Ajoute et met à jour sans supprimer les données existantes.
+                          {t("Admin.database.modeMergeDesc", {}, "Ajoute et met à jour sans supprimer les données existantes.")}
                         </p>
                       </div>
                     </label>
@@ -414,9 +426,9 @@ export default function DatabaseBackupPanel() {
                         className="mt-0.5 text-red-600 focus:ring-red-500"
                       />
                       <div>
-                        <p className="font-bold text-red-700">Remplacement complet</p>
+                        <p className="font-bold text-red-700">{t("Admin.database.modeReplaceTitle", {}, "Remplacement complet")}</p>
                         <p className="text-[11px] text-red-600/80 font-normal">
-                          Réinitialise et remplace par le contenu exact du fichier.
+                          {t("Admin.database.modeReplaceDesc", {}, "Réinitialise et remplace par le contenu exact du fichier.")}
                         </p>
                       </div>
                     </label>
@@ -430,17 +442,19 @@ export default function DatabaseBackupPanel() {
               <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2.5 text-xs text-emerald-900">
                 <div className="flex items-center gap-2 font-black text-emerald-800 text-sm">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-none" />
-                  <span>{importResult.message}</span>
+                  <span>{importResult.message || t("common.success", {}, "Opération réussie")}</span>
                 </div>
                 {importResult.counts && (
                   <p className="text-emerald-700">
-                    Éléments importés : {importResult.counts.products} produits, {importResult.counts.categories} catégories,{" "}
-                    {importResult.counts.expenses} dépenses, {importResult.counts.orders} commandes.
+                    {importResult.counts.products} {t("Admin.database.productsCount", {}, "produits")},{" "}
+                    {importResult.counts.categories} {t("Admin.database.categoriesCount", {}, "catégories")},{" "}
+                    {importResult.counts.expenses} {t("Admin.database.expensesCount", {}, "dépenses")},{" "}
+                    {importResult.counts.orders} {t("Admin.database.ordersCount", {}, "commandes")}.
                   </p>
                 )}
                 <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 font-semibold bg-emerald-100/70 border border-emerald-200/80 px-2.5 py-1 rounded-lg">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Séquences ID et clés primaires resynchronisées avec succès.</span>
+                  <span>{t("Admin.database.resyncSuccess", {}, "Séquences ID et clés primaires resynchronisées avec succès.")}</span>
                 </div>
               </div>
             )}
@@ -462,14 +476,14 @@ export default function DatabaseBackupPanel() {
               {importing ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  Traitement et insertion en cours...
+                  {t("Admin.database.importing", {}, "Traitement et insertion en cours...")}
                 </>
               ) : (
                 <>
                   <Upload className="w-4 h-4" />
                   {importMode === "replace"
-                    ? "Remplacer la Base par ce Fichier"
-                    : "Lancer l'Importation (Fusionner)"}
+                    ? t("Admin.database.importButtonReplace", {}, "Remplacer la Base par ce Fichier")
+                    : t("Admin.database.importButtonMerge", {}, "Lancer l'Importation (Fusionner)")}
                 </>
               )}
             </button>
@@ -480,7 +494,7 @@ export default function DatabaseBackupPanel() {
       {/* Confirmation Modal for Replace Mode */}
       {confirmReplaceModal && (
         <Modal
-          title="Attention : Remplacement complet de la base"
+          title={t("Admin.database.replaceWarningTitle", {}, "Attention : Remplacement complet de la base")}
           onClose={() => setConfirmReplaceModal(false)}
           footer={
             <>
@@ -490,7 +504,7 @@ export default function DatabaseBackupPanel() {
                 className={btnGhost}
                 disabled={importing}
               >
-                Annuler
+                {t("common.cancel", {}, "Annuler")}
               </button>
               <button
                 type="button"
@@ -499,7 +513,7 @@ export default function DatabaseBackupPanel() {
                 className={`${btnDanger} flex items-center gap-2`}
               >
                 {importing && <RefreshCw className="w-4 h-4 animate-spin" />}
-                Confirmer et Écraser la Base
+                {t("Admin.database.confirmReplace", {}, "Confirmer et Écraser la Base")}
               </button>
             </>
           }
@@ -508,15 +522,16 @@ export default function DatabaseBackupPanel() {
             <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-xs font-bold text-red-700 flex items-start gap-2.5">
               <AlertTriangle className="w-5 h-5 text-red-600 flex-none" />
               <div>
-                <p className="font-black text-red-800 text-sm">Action irréversible !</p>
+                <p className="font-black text-red-800 text-sm">
+                  {t("Admin.database.irreversibleAction", {}, "Action irréversible !")}
+                </p>
                 <p className="mt-1 font-normal text-red-700">
-                  Le mode « Remplacement complet » va vider toutes les collections existantes (produits, options, catégories, dépenses, commandes)
-                  pour les remplacer par celles présentes dans le fichier <strong>{filePreview?.name}</strong>.
+                  {t("Admin.database.replaceWarningDesc", { file: filePreview?.name }, `Le mode « Remplacement complet » va vider toutes les collections existantes (produits, options, catégories, dépenses, commandes) pour les remplacer par celles présentes dans le fichier ${filePreview?.name}.`)}
                 </p>
               </div>
             </div>
             <p className="text-xs text-gray-500">
-              Il est recommandé de faire une sauvegarde de précaution en cliquant sur « Télécharger la Sauvegarde JSON » avant de continuer.
+              {t("Admin.database.replaceWarningTip", {}, "Il est recommandé de faire une sauvegarde de précaution en cliquant sur « Télécharger la Sauvegarde JSON » avant de continuer.")}
             </p>
           </div>
         </Modal>
@@ -524,4 +539,3 @@ export default function DatabaseBackupPanel() {
     </section>
   );
 }
-

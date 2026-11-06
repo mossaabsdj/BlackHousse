@@ -11,16 +11,14 @@ import {
   Loader2,
   Search,
   Star,
-  Filter,
-  AlertCircle,
-  ThumbsUp,
-  ThumbsDown,
   Check,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { api, formatDate } from "./adminApi";
-import { card, inputClass, btnPrimary, btnGhost, btnDanger, Modal } from "./Ui";
+import { card, inputClass, btnGhost } from "./Ui";
 import { useRealtimeFeedback } from "@/lib/Firebase";
+import { useI18n } from "@/lib/i18n/I18nContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +43,7 @@ function Burgers({ value, className = "" }) {
 }
 
 export default function FeedbackPanel() {
+  const { t } = useI18n();
   const [statusFilter, setStatusFilter] = useState("ALL"); // ALL | PENDING | APPROVED | REJECTED
   const [ratingFilter, setRatingFilter] = useState("");
   const [search, setSearch] = useState("");
@@ -82,11 +81,11 @@ export default function FeedbackPanel() {
       setOverallStats(res.overallStats || { avg: 0, total: 0 });
     } catch (err) {
       console.error("[FeedbackPanel] fetch error:", err);
-      setError(err?.message || "Impossible de charger les avis.");
+      setError(err?.message || t("common.error", {}, "Impossible de charger les avis."));
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, ratingFilter, search, page, pageSize]);
+  }, [statusFilter, ratingFilter, search, page, pageSize, t]);
 
   useEffect(() => {
     loadData();
@@ -110,7 +109,7 @@ export default function FeedbackPanel() {
       // Reload counters
       loadData();
     } catch (err) {
-      alert(err?.message || "Erreur lors de la mise à jour du statut.");
+      alert(err?.message || t("common.error", {}, "Erreur lors de la mise à jour du statut."));
     } finally {
       setActionLoading((prev) => ({ ...prev, [id]: false }));
     }
@@ -126,7 +125,7 @@ export default function FeedbackPanel() {
       setDeletingId(null);
       loadData();
     } catch (err) {
-      setDeleteError(err?.message || "Erreur lors de la suppression de l'avis.");
+      setDeleteError(err?.message || t("common.error", {}, "Erreur lors de la suppression de l'avis."));
     } finally {
       setDeleteLoading(false);
     }
@@ -150,7 +149,7 @@ export default function FeedbackPanel() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-700">
-              En attente de modération
+              {t("Admin.feedback.pendingTitle", {}, "En attente de modération")}
             </span>
             <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
               <Clock className="w-5 h-5" />
@@ -158,12 +157,12 @@ export default function FeedbackPanel() {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-extrabold text-gray-900">{counts.pending}</span>
-            <span className="text-xs text-gray-500">avis à traiter</span>
+            <span className="text-xs text-gray-500">{t("Admin.feedback.pendingSub", {}, "avis à traiter")}</span>
           </div>
           {counts.pending > 0 && (
             <p className="text-[11px] font-semibold text-amber-700 mt-1 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              Action requise
+              {t("Admin.feedback.actionRequired", {}, "Action requise")}
             </p>
           )}
         </div>
@@ -180,7 +179,7 @@ export default function FeedbackPanel() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-              Commentaires approuvés
+              {t("Admin.feedback.approvedTitle", {}, "Commentaires approuvés")}
             </span>
             <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
               <CheckCircle2 className="w-5 h-5" />
@@ -188,9 +187,9 @@ export default function FeedbackPanel() {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-extrabold text-gray-900">{counts.approved}</span>
-            <span className="text-xs text-gray-500">visibles en ligne</span>
+            <span className="text-xs text-gray-500">{t("Admin.feedback.approvedSub", {}, "visibles en ligne")}</span>
           </div>
-          <p className="text-[11px] text-gray-500 mt-1">Affichés sur le site</p>
+          <p className="text-[11px] text-gray-500 mt-1">{t("Admin.feedback.displayedOnSite", {}, "Affichés sur le site")}</p>
         </div>
 
         {/* Rejetés */}
@@ -205,7 +204,7 @@ export default function FeedbackPanel() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-rose-700">
-              Commentaires rejetés
+              {t("Admin.feedback.rejectedTitle", {}, "Commentaires rejetés")}
             </span>
             <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
               <XCircle className="w-5 h-5" />
@@ -213,9 +212,9 @@ export default function FeedbackPanel() {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-extrabold text-gray-900">{counts.rejected}</span>
-            <span className="text-xs text-gray-500">masqués</span>
+            <span className="text-xs text-gray-500">{t("Admin.feedback.rejectedSub", {}, "masqués")}</span>
           </div>
-          <p className="text-[11px] text-gray-500 mt-1">Non visibles au public</p>
+          <p className="text-[11px] text-gray-500 mt-1">{t("Admin.feedback.hiddenFromPublic", {}, "Non visibles au public")}</p>
         </div>
 
         {/* Note globale moyenne */}
@@ -230,7 +229,7 @@ export default function FeedbackPanel() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-orange-700">
-              Note moyenne globale
+              {t("Admin.feedback.avgRatingTitle", {}, "Note moyenne globale")}
             </span>
             <div className="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
               <Star className="w-5 h-5 fill-orange-500 text-orange-500" />
@@ -240,11 +239,15 @@ export default function FeedbackPanel() {
             <span className="text-3xl font-extrabold text-gray-900">
               {overallStats.avg ? overallStats.avg.toFixed(1).replace(".", ",") : "0,0"}
             </span>
-            <span className="text-xs text-gray-500">/ 5 ({overallStats.total} notes)</span>
+            <span className="text-xs text-gray-500">
+              {t("Admin.feedback.ratingsCount", { count: overallStats.total }, `/ 5 (${overallStats.total} notes)`)}
+            </span>
           </div>
           <div className="mt-1 flex items-center gap-1.5">
             <Burgers value={overallStats.avg} className="text-xs" />
-            <span className="text-[10px] text-gray-500 font-medium">calculée sur toutes les notes</span>
+            <span className="text-[10px] text-gray-500 font-medium">
+              {t("Admin.feedback.calculatedOnAll", {}, "calculée sur toutes les notes")}
+            </span>
           </div>
         </div>
       </div>
@@ -254,10 +257,10 @@ export default function FeedbackPanel() {
         {/* Status Pills */}
         <div className="flex flex-wrap items-center gap-2">
           {[
-            { id: "ALL", label: "Tous", count: counts.total },
-            { id: "PENDING", label: "En attente", count: counts.pending },
-            { id: "APPROVED", label: "Approuvés", count: counts.approved },
-            { id: "REJECTED", label: "Rejetés", count: counts.rejected },
+            { id: "ALL", label: t("Admin.feedback.all", {}, "Tous"), count: counts.total },
+            { id: "PENDING", label: t("Admin.feedback.pending", {}, "En attente"), count: counts.pending },
+            { id: "APPROVED", label: t("Admin.feedback.approved", {}, "Approuvés"), count: counts.approved },
+            { id: "REJECTED", label: t("Admin.feedback.rejected", {}, "Rejetés"), count: counts.rejected },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -294,20 +297,20 @@ export default function FeedbackPanel() {
                 setRatingFilter(e.target.value);
                 setPage(1);
               }}
-              className={`${inputClass} text-xs py-2 pr-8 pl-3 font-semibold`}
+              className={`${inputClass} text-xs py-2 pe-8 ps-3 font-semibold`}
             >
-              <option value="">Toutes les notes</option>
-              <option value="5">5 burgers (🍔🍔🍔🍔🍔)</option>
-              <option value="4">4 burgers (🍔🍔🍔🍔)</option>
-              <option value="3">3 burgers (🍔🍔🍔)</option>
-              <option value="2">2 burgers (🍔🍔)</option>
-              <option value="1">1 burger (🍔)</option>
+              <option value="">{t("Admin.feedback.allRatings", {}, "Toutes les notes")}</option>
+              <option value="5">{t("Admin.feedback.nBurgers", { n: 5 }, "5 burgers")} (🍔🍔🍔🍔🍔)</option>
+              <option value="4">{t("Admin.feedback.nBurgers", { n: 4 }, "4 burgers")} (🍔🍔🍔🍔)</option>
+              <option value="3">{t("Admin.feedback.nBurgers", { n: 3 }, "3 burgers")} (🍔🍔🍔)</option>
+              <option value="2">{t("Admin.feedback.nBurgers", { n: 2 }, "2 burgers")} (🍔🍔)</option>
+              <option value="1">{t("Admin.feedback.singleBurger", {}, "1 burger")} (🍔)</option>
             </select>
           </div>
 
-          {/* Search input */}
+          {/* Search input with logical start positioning */}
           <div className="relative flex-1 sm:w-60">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             <input
               type="text"
               value={search}
@@ -315,8 +318,8 @@ export default function FeedbackPanel() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              placeholder="Rechercher client ou mot-clé..."
-              className={`${inputClass} pl-9 text-xs py-2`}
+              placeholder={t("Admin.feedback.searchPlaceholder", {}, "Rechercher client ou mot-clé...")}
+              className={`${inputClass} ps-9 pe-3 text-xs py-2`}
             />
           </div>
 
@@ -324,7 +327,8 @@ export default function FeedbackPanel() {
           <button
             type="button"
             onClick={loadData}
-            title="Rafraîchir"
+            title={t("Admin.feedback.refresh", {}, "Rafraîchir")}
+            aria-label={t("Admin.feedback.refresh", {}, "Rafraîchir")}
             className="p-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 transition"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
@@ -338,22 +342,22 @@ export default function FeedbackPanel() {
           <AlertCircle className="w-8 h-8 mx-auto" />
           <p className="font-bold">{error}</p>
           <button type="button" onClick={loadData} className={`${btnGhost} text-xs mt-2`}>
-            Réessayer
+            {t("common.retry", {}, "Réessayer")}
           </button>
         </div>
       ) : loading && items.length === 0 ? (
         <div className={`${card} p-12 text-center text-gray-500 space-y-3`}>
           <RefreshCw className="w-8 h-8 mx-auto animate-spin text-orange-500" />
-          <p className="text-sm font-semibold">Chargement des avis clients...</p>
+          <p className="text-sm font-semibold">{t("Admin.feedback.loadingReviews", {}, "Chargement des avis clients...")}</p>
         </div>
       ) : items.length === 0 ? (
         <div className={`${card} p-12 text-center text-gray-500 space-y-3`}>
           <MessageSquare className="w-10 h-10 mx-auto text-gray-300" />
-          <p className="text-base font-bold text-gray-700">Aucun avis trouvé</p>
+          <p className="text-base font-bold text-gray-700">{t("Admin.feedback.noReviewsFound", {}, "Aucun avis trouvé")}</p>
           <p className="text-xs text-gray-400 max-w-sm mx-auto">
             {statusFilter === "PENDING"
-              ? "Aucun commentaire en attente de modération pour le moment."
-              : "Aucun résultat ne correspond aux filtres appliqués."}
+              ? t("Admin.feedback.noReviewsPending", {}, "Aucun commentaire en attente de modération pour le moment.")
+              : t("Admin.feedback.noReviewsMatch", {}, "Aucun résultat ne correspond aux filtres appliqués.")}
           </p>
         </div>
       ) : (
@@ -363,17 +367,17 @@ export default function FeedbackPanel() {
 
             const statusBadge = {
               PENDING: {
-                label: "En attente",
+                label: t("Admin.feedback.pending", {}, "En attente"),
                 bg: "bg-amber-100 text-amber-700 border-amber-300",
                 icon: Clock,
               },
               APPROVED: {
-                label: "Approuvé",
+                label: t("Admin.feedback.approved", {}, "Approuvé"),
                 bg: "bg-emerald-100 text-emerald-700 border-emerald-300",
                 icon: CheckCircle2,
               },
               REJECTED: {
-                label: "Rejeté",
+                label: t("Admin.feedback.rejected", {}, "Rejeté"),
                 bg: "bg-rose-100 text-rose-700 border-rose-300",
                 icon: XCircle,
               },
@@ -443,7 +447,7 @@ export default function FeedbackPanel() {
                       </p>
                     ) : (
                       <p className="text-xs text-gray-400 italic">
-                        Aucun commentaire rédigé (note seule).
+                        {t("Admin.feedback.noComment", {}, "Aucun commentaire rédigé (note seule).")}
                       </p>
                     )}
                   </div>
@@ -459,10 +463,10 @@ export default function FeedbackPanel() {
                         disabled={isProcessing}
                         onClick={() => handleUpdateStatus(r.id, "APPROVED")}
                         className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-300 transition flex items-center gap-1.5 disabled:opacity-50"
-                        title="Approuver le commentaire (visible en ligne)"
+                        title={t("Admin.feedback.approveTitle", {}, "Approuver le commentaire (visible en ligne)")}
                       >
                         <Check className="w-3.5 h-3.5" />
-                        <span>Approuver</span>
+                        <span>{t("Admin.feedback.approve", {}, "Approuver")}</span>
                       </button>
                     )}
 
@@ -473,10 +477,10 @@ export default function FeedbackPanel() {
                         disabled={isProcessing}
                         onClick={() => handleUpdateStatus(r.id, "REJECTED")}
                         className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white border border-rose-300 transition flex items-center gap-1.5 disabled:opacity-50"
-                        title="Rejeter le commentaire (masqué)"
+                        title={t("Admin.feedback.rejectTitle", {}, "Rejeter le commentaire (masqué)")}
                       >
                         <X className="w-3.5 h-3.5" />
-                        <span>Rejeter</span>
+                        <span>{t("Admin.feedback.reject", {}, "Rejeter")}</span>
                       </button>
                     )}
                   </div>
@@ -489,7 +493,8 @@ export default function FeedbackPanel() {
                       setDeleteError("");
                     }}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
-                    title="Supprimer définitivement cet avis"
+                    title={t("Admin.feedback.delete", {}, "Supprimer définitivement cet avis")}
+                    aria-label={t("Admin.feedback.delete", {}, "Supprimer définitivement cet avis")}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -504,8 +509,8 @@ export default function FeedbackPanel() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-4 text-xs text-gray-600">
           <div>
-            Page <span className="font-bold text-gray-900">{page}</span> sur{" "}
-            <span className="font-bold text-gray-900">{totalPages}</span> ({total} avis au total)
+            {t("common.page", {}, "Page")} <span className="font-bold text-gray-900">{page}</span> {t("common.of", {}, "sur")}{" "}
+            <span className="font-bold text-gray-900">{totalPages}</span> ({t("Admin.feedback.totalReviews", { count: total }, `${total} avis au total`)})
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -514,7 +519,7 @@ export default function FeedbackPanel() {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               className={`${btnGhost} text-xs py-1.5 px-3 disabled:opacity-40`}
             >
-              Précédent
+              {t("common.prev", {}, "Précédent")}
             </button>
             <button
               type="button"
@@ -522,7 +527,7 @@ export default function FeedbackPanel() {
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               className={`${btnGhost} text-xs py-1.5 px-3 disabled:opacity-40`}
             >
-              Suivant
+              {t("common.next", {}, "Suivant")}
             </button>
           </div>
         </div>
@@ -533,11 +538,11 @@ export default function FeedbackPanel() {
         <AlertDialogContent className="bg-white border border-gray-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-gray-900 font-bold text-lg">
-              Confirmer la suppression
+              {t("Admin.feedback.deleteModalTitle", {}, "Confirmer la suppression")}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600 text-sm space-y-2">
               <span className="block">
-                Êtes-vous sûr de vouloir supprimer définitivement cet avis client ? Cette action est irréversible.
+                {t("Admin.feedback.deleteModalDesc", {}, "Êtes-vous sûr de vouloir supprimer définitivement cet avis client ? Cette action est irréversible.")}
               </span>
               {deleteError && (
                 <span className="block text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200">
@@ -551,7 +556,7 @@ export default function FeedbackPanel() {
               disabled={deleteLoading}
               className="border-gray-300 text-gray-700 hover:bg-gray-100"
             >
-              Annuler
+              {t("common.cancel", {}, "Annuler")}
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={deleteLoading}
@@ -559,7 +564,7 @@ export default function FeedbackPanel() {
               className="bg-red-600 text-white hover:bg-red-700 font-bold flex items-center gap-2"
             >
               {deleteLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-              <span>{deleteLoading ? "Suppression..." : "Supprimer définitivement"}</span>
+              <span>{deleteLoading ? t("common.deleting", {}, "Suppression...") : t("Admin.feedback.deletePermanent", {}, "Supprimer définitivement")}</span>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -567,4 +572,3 @@ export default function FeedbackPanel() {
     </div>
   );
 }
-

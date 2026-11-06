@@ -15,6 +15,7 @@ import {
   Layers,
   ImageOff,
   Check,
+  X,
 } from "lucide-react";
 import { api, formatPrice } from "./adminApi";
 import { Modal, Toggle, Badge, ErrorBox, btnGhost, btnPrimary, inputClass } from "./Ui";
@@ -83,7 +84,7 @@ export default function AvailabilityModal({ onClose }) {
       setOptionGroups(groupsRes?.items || []);
       setCategories(catRes?.items || []);
     } catch (err) {
-      setError(err.message || "Impossible de charger les données du catalogue.");
+      setError(err.message || t("Admin.availability.loadError", {}, "Impossible de charger les données du catalogue."));
     } finally {
       if (!silent) setLoading(false);
     }
@@ -136,7 +137,7 @@ export default function AvailabilityModal({ onClose }) {
         prev.map((p) => (p.id === product.id ? { ...p, available: !newAvailable } : p))
       );
       setActionError(
-        err.message || `Erreur lors de la mise à jour de « ${product.name} ».`
+        err.message || t("Admin.products.updateError", { name: product.name }, `Erreur lors de la mise à jour de « ${product.name} ».`)
       );
     } finally {
       setBusyIds((s) => {
@@ -176,7 +177,7 @@ export default function AvailabilityModal({ onClose }) {
         }))
       );
       setActionError(
-        err.message || `Erreur lors de la mise à jour de l'option « ${option.name} ».`
+        err.message || t("Admin.options.updateError", { name: option.name }, `Erreur lors de la mise à jour de l'option « ${option.name} ».`)
       );
     } finally {
       setBusyIds((s) => {
@@ -353,7 +354,7 @@ export default function AvailabilityModal({ onClose }) {
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                aria-label="Effacer"
+                aria-label={t("common.clear", {}, "Effacer")}
                 className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 <X className="w-4 h-4" />
@@ -431,9 +432,11 @@ export default function AvailabilityModal({ onClose }) {
             /* ================= TAB 1: PRODUCTS ================= */
             filteredProducts.length === 0 ? (
               <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200 space-y-1">
-                <p className="font-extrabold text-gray-700">Aucun produit trouvé</p>
+                <p className="font-extrabold text-gray-700">
+                  {t("Admin.availability.noProductsFound", {}, "Aucun produit trouvé")}
+                </p>
                 <p className="text-xs text-gray-500">
-                  Essayez de modifier votre recherche ou vos filtres.
+                  {t("Admin.availability.tryModifySearch", {}, "Essayez de modifier votre recherche ou vos filtres.")}
                 </p>
               </div>
             ) : (
@@ -488,13 +491,13 @@ export default function AvailabilityModal({ onClose }) {
                               <>
                                 <span>·</span>
                                 <span className="text-[11px] font-semibold text-gray-600">
-                                  {pGroups.length} groupe{pGroups.length > 1 ? "s" : ""} d'options
+                                  {t("Admin.availability.optionGroupsCount", { count: pGroups.length }, `${pGroups.length} groupe${pGroups.length > 1 ? "s" : ""} d'options`)}
                                 </span>
                               </>
                             )}
                             {hasUnavailableOptions && (
                               <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                                {unavailableOptions.length} option{unavailableOptions.length > 1 ? "s" : ""} épuisée{unavailableOptions.length > 1 ? "s" : ""}
+                                {t("Admin.availability.optionsCountOutOfStock", { count: unavailableOptions.length }, `${unavailableOptions.length} option${unavailableOptions.length > 1 ? "s" : ""} épuisée${unavailableOptions.length > 1 ? "s" : ""}`)}
                               </span>
                             )}
                           </div>
@@ -523,7 +526,7 @@ export default function AvailabilityModal({ onClose }) {
                             checked={p.available}
                             disabled={isProductBusy}
                             onChange={() => toggleProduct(p)}
-                            label={`Disponibilité de ${p.name}`}
+                            label={`${t("Admin.availability.available", {}, "Disponibilité de")} ${p.name}`}
                           />
                         </div>
 
@@ -532,14 +535,14 @@ export default function AvailabilityModal({ onClose }) {
                           <button
                             type="button"
                             onClick={() => toggleExpand(p.id)}
-                            aria-label={isExpanded ? "Replier les options" : "Déplier les options"}
+                            aria-label={isExpanded ? t("Admin.availability.collapseOptions", {}, "Replier les options") : t("Admin.availability.expandOptions", {}, "Déplier les options")}
                             className="p-1.5 rounded-xl border border-gray-200 hover:bg-gray-100 text-gray-600 transition"
-                            title={isExpanded ? "Replier les options" : "Déplier les options"}
+                            title={isExpanded ? t("Admin.availability.collapseOptions", {}, "Replier les options") : t("Admin.availability.expandOptions", {}, "Déplier les options")}
                           >
                             {isExpanded ? (
                               <ChevronDown className="w-4 h-4 text-orange-600" />
                             ) : (
-                              <ChevronRight className="w-4 h-4" />
+                              <ChevronRight className="w-4 h-4 rtl-flip" />
                             )}
                           </button>
                         )}
@@ -550,7 +553,7 @@ export default function AvailabilityModal({ onClose }) {
                     {pGroups.length > 0 && isExpanded && (
                       <div className="px-4 pb-4 pt-1 border-t border-gray-100 bg-gray-50/60 rounded-b-2xl space-y-3">
                         <p className="text-[11px] font-extrabold uppercase tracking-wider text-gray-500 pt-1">
-                          Options du produit :
+                          {t("Admin.availability.productOptions", {}, "Options du produit :")}
                         </p>
 
                         <div className="space-y-3">
@@ -564,7 +567,9 @@ export default function AvailabilityModal({ onClose }) {
                                   {g.name}
                                 </span>
                                 <span className="text-[10px] font-semibold text-gray-500">
-                                  {g.selection === "SINGLE" ? "Choix unique" : "Choix multiple"}
+                                  {g.selection === "SINGLE"
+                                    ? t("Admin.options.singleChoice", {}, "Choix unique")
+                                    : t("Admin.options.multipleChoices", {}, "Choix multiple")}
                                 </span>
                               </div>
 
@@ -610,7 +615,7 @@ export default function AvailabilityModal({ onClose }) {
                                           checked={o.available}
                                           disabled={isOptionBusy}
                                           onChange={() => toggleOption(o)}
-                                          label={`Disponibilité de l'option ${o.name}`}
+                                          label={`${t("Admin.availability.available", {}, "Disponibilité de l'option")} ${o.name}`}
                                         />
                                       </div>
                                     </li>
@@ -630,9 +635,11 @@ export default function AvailabilityModal({ onClose }) {
             /* ================= TAB 2: OPTION GROUPS ================= */
             filteredOptionGroups.length === 0 ? (
               <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200 space-y-1">
-                <p className="font-extrabold text-gray-700">Aucun groupe d'options trouvé</p>
+                <p className="font-extrabold text-gray-700">
+                  {t("Admin.availability.noGroupsFound", {}, "Aucun groupe d'options trouvé")}
+                </p>
                 <p className="text-xs text-gray-500">
-                  Essayez de modifier votre recherche ou vos filtres.
+                  {t("Admin.availability.tryModifySearch", {}, "Essayez de modifier votre recherche ou vos filtres.")}
                 </p>
               </div>
             ) : (
@@ -648,16 +655,18 @@ export default function AvailabilityModal({ onClose }) {
                         <h4 className="font-extrabold text-sm text-gray-900">{g.name}</h4>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
-                            {g.selection === "SINGLE" ? "Choix unique" : "Choix multiple"}
+                            {g.selection === "SINGLE"
+                              ? t("Admin.options.singleChoice", {}, "Choix unique")
+                              : t("Admin.options.multipleChoices", {}, "Choix multiple")}
                           </span>
                           {g.productCount > 0 && (
                             <span className="text-[10px] font-semibold text-gray-500">
-                              Utilisé par {g.productCount} produit{g.productCount > 1 ? "s" : ""}
+                              {t("Admin.availability.usedByProducts", { count: g.productCount }, `Utilisé par ${g.productCount} produit${g.productCount > 1 ? "s" : ""}`)}
                             </span>
                           )}
                           {unavailableInGroup.length > 0 && (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                              {unavailableInGroup.length} option{unavailableInGroup.length > 1 ? "s" : ""} en rupture
+                              {t("Admin.availability.outOfStockOptions", { count: unavailableInGroup.length }, `${unavailableInGroup.length} option${unavailableInGroup.length > 1 ? "s" : ""} en rupture`)}
                             </span>
                           )}
                         </div>
@@ -683,7 +692,7 @@ export default function AvailabilityModal({ onClose }) {
                                 {o.name}
                               </span>
                               <span className="text-gray-500 font-semibold">
-                                {o.price > 0 ? `+ ${formatPrice(o.price)}` : "gratuit"}
+                                {o.price > 0 ? `+ ${formatPrice(o.price)}` : t("common.free", {}, "gratuit")}
                               </span>
                             </div>
 
@@ -704,7 +713,7 @@ export default function AvailabilityModal({ onClose }) {
                                 checked={o.available}
                                 disabled={isOptionBusy}
                                 onChange={() => toggleOption(o)}
-                                label={`Disponibilité de ${o.name}`}
+                                label={`${t("Admin.availability.available", {}, "Disponibilité de")} ${o.name}`}
                               />
                             </div>
                           </li>
